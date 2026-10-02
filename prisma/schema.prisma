@@ -1,0 +1,492 @@
+// Prisma Schema for ESAAD (اصعد) SMM Platform
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  email        String   @unique
+  phone        String?
+  passwordHash String
+  role         String   @default("USER") // USER, RESELLER, ADMIN
+  status       String   @default("ACTIVE") // ACTIVE, DISABLED, SUSPENDED
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  wallet          Wallet?
+  orders          Order[]
+  payments        Payment[]
+  apiKeys         ApiKey[]
+  supportTickets  SupportTicket[]
+  supportMessages SupportMessage[]
+  notifications   Notification[]
+  couponUsages    CouponUsage[]
+  auditLogs       AuditLog[]      @relation("AdminAuditLogs")
+
+  @@map("users")
+}
+
+model Wallet {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  balance   Float    @default(0.0) // Balance in USD ($)
+  currency  String   @default("USD")
+  updatedAt DateTime @updatedAt
+
+  transactions WalletTransaction[]
+
+  @@map("wallets")
+}
+
+model WalletTransaction {
+  id          String   @id @default(cuid())
+  walletId    String
+  wallet      Wallet   @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  amount      Float    // Positive for credits, negative for debits
+  type        String   @default("DEPOSIT") // DEPOSIT, ORDER_PAYMENT, REFUND, ADJUSTMENT
+  status      String   @default("COMPLETED") // PENDING, COMPLETED, FAILED, CANCELED
+  referenceId String?  // Order ID, Payment ID, or Admin adjustment ID
+  description String
+  metadata    String?  // JSON string for extra audit details
+  createdAt   DateTime @default(now())
+
+  @@index([walletId])
+  @@index([type])
+  @@index([referenceId])
+  @@map("wallet_transactions")
+}
+
+model Platform {
+  id        String     @id @default(cuid())
+  name      String
+  nameAr    String
+  slug      String     @unique
+  icon      String     // Lucide icon name
+  status    Boolean    @default(true)
+  sortOrder Int        @default(0)
+  createdAt DateTime   @default(now())
+
+  categories Category[]
+
+  @@map("platforms")
+}
+
+model Category {
+  id         String    @id @default(cuid())
+  platformId String
+  platform   Platform  @relation(fields: [platformId], references: [id], onDelete: Cascade)
+  name       String
+  nameAr     String
+  slug       String
+  sortOrder  Int       @default(0)
+  status     Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+
+  services   Service[]
+
+  @@index([platformId])
+  @@map("categories")
+}
+
+model Service {
+  id                  String    @id @default(cuid())
+  categoryId          String
+  category            Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  name                String
+  nameAr              String?
+  description         String
+  minQuantity         Int       @default(100)
+  maxQuantity         Int       @default(100000)
+  pricePer1000        Float     // Selling price in USD
+  providerCostPer1000 Float     @default(0.0) // Best provider cost in USD
+  providerId          String?
+  provider            Provider? @relation(fields: [providerId], references: [id], onDelete: SetNull)
+  providerServiceId   String?   // Primary external service ID
+  speed               String?   // e.g. "10K-50K/يوم"
+  avgTime             String?   // e.g. "ساعة واحدة"
+  notes               String?
+  status              Boolean   @default(true)
+  sortOrder           Int       @default(0)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  orders           Order[]
+  serviceProviders ServiceProvider[]
+
+  @@index([categoryId])
+  @@index([providerId])
+  @@map("services")
+}
+
+model Provider {
+  id              String    @id @default(cuid())
+  name            String
+  apiUrl          String
+  apiKey          String    // Stored securely
+  type            String    @default("STANDARD_SMM_V2") // STANDARD_SMM_V2, MOCK, CUSTOM
+  status          Boolean   @default(true)
+  priority        Int       @default(1) // 1 = highest priority
+  successRate     Float     @default(100.0)
+  errorCount      Int       @default(0)
+  isPrimary       Boolean   @default(false)
+  balance         Float     @default(0.0)
+  balanceCurrency String    @default("USD")
+  lastSyncAt      DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  services         Service[]
+  providerServices ProviderService[]
+  serviceProviders ServiceProvider[]
+  orders           Order[]
+  syncLogs         SyncLog[]
+
+  @@map("providers")
+}
+
+model ProviderService {
+  id                String   @id @default(cuid())
+  providerId        String
+  provider          Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  externalServiceId String
+  name              String
+  category          String
+  rate              Float
+  min               Int
+  max               Int
+  type              String?
+  refill            Boolean  @default(false)
+  cancel            Boolean  @default(false)
+  status            Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt @default(now())
+
+  @@unique([providerId, externalServiceId])
+  @@map("provider_services")
+}
+
+model ServiceProvider {
+  id                String   @id @default(cuid())
+  serviceId         String
+  service           Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  providerId        String
+  provider          Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  externalServiceId String
+  costRate          Float    // Provider cost per 1000 in USD
+  min               Int      @default(10)
+  max               Int      @default(100000)
+  isPrimary         Boolean  @default(false)
+  isFallback        Boolean  @default(false)
+  refillSupported   Boolean  @default(false)
+  cancelSupported   Boolean  @default(false)
+  status            Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([serviceId, providerId])
+  @@index([serviceId])
+  @@index([providerId])
+  @@map("service_providers")
+}
+
+model PricingRule {
+  id          String   @id @default(cuid())
+  name        String
+  scope       String   @default("GLOBAL") // GLOBAL, PLATFORM, CATEGORY, SERVICE
+  targetId    String?  // ID of platform, category, or service
+  markupType  String   @default("PERCENTAGE") // PERCENTAGE (e.g. 50%), FIXED (e.g. $0.50)
+  markupValue Float    @default(50.0)
+  priority    Int      @default(0)
+  status      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([scope])
+  @@index([targetId])
+  @@map("pricing_rules")
+}
+
+model SyncLog {
+  id          String    @id @default(cuid())
+  providerId  String?
+  provider    Provider? @relation(fields: [providerId], references: [id], onDelete: SetNull)
+  syncType    String    // SERVICES, PRICES, STATUS, BALANCE
+  status      String    // SUCCESS, FAILED, PARTIAL
+  itemsCount  Int       @default(0)
+  durationMs  Int       @default(0)
+  errors      String?   // JSON error details
+  createdAt   DateTime  @default(now())
+
+  @@index([providerId])
+  @@index([syncType])
+  @@map("sync_logs")
+}
+
+model Order {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  serviceId       String
+  service         Service   @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+  targetUrl       String    // Target link or username
+  quantity        Int
+  price           Float     // Total price charged to user in USD
+  cost            Float     @default(0.0) // Total provider cost in USD
+  profit          Float     @default(0.0) // Total net profit in USD
+  status          String    @default("PENDING") // PENDING, PROCESSING, COMPLETED, PARTIAL, CANCELED, REFUNDED, FAILED
+  providerId      String?
+  provider        Provider? @relation(fields: [providerId], references: [id], onDelete: SetNull)
+  providerOrderId String?
+  startCount      Int       @default(0)
+  remains         Int       @default(0)
+  idempotencyKey  String?   @unique
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  events        OrderEvent[]
+  orderItems    OrderItem[]
+  statusHistory OrderStatusHistory[]
+
+  @@index([userId])
+  @@index([serviceId])
+  @@index([status])
+  @@map("orders")
+}
+
+model OrderStatusHistory {
+  id             String   @id @default(cuid())
+  orderId        String
+  order          Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  oldStatus      String?
+  newStatus      String
+  providerStatus String?
+  remarks        String?
+  createdAt      DateTime @default(now())
+
+  @@index([orderId])
+  @@map("order_status_history")
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  itemData  String   // JSON for extra items if needed
+  createdAt DateTime @default(now())
+
+  @@map("order_items")
+}
+
+model OrderEvent {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  eventType String   // e.g. "CREATED", "PAYMENT_CONFIRMED", "SENT_TO_PROVIDER", "STATUS_UPDATED", "REFUNDED"
+  message   String
+  data      String?  // JSON string
+  createdAt DateTime @default(now())
+
+  @@index([orderId])
+  @@map("order_events")
+}
+
+model PaymentMethod {
+  id             String   @id @default(cuid())
+  name           String
+  code           String   @unique // zain_cash, fastpay, fib, qi_card, manual, usdt
+  instructions   String
+  accountDetails String?  // Account number / phone number
+  minDeposit     Float    @default(5.0)
+  maxDeposit     Float    @default(5000.0)
+  feePercentage  Float    @default(0.0)
+  status         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+
+  payments Payment[]
+
+  @@map("payment_methods")
+}
+
+model Payment {
+  id              String        @id @default(cuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount          Float         // Amount in IQD
+  paymentMethodId String
+  paymentMethod   PaymentMethod @relation(fields: [paymentMethodId], references: [id], onDelete: Restrict)
+  status          String        @default("PENDING") // PENDING, APPROVED, REJECTED, EXPIRED
+  referenceNumber String?
+  proofImage      String?
+  notes           String?
+  approvedBy      String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@map("payments")
+}
+
+model ApiKey {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String
+  keyPrefix  String    // e.g. "es_live_..."
+  keyHash    String    @unique
+  rateLimit  Int       @default(60) // Requests per minute
+  status     Boolean   @default(true)
+  lastUsedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  usage ApiUsage[]
+
+  @@index([userId])
+  @@map("api_keys")
+}
+
+model ApiUsage {
+  id         String   @id @default(cuid())
+  apiKeyId   String
+  apiKey     ApiKey   @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+  endpoint   String
+  method     String
+  statusCode Int
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  @@index([apiKeyId])
+  @@map("api_usage")
+}
+
+model SupportTicket {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject   String
+  priority  String   @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  status    String   @default("OPEN") // OPEN, PENDING, ANSWERED, CLOSED
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  messages SupportMessage[]
+
+  @@index([userId])
+  @@index([status])
+  @@map("support_tickets")
+}
+
+model SupportMessage {
+  id         String        @id @default(cuid())
+  ticketId   String
+  ticket     SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  senderId   String
+  senderType String        @default("USER") // USER, ADMIN
+  message    String
+  createdAt  DateTime      @default(now())
+
+  sender User @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+  @@map("support_messages")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  type      String   @default("SYSTEM") // ORDER, WALLET, SUPPORT, SYSTEM, PROMO
+  isRead    Boolean  @default(false)
+  link      String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([isRead])
+  @@map("notifications")
+}
+
+model Coupon {
+  id             String    @id @default(cuid())
+  code           String    @unique
+  discountType   String    @default("PERCENTAGE") // PERCENTAGE, FIXED
+  discountValue  Float     // Percentage or Fixed amount
+  minOrderAmount Float     @default(0.0)
+  maxDiscount    Float?
+  maxUsage       Int       @default(100)
+  usedCount      Int       @default(0)
+  expiresAt      DateTime?
+  status         Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+
+  usages CouponUsage[]
+
+  @@map("coupons")
+}
+
+model CouponUsage {
+  id             String   @id @default(cuid())
+  couponId       String
+  coupon         Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orderId        String?
+  discountAmount Float
+  createdAt      DateTime @default(now())
+
+  @@index([couponId])
+  @@index([userId])
+  @@map("coupon_usage")
+}
+
+model Setting {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String
+  description String?
+  updatedAt   DateTime @updatedAt
+
+  @@map("settings")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  adminId    String
+  admin      User     @relation("AdminAuditLogs", fields: [adminId], references: [id], onDelete: Cascade)
+  action     String   // e.g. "BALANCE_ADJUSTMENT", "SERVICE_UPDATE", "PAYMENT_APPROVAL"
+  targetType String   // "USER", "ORDER", "SERVICE", "PAYMENT", "PROVIDER"
+  targetId   String?
+  details    String?  // JSON string
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  @@index([adminId])
+  @@index([action])
+  @@map("audit_logs")
+}
+
+model EmailOtp {
+  id        String   @id @default(cuid())
+  email     String
+  userId    String?
+  otpHash   String
+  purpose   String   // "LOGIN", "PASSWORD_RESET"
+  expiresAt DateTime
+  attempts  Int      @default(0) // Max 5 failed attempts
+  isUsed    Boolean  @default(false)
+  ipAddress String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email, purpose])
+  @@index([expiresAt])
+  @@map("email_otps")
+}
