@@ -13,7 +13,7 @@
     "prisma:studio": "prisma studio"
   },
   "prisma": {
-    "seed": "node --loader ts-node/esm prisma/seed.ts"
+    "seed": "node -r ts-node/register prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.21.1",
@@ -23,6 +23,7 @@
     "lucide-react": "^0.453.0",
     "next": "14.2.15",
     "nodemailer": "^10.0.10",
+    "pg": "^8.23.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "recharts": "^2.13.0",
