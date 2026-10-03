@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/db';
 import { authenticateApiKey } from '@/lib/api-auth';
 import { placeOrder } from '@/lib/order-engine';
+import { ProviderFactory } from '@/lib/providers/provider-factory';
 
 export async function POST(req: NextRequest) {
   try {
@@ -201,11 +202,29 @@ export async function POST(req: NextRequest) {
 
       const order = await db.order.findFirst({
         where: { id: orderId, userId: user.id },
+        include: { provider: true },
       });
 
       if (!order) {
         return NextResponse.json({ error: 'Incorrect order ID' }, { status: 404 });
       }
+
+      if (order.provider && order.providerOrderId) {
+        try {
+          const adapter = ProviderFactory.getAdapter(order.provider);
+          await adapter.refillOrder(order.providerOrderId);
+        } catch (e: any) {
+          console.warn(`[API Refill] Provider error for order ${order.id}:`, e.message);
+        }
+      }
+
+      await db.orderEvent.create({
+        data: {
+          orderId: order.id,
+          eventType: 'REFILL_REQUESTED',
+          message: 'تم طلب تعويض (Refill) عبر واجهة الـ API',
+        },
+      });
 
       return NextResponse.json({
         refill: order.id,
@@ -213,7 +232,7 @@ export async function POST(req: NextRequest) {
     }
 
     // -------------------------------------------------------------
-    // ACTION 6: cancel - Cancel order
+    // ACTION 6: cancel - Cancel order and process safe refund
     // -------------------------------------------------------------
     if (action === 'cancel') {
       const orderId = String(body.order || '').trim();
@@ -223,19 +242,78 @@ export async function POST(req: NextRequest) {
 
       const order = await db.order.findFirst({
         where: { id: orderId, userId: user.id },
+        include: { provider: true },
       });
 
       if (!order) {
         return NextResponse.json({ error: 'Incorrect order ID' }, { status: 404 });
       }
 
-      if (order.status !== 'PENDING') {
+      if (!['PENDING', 'PROCESSING'].includes(order.status)) {
         return NextResponse.json({ error: 'Order cannot be canceled in its current status' }, { status: 400 });
       }
 
-      await db.order.update({
-        where: { id: order.id },
-        data: { status: 'CANCELED' },
+      // If connected to provider, attempt provider cancel
+      if (order.provider && order.providerOrderId) {
+        try {
+          const adapter = ProviderFactory.getAdapter(order.provider);
+          const canceled = await adapter.cancelOrder(order.providerOrderId);
+          if (!canceled && order.status === 'PROCESSING') {
+            return NextResponse.json({ error: 'Provider rejected cancellation request' }, { status: 400 });
+          }
+        } catch (e: any) {
+          console.warn(`[API Cancel] Provider cancel call failed:`, e.message);
+        }
+      }
+
+      // Atomically update order and refund wallet
+      await db.$transaction(async (tx) => {
+        const current = await tx.order.findUnique({ where: { id: order.id } });
+        if (!current || ['CANCELED', 'REFUNDED'].includes(current.status)) return;
+
+        await tx.order.update({
+          where: { id: order.id },
+          data: { status: 'CANCELED', remains: order.quantity },
+        });
+
+        if (order.price > 0) {
+          const wallet = await tx.wallet.findUnique({ where: { userId: user.id } });
+          if (wallet) {
+            await tx.wallet.update({
+              where: { id: wallet.id },
+              data: { balance: { increment: order.price } },
+            });
+
+            await tx.walletTransaction.create({
+              data: {
+                walletId: wallet.id,
+                amount: order.price,
+                type: 'REFUND',
+                status: 'COMPLETED',
+                referenceId: order.id,
+                description: `استرجاع تلقائي لإلغاء الطلب #${order.id.slice(-6)} عبر API`,
+              },
+            });
+          }
+        }
+
+        await tx.orderEvent.create({
+          data: {
+            orderId: order.id,
+            eventType: 'CANCELED_REFUND',
+            message: `تم إلغاء الطلب عبر الـ API واسترجاع المبلغ ($${order.price.toFixed(2)}) إلى المحفظة.`,
+          },
+        });
+
+        await tx.orderStatusHistory.create({
+          data: {
+            orderId: order.id,
+            oldStatus: current.status,
+            newStatus: 'CANCELED',
+            providerStatus: 'Canceled',
+            remarks: 'Canceled via SMM API v2/v3',
+          },
+        });
       });
 
       return NextResponse.json({
