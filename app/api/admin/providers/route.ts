@@ -6,6 +6,9 @@ import { SyncEngine } from '@/lib/sync/sync-engine';
 import { logAdminAction } from '@/lib/audit';
 import { encryptText } from '@/lib/crypto';
 
+export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
+
 export async function GET() {
   try {
     await requireAdmin();

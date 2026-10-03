@@ -243,20 +243,29 @@ export default function AdminProvidersPage() {
         body: JSON.stringify({ action: 'sync_services', providerId: id }),
       });
 
-      const data = await res.json();
-      if (res.ok) {
+      const data = await res.json().catch(() => null);
+      if (res.ok && data?.success) {
         setActionMessage({ type: 'success', text: data.message });
         loadData();
       } else {
+        const errorMsg = data?.error || (res.status === 504
+          ? 'استغرقت المزامنة وقتاً طويلاً على الخادم، يجري إكمال سحب الخدمات في الخلفية.'
+          : res.statusText || 'فشلت المزامنة');
+
         setActionMessage({
           type: 'error',
-          text: data.error?.includes('Invalid API key')
+          text: errorMsg.includes('Invalid API key')
             ? 'فشلت المزامنة: يرجى وضع مفتاح API صالح من حسابك لدى المزود لبدء سحب الخدمات.'
-            : data.error || 'فشلت المزامنة',
+            : errorMsg,
         });
       }
-    } catch {
-      setActionMessage({ type: 'error', text: 'تعذر الاتصال بالمزود لمزامنة الخدمات' });
+    } catch (err: any) {
+      setActionMessage({
+        type: 'error',
+        text: err?.message?.includes('Failed to fetch')
+          ? 'تعذر الاتصال بالخادم، يرجى إعادة المحاولة بعد لحظات.'
+          : 'تعذر الاتصال بالمزود لمزامنة الخدمات',
+      });
     } finally {
       setSyncLoadingId(null);
     }
