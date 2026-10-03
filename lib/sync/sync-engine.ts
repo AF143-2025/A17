@@ -49,42 +49,213 @@ export class SyncEngine {
       // Keep track of active external IDs in this sync
       const activeExternalIds = new Set<string>();
 
-      // 1. In-memory caches for high-performance syncing of large catalogs
+      // 1. Parallel Preload of All Necessary Tables for Ultra-Fast Bulk Ingestion
+      const [
+        existingPlatforms,
+        existingCategories,
+        pricingRules,
+        existingProviderServices,
+        existingServices,
+        existingServiceProviders,
+      ] = await Promise.all([
+        db.platform.findMany(),
+        db.category.findMany(),
+        db.pricingRule.findMany({
+          where: { status: true },
+          orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
+        }),
+        db.providerService.findMany({
+          where: { providerId: provider.id },
+          select: {
+            externalServiceId: true,
+            rate: true,
+            min: true,
+            max: true,
+            name: true,
+            status: true,
+          },
+        }),
+        db.service.findMany({
+          where: {
+            OR: [
+              { providerId: provider.id },
+              { serviceProviders: { some: { providerId: provider.id } } },
+            ],
+          },
+          select: {
+            id: true,
+            name: true,
+            categoryId: true,
+            providerServiceId: true,
+            providerCostPer1000: true,
+          },
+        }),
+        db.serviceProvider.findMany({
+          where: { providerId: provider.id },
+          select: {
+            id: true,
+            serviceId: true,
+            costRate: true,
+            min: true,
+            max: true,
+            refillSupported: true,
+            cancelSupported: true,
+          },
+        }),
+      ]);
+
       const platformCache = new Map<string, any>();
-      const existingPlatforms = await db.platform.findMany();
       for (const p of existingPlatforms) {
         platformCache.set(p.slug, p);
       }
 
       const categoryCache = new Map<string, any>();
-      const existingCategories = await db.category.findMany();
       for (const c of existingCategories) {
         categoryCache.set(`${c.platformId}:${c.slug}`, c);
       }
 
-      // Preload active pricing rules
-      const pricingRules = await db.pricingRule.findMany({
-        where: { status: true },
-        orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
-      });
+      // 2. Discover and Bulk Create Missing Platforms
+      const missingPlatforms = new Map<string, { name: string; nameAr: string; slug: string; icon: string; status: boolean }>();
+      for (const ext of extServices) {
+        const { platformSlug, platformNameAr } = SyncEngine.classifyService(ext.category || '', ext.name || '');
+        if (!platformCache.has(platformSlug) && !missingPlatforms.has(platformSlug)) {
+          missingPlatforms.set(platformSlug, {
+            name: SyncEngine.formatPlatformName(platformSlug),
+            nameAr: platformNameAr,
+            slug: platformSlug,
+            icon: SyncEngine.getPlatformIcon(platformSlug),
+            status: true,
+          });
+        }
+      }
 
-      // Preload existing services mapped to this provider or its categories
-      const existingServices = await db.service.findMany({
-        where: {
-          OR: [
-            { providerId: provider.id },
-            { serviceProviders: { some: { providerId: provider.id } } },
-          ],
-        },
-        select: {
-          id: true,
-          name: true,
-          categoryId: true,
-          providerServiceId: true,
-          providerCostPer1000: true,
-        },
-      });
+      if (missingPlatforms.size > 0) {
+        await db.platform.createMany({
+          data: Array.from(missingPlatforms.values()),
+          skipDuplicates: true,
+        });
+        const refreshedPlatforms = await db.platform.findMany();
+        for (const p of refreshedPlatforms) {
+          platformCache.set(p.slug, p);
+        }
+      }
 
+      // 3. Discover and Bulk Create Missing Categories
+      const missingCategories = new Map<string, { platformId: string; name: string; nameAr: string; slug: string; status: boolean }>();
+      for (const ext of extServices) {
+        const { platformSlug, categorySlug, categoryNameAr } = SyncEngine.classifyService(ext.category || '', ext.name || '');
+        const platform = platformCache.get(platformSlug);
+        if (!platform) continue;
+        const catKey = `${platform.id}:${categorySlug}`;
+        if (!categoryCache.has(catKey) && !missingCategories.has(catKey)) {
+          missingCategories.set(catKey, {
+            platformId: platform.id,
+            name: categorySlug.replace(/-/g, ' '),
+            nameAr: categoryNameAr,
+            slug: categorySlug,
+            status: true,
+          });
+        }
+      }
+
+      if (missingCategories.size > 0) {
+        await db.category.createMany({
+          data: Array.from(missingCategories.values()),
+          skipDuplicates: true,
+        });
+        const refreshedCategories = await db.category.findMany();
+        for (const c of refreshedCategories) {
+          categoryCache.set(`${c.platformId}:${c.slug}`, c);
+        }
+      }
+
+      // 4. Bulk Process ProviderServices
+      const existingProviderServiceMap = new Map<string, any>();
+      for (const ps of existingProviderServices) {
+        existingProviderServiceMap.set(ps.externalServiceId, ps);
+      }
+
+      const providerServicesToCreate: any[] = [];
+      const providerServicesToUpdate: any[] = [];
+
+      for (const ext of extServices) {
+        const extId = String(ext.service);
+        activeExternalIds.add(extId);
+
+        const rate = parseFloat(String(ext.rate)) || 0;
+        const min = parseInt(String(ext.min), 10) || 1;
+        const max = parseInt(String(ext.max), 10) || 100000;
+        const name = String(ext.name || 'Service');
+        const category = String(ext.category || 'General');
+
+        const existing = existingProviderServiceMap.get(extId);
+        if (!existing) {
+          providerServicesToCreate.push({
+            providerId: provider.id,
+            externalServiceId: extId,
+            name,
+            category,
+            rate,
+            min,
+            max,
+            type: ext.type || null,
+            refill: Boolean(ext.refill),
+            cancel: Boolean(ext.cancel),
+            status: true,
+          });
+        } else if (
+          Math.abs(existing.rate - rate) > 0.0001 ||
+          existing.min !== min ||
+          existing.max !== max ||
+          existing.name !== name ||
+          existing.status !== true
+        ) {
+          providerServicesToUpdate.push({
+            providerId: provider.id,
+            externalServiceId: extId,
+            name,
+            category,
+            rate,
+            min,
+            max,
+            type: ext.type || null,
+            refill: Boolean(ext.refill),
+            cancel: Boolean(ext.cancel),
+            status: true,
+          });
+        }
+      }
+
+      // Ingest new provider services in chunks of 500
+      for (let i = 0; i < providerServicesToCreate.length; i += 500) {
+        await db.providerService.createMany({
+          data: providerServicesToCreate.slice(i, i + 500),
+          skipDuplicates: true,
+        });
+      }
+
+      // Update changed provider services in parallel batches
+      if (providerServicesToUpdate.length > 0) {
+        const BATCH_SIZE = 25;
+        for (let i = 0; i < providerServicesToUpdate.length; i += BATCH_SIZE) {
+          const batch = providerServicesToUpdate.slice(i, i + BATCH_SIZE);
+          await Promise.all(
+            batch.map((item) =>
+              db.providerService.update({
+                where: {
+                  providerId_externalServiceId: {
+                    providerId: item.providerId,
+                    externalServiceId: item.externalServiceId,
+                  },
+                },
+                data: item,
+              })
+            )
+          );
+        }
+      }
+
+      // 5. Bulk Map Services and ServiceProviders
       const serviceByExtId = new Map<string, any>();
       const serviceByNameAndCat = new Map<string, any>();
       for (const s of existingServices) {
@@ -92,210 +263,176 @@ export class SyncEngine {
         serviceByNameAndCat.set(`${s.categoryId}:::${s.name.trim().toLowerCase()}`, s);
       }
 
-      // Preload existing provider_services records for this provider
-      const existingProviderServices = await db.providerService.findMany({
-        where: { providerId: provider.id },
-        select: { externalServiceId: true },
-      });
-      const providerServiceSet = new Set(existingProviderServices.map((ps) => ps.externalServiceId));
+      const serviceProviderMap = new Map<string, any>();
+      for (const sp of existingServiceProviders) {
+        serviceProviderMap.set(sp.serviceId, sp);
+      }
 
-      // Preload existing service_providers mappings
-      const existingServiceProviders = await db.serviceProvider.findMany({
-        where: { providerId: provider.id },
-        select: { serviceId: true },
-      });
-      const serviceProviderSet = new Set(existingServiceProviders.map((sp) => sp.serviceId));
+      // Cuid-like unique ID generator for bulk inserted services
+      const generateCuid = () =>
+        `c${Date.now().toString(36)}${Math.random().toString(36).substring(2, 10)}${Math.random().toString(36).substring(2, 8)}`.slice(0, 25);
 
-      const getOrCreatePlatform = async (slug: string, nameAr: string, tx: any = db) => {
-        let p = platformCache.get(slug);
-        if (!p) {
-          p = await tx.platform.upsert({
-            where: { slug },
-            update: { nameAr },
-            create: {
-              name: SyncEngine.formatPlatformName(slug),
-              nameAr,
-              slug,
-              icon: SyncEngine.getPlatformIcon(slug),
-              status: true,
-            },
-          });
-          platformCache.set(slug, p);
+      const servicesToCreate: any[] = [];
+      const servicesToUpdateCost: { id: string; providerCostPer1000: number }[] = [];
+      const serviceProvidersToCreate: any[] = [];
+      const serviceProvidersToUpdate: any[] = [];
+
+      for (const ext of extServices) {
+        const extId = String(ext.service);
+        const rate = parseFloat(String(ext.rate)) || 0;
+        const min = parseInt(String(ext.min), 10) || 1;
+        const max = parseInt(String(ext.max), 10) || 100000;
+        const name = String(ext.name || 'Service');
+        const categoryName = String(ext.category || 'General');
+
+        const { platformSlug, categorySlug, categoryNameAr } = SyncEngine.classifyService(categoryName, name);
+        const platform = platformCache.get(platformSlug);
+        if (!platform) continue;
+        const category = categoryCache.get(`${platform.id}:${categorySlug}`);
+        if (!category) continue;
+
+        const catNameKey = `${category.id}:::${name.trim().toLowerCase()}`;
+        // Prioritize exact external ID mapping, otherwise match unassigned candidate by name & category
+        let service = serviceByExtId.get(extId);
+        if (!service) {
+          const candidate = serviceByNameAndCat.get(catNameKey);
+          if (candidate && !candidate.providerServiceId) {
+            service = candidate;
+            service.providerServiceId = extId;
+            serviceByExtId.set(extId, service);
+          }
         }
-        return p;
-      };
 
-      const getOrCreateCategory = async (platformId: string, slug: string, nameAr: string, tx: any = db) => {
-        const key = `${platformId}:${slug}`;
-        let c = categoryCache.get(key);
-        if (!c) {
-          c = await tx.category.findFirst({
-            where: { platformId, slug },
-          });
-          if (!c) {
-            c = await tx.category.create({
-              data: {
-                platformId,
-                name: slug.replace(/-/g, ' '),
-                nameAr,
-                slug,
-                status: true,
-              },
+        if (!service) {
+          const { customerPrice } = await calculateCustomerPrice(
+            {
+              providerCost: rate,
+              categoryId: category.id,
+              platformId: platform.id,
+            },
+            pricingRules
+          );
+
+          const newId = generateCuid();
+          const newService = {
+            id: newId,
+            categoryId: category.id,
+            name,
+            nameAr: name,
+            description: `خدمة ${categoryNameAr} عالية الجودة مع سرعة تسليم فورية واستقرار تام.`,
+            minQuantity: min,
+            maxQuantity: max,
+            pricePer1000: customerPrice,
+            providerCostPer1000: rate,
+            providerId: provider.id,
+            providerServiceId: extId,
+            speed: 'فوري ⚡',
+            avgTime: '15 دقيقة',
+            status: true,
+          };
+
+          servicesToCreate.push(newService);
+          service = newService;
+          serviceByExtId.set(extId, service);
+          serviceByNameAndCat.set(catNameKey, service);
+          newCount++;
+        } else {
+          if (Math.abs(service.providerCostPer1000 - rate) > 0.0001) {
+            servicesToUpdateCost.push({
+              id: service.id,
+              providerCostPer1000: rate,
             });
           }
-          categoryCache.set(key, c);
+          updatedCount++;
         }
-        return c;
-      };
 
-      // Process all services concurrently in parallel chunks for 15x speedup on Serverless/Cloud
-      const CONCURRENCY = 15;
-      for (let i = 0; i < extServices.length; i += CONCURRENCY) {
-        const chunk = extServices.slice(i, i + CONCURRENCY);
-        await Promise.all(
-          chunk.map(async (ext) => {
-            try {
-              const extId = String(ext.service);
-              activeExternalIds.add(extId);
+        const existingSp = serviceProviderMap.get(service.id);
+        if (!existingSp) {
+          const newSp = {
+            id: generateCuid(),
+            serviceId: service.id,
+            providerId: provider.id,
+            externalServiceId: extId,
+            costRate: rate,
+            min,
+            max,
+            isPrimary: provider.isPrimary,
+            refillSupported: Boolean(ext.refill),
+            cancelSupported: Boolean(ext.cancel),
+            status: true,
+          };
+          serviceProvidersToCreate.push(newSp);
+          serviceProviderMap.set(service.id, newSp);
+        } else if (
+          Math.abs(existingSp.costRate - rate) > 0.0001 ||
+          existingSp.min !== min ||
+          existingSp.max !== max ||
+          existingSp.refillSupported !== Boolean(ext.refill) ||
+          existingSp.cancelSupported !== Boolean(ext.cancel)
+        ) {
+          serviceProvidersToUpdate.push({
+            id: existingSp.id,
+            costRate: rate,
+            min,
+            max,
+            refillSupported: Boolean(ext.refill),
+            cancelSupported: Boolean(ext.cancel),
+          });
+        }
+      }
 
-              // 1. Upsert into provider_services table
-              if (providerServiceSet.has(extId)) {
-                await db.providerService.update({
-                  where: {
-                    providerId_externalServiceId: {
-                      providerId: provider.id,
-                      externalServiceId: extId,
-                    },
-                  },
-                  data: {
-                    name: ext.name,
-                    category: ext.category,
-                    rate: ext.rate,
-                    min: ext.min,
-                    max: ext.max,
-                    type: ext.type || null,
-                    refill: Boolean(ext.refill),
-                    cancel: Boolean(ext.cancel),
-                    status: true,
-                  },
-                });
-              } else {
-                await db.providerService.create({
-                  data: {
-                    providerId: provider.id,
-                    externalServiceId: extId,
-                    name: ext.name,
-                    category: ext.category,
-                    rate: ext.rate,
-                    min: ext.min,
-                    max: ext.max,
-                    type: ext.type || null,
-                    refill: Boolean(ext.refill),
-                    cancel: Boolean(ext.cancel),
-                    status: true,
-                  },
-                });
-                providerServiceSet.add(extId);
-              }
+      // Ingest new services in chunks of 500
+      for (let i = 0; i < servicesToCreate.length; i += 500) {
+        await db.service.createMany({
+          data: servicesToCreate.slice(i, i + 500),
+          skipDuplicates: true,
+        });
+      }
 
-              // 2. Identify Platform and Category
-              const { platformSlug, platformNameAr, categorySlug, categoryNameAr } =
-                this.classifyService(ext.category, ext.name);
+      // Ingest new service provider relations in chunks of 500
+      for (let i = 0; i < serviceProvidersToCreate.length; i += 500) {
+        await db.serviceProvider.createMany({
+          data: serviceProvidersToCreate.slice(i, i + 500),
+          skipDuplicates: true,
+        });
+      }
 
-              // 3. Ensure Platform exists (cached)
-              const platform = await getOrCreatePlatform(platformSlug, platformNameAr, db);
+      // Batch update changed service costs
+      if (servicesToUpdateCost.length > 0) {
+        const BATCH_SIZE = 25;
+        for (let i = 0; i < servicesToUpdateCost.length; i += BATCH_SIZE) {
+          const batch = servicesToUpdateCost.slice(i, i + BATCH_SIZE);
+          await Promise.all(
+            batch.map((item) =>
+              db.service.update({
+                where: { id: item.id },
+                data: { providerCostPer1000: item.providerCostPer1000 },
+              })
+            )
+          );
+        }
+      }
 
-              // 4. Ensure Category exists (cached)
-              const category = await getOrCreateCategory(platform.id, categorySlug, categoryNameAr, db);
-
-              // 5. Internal Service Mapping
-              const catNameKey = `${category.id}:::${ext.name.trim().toLowerCase()}`;
-              let service = serviceByExtId.get(extId) || serviceByNameAndCat.get(catNameKey);
-
-              if (!service) {
-                // Compute selling price using pricing engine with preloaded rules
-                const { customerPrice } = await calculateCustomerPrice(
-                  {
-                    providerCost: ext.rate,
-                    categoryId: category.id,
-                    platformId: platform.id,
-                  },
-                  pricingRules
-                );
-
-                service = await db.service.create({
-                  data: {
-                    categoryId: category.id,
-                    name: ext.name,
-                    nameAr: ext.name,
-                    description: `خدمة ${categoryNameAr} عالية الجودة مع سرعة تسليم فورية واستقرار تام.`,
-                    minQuantity: ext.min,
-                    maxQuantity: ext.max,
-                    pricePer1000: customerPrice,
-                    providerCostPer1000: ext.rate,
-                    providerId: provider.id,
-                    providerServiceId: extId,
-                    speed: 'فوري ⚡',
-                    avgTime: '15 دقيقة',
-                    status: true,
-                  },
-                });
-
-                serviceByExtId.set(extId, service);
-                serviceByNameAndCat.set(catNameKey, service);
-                newCount++;
-              } else {
-                // Update provider cost if changed
-                if (service.providerCostPer1000 !== ext.rate) {
-                  await db.service.update({
-                    where: { id: service.id },
-                    data: { providerCostPer1000: ext.rate },
-                  });
-                }
-                updatedCount++;
-              }
-
-              // 6. Upsert ServiceProvider link (Multi-Provider mapping)
-              if (serviceProviderSet.has(service.id)) {
-                await db.serviceProvider.update({
-                  where: {
-                    serviceId_providerId: {
-                      serviceId: service.id,
-                      providerId: provider.id,
-                    },
-                  },
-                  data: {
-                    externalServiceId: extId,
-                    costRate: ext.rate,
-                    min: ext.min,
-                    max: ext.max,
-                    refillSupported: Boolean(ext.refill),
-                    cancelSupported: Boolean(ext.cancel),
-                    status: true,
-                  },
-                });
-              } else {
-                await db.serviceProvider.create({
-                  data: {
-                    serviceId: service.id,
-                    providerId: provider.id,
-                    externalServiceId: extId,
-                    costRate: ext.rate,
-                    min: ext.min,
-                    max: ext.max,
-                    isPrimary: provider.isPrimary,
-                    refillSupported: Boolean(ext.refill),
-                    cancelSupported: Boolean(ext.cancel),
-                    status: true,
-                  },
-                });
-                serviceProviderSet.add(service.id);
-              }
-            } catch (itemErr) {
-              console.error(`Error syncing service ${ext.service} (${ext.name}):`, itemErr);
-            }
-          })
-        );
+      // Batch update changed service provider relations
+      if (serviceProvidersToUpdate.length > 0) {
+        const BATCH_SIZE = 25;
+        for (let i = 0; i < serviceProvidersToUpdate.length; i += BATCH_SIZE) {
+          const batch = serviceProvidersToUpdate.slice(i, i + BATCH_SIZE);
+          await Promise.all(
+            batch.map((item) =>
+              db.serviceProvider.update({
+                where: { id: item.id },
+                data: {
+                  costRate: item.costRate,
+                  min: item.min,
+                  max: item.max,
+                  refillSupported: item.refillSupported,
+                  cancelSupported: item.cancelSupported,
+                },
+              })
+            )
+          );
+        }
       }
 
       // 7. Mark missing provider services as inactive
