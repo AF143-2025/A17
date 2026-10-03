@@ -11,15 +11,20 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://esaad.social'),
   title: 'خدمات سوشيال ميديا سريعة وموثوقة',
   description: 'عزّز حضورك على منصات التواصل الاجتماعي مع خدمات احترافية، أسعار تنافسية، وتنفيذ سريع.',
   keywords: 'خدمات تواصل اجتماعي, زيادة متابعين إنستغرام, تيك توك, يوتيوب, فيسبوك, تيليجرام, تسويق رقمي, SMM, اصعد',
+  alternates: {
+    canonical: 'https://esaad.social',
+  },
   icons: {
     icon: '/favicon.ico',
   },
   openGraph: {
     title: 'خدمات سوشيال ميديا سريعة وموثوقة',
     description: 'عزّز حضورك على منصات التواصل الاجتماعي مع خدمات احترافية، أسعار تنافسية، وتنفيذ سريع.',
+    url: 'https://esaad.social',
     type: 'website',
     locale: 'ar_AR',
     siteName: 'خدمات سوشيال ميديا سريعة وموثوقة',
