@@ -20,11 +20,7 @@ export default function BottomNav() {
 
   return (
     <nav
-      className={`lg:hidden fixed bottom-0 left-0 right-0 z-40 ${
-        isNewOrder
-          ? 'bg-[#0c1017]/95 backdrop-blur-xl border-t border-slate-800'
-          : 'bg-white/95 backdrop-blur-xl border-t border-sky-100 shadow-2xl shadow-sky-900/10'
-      } px-2 py-1.5 transition-all select-none`}
+      className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-sky-100 px-2 py-1.5 shadow-2xl shadow-sky-900/10 transition-all select-none"
       style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 8px)' }}
     >
       <div className="flex items-center justify-around">
@@ -38,31 +34,11 @@ export default function BottomNav() {
               href={item.href}
               prefetch={true}
               className={`flex flex-col items-center py-1 px-3 rounded-xl transition-all active:scale-90 active:opacity-70 ${
-                isActive
-                  ? 'text-blue-500 font-bold'
-                  : isNewOrder
-                  ? 'text-slate-400 hover:text-slate-200'
-                  : 'text-slate-500 hover:text-slate-800'
+                isActive ? 'text-blue-600 font-bold' : 'text-slate-500 hover:text-slate-800'
               }`}
             >
-              <Icon
-                className={`w-5 h-5 ${
-                  isActive
-                    ? 'text-blue-500'
-                    : isNewOrder
-                    ? 'text-slate-400'
-                    : 'text-slate-500'
-                }`}
-              />
-              <span
-                className={`text-[11px] mt-1 ${
-                  isActive
-                    ? 'font-bold text-blue-500'
-                    : isNewOrder
-                    ? 'font-medium text-slate-400'
-                    : 'font-medium text-slate-600'
-                }`}
-              >
+              <Icon className={`w-5 h-5 ${isActive ? 'text-blue-600' : 'text-slate-500'}`} />
+              <span className={`text-[11px] mt-1 ${isActive ? 'font-bold text-blue-600' : 'font-medium'}`}>
                 {item.label}
               </span>
             </Link>
