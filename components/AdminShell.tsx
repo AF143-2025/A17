@@ -19,7 +19,6 @@ interface AdminShellProps {
 
 export default function AdminShell({ adminUser, children }: AdminShellProps) {
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
-  const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
   const pathname = usePathname();
 
   const pageTitles: Record<string, string> = {
@@ -37,14 +36,6 @@ export default function AdminShell({ adminUser, children }: AdminShellProps) {
 
   const currentTitle = pageTitles[pathname] || 'لوحة التحكم';
 
-  const handleHamburgerToggle = () => {
-    if (typeof window !== 'undefined' && window.innerWidth < 768) {
-      setMobileDrawerOpen((prev) => !prev);
-    } else {
-      setDesktopSidebarOpen((prev) => !prev);
-    }
-  };
-
   const handleLogout = async () => {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
@@ -60,21 +51,17 @@ export default function AdminShell({ adminUser, children }: AdminShellProps) {
       <AdminSidebar
         isOpen={mobileDrawerOpen}
         onClose={() => setMobileDrawerOpen(false)}
-        desktopOpen={desktopSidebarOpen}
+        desktopOpen={true}
         adminUser={adminUser}
       />
 
-      {/* Main Content Area (dynamic padding when desktop sidebar is open) */}
-      <div
-        className={`flex-1 flex flex-col min-h-screen transition-all duration-300 ${
-          desktopSidebarOpen ? 'md:pr-60' : 'md:pr-0'
-        }`}
-      >
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-h-screen md:pr-60 transition-all duration-300">
         {/* Top Header */}
         <header className="sticky top-0 z-30 h-16 bg-white/90 backdrop-blur-md border-b border-sky-100 px-4 sm:px-6 flex items-center justify-between shadow-sm">
           {/* Right Side (in RTL): Title & Logo */}
           <div className="flex items-center gap-3">
-            <div className={desktopSidebarOpen ? 'md:hidden' : 'block'}>
+            <div className="md:hidden">
               <Logo size="sm" href="/admin" showTagline={false} />
             </div>
 
@@ -106,12 +93,12 @@ export default function AdminShell({ adminUser, children }: AdminShellProps) {
               <span>خروج</span>
             </button>
 
-            {/* ☰ Three-line hamburger icon on the LEFT */}
+            {/* ☰ Three-line hamburger icon ONLY ON MOBILE (hidden on laptops: md:hidden) */}
             <button
-              onClick={handleHamburgerToggle}
-              className="p-2.5 rounded-xl bg-sky-50 border border-sky-200 text-slate-700 hover:text-slate-900 hover:bg-sky-100 transition flex items-center justify-center shadow-sm"
-              title="القائمة الجانبية"
-              aria-label="القائمة الجانبية"
+              onClick={() => setMobileDrawerOpen(true)}
+              className="md:hidden p-2.5 rounded-xl bg-sky-50 border border-sky-200 text-slate-700 hover:text-slate-900 hover:bg-sky-100 transition flex items-center justify-center shadow-sm"
+              title="القائمة"
+              aria-label="القائمة"
             >
               <Menu className="w-5 h-5 text-blue-600" />
             </button>
