@@ -1,10 +1,9 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
-  ArrowRight,
   ArrowUpRight,
   Wallet,
   Clock,
@@ -18,7 +17,6 @@ import {
   Loader2,
   Zap,
 } from 'lucide-react';
-import NotificationDropdown from '@/components/NotificationDropdown';
 import PlatformBrandIcon from '@/components/PlatformBrandIcon';
 
 interface Service {
@@ -51,7 +49,6 @@ interface Platform {
 }
 
 export default function NewOrderPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
 
   const [platforms, setPlatforms] = useState<Platform[]>([]);
@@ -252,30 +249,7 @@ export default function NewOrderPage() {
   }
 
   return (
-    <div className="max-w-xl mx-auto space-y-4 pb-20 animate-in fade-in duration-200 font-sans">
-      {/* ========================================================================= */}
-      {/* 1. Header: زر رجوع يميناً، "طلب جديد" بالوسط، وجرس الإشعارات يساراً          */}
-      {/* ========================================================================= */}
-      <div className="flex items-center justify-between py-1">
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="w-10 h-10 rounded-2xl bg-white border border-sky-100 flex items-center justify-center text-slate-700 hover:text-slate-900 shadow-xs active:scale-95 transition"
-          title="رجوع"
-          aria-label="رجوع"
-        >
-          <ArrowRight className="w-5 h-5" />
-        </button>
-
-        <h1 className="text-base sm:text-lg font-black text-slate-900">
-          طلب جديد
-        </h1>
-
-        <div className="w-10 h-10 flex items-center justify-center">
-          <NotificationDropdown />
-        </div>
-      </div>
-
+    <div className="max-w-xl mx-auto space-y-3.5 pb-36 animate-in fade-in duration-200 font-sans">
       {/* Success Notification Banner */}
       {successOrder && (
         <div className="p-4 sm:p-5 rounded-3xl bg-emerald-50 border border-emerald-200 shadow-xs flex flex-col gap-3 animate-in zoom-in-95">
@@ -320,7 +294,7 @@ export default function NewOrderPage() {
 
       <form onSubmit={handleSubmit} className="space-y-3.5">
         {/* ========================================================================= */}
-        {/* 2. Top Selected Service Card (بطاقة الخدمة المختارة)                        */}
+        {/* 1. Top Selected Service Card (بطاقة الخدمة المختارة)                        */}
         {/* ========================================================================= */}
         {currentService && (
           <div className="rounded-3xl bg-white p-4 sm:p-5 border border-sky-100 shadow-xs space-y-3.5">
@@ -412,7 +386,7 @@ export default function NewOrderPage() {
         )}
 
         {/* ========================================================================= */}
-        {/* 3. Target URL / Account Card (رابط الحساب أو اسم المستخدم)                 */}
+        {/* 2. Target URL / Account Card (رابط الحساب أو اسم المستخدم)                 */}
         {/* ========================================================================= */}
         <div className="rounded-3xl bg-white p-4 sm:p-5 border border-sky-100 shadow-xs space-y-2.5">
           <div className="flex items-center gap-2 text-xs font-bold text-slate-900">
@@ -435,7 +409,7 @@ export default function NewOrderPage() {
         </div>
 
         {/* ========================================================================= */}
-        {/* 4. Quantity Card (الكمية المطلوبة)                                       */}
+        {/* 3. Quantity Card (الكمية المطلوبة)                                       */}
         {/* ========================================================================= */}
         {currentService && (
           <div className="rounded-3xl bg-white p-4 sm:p-5 border border-sky-100 shadow-xs space-y-2.5">
@@ -466,7 +440,7 @@ export default function NewOrderPage() {
         )}
 
         {/* ========================================================================= */}
-        {/* 5. Order Summary Card (ملخص الطلب)                                       */}
+        {/* 4. Order Summary Card (ملخص الطلب)                                       */}
         {/* ========================================================================= */}
         <div className="rounded-3xl bg-white p-4 sm:p-5 border border-sky-100 shadow-xs space-y-3.5">
           <div className="flex items-center gap-1.5 text-xs font-bold text-amber-600">
@@ -519,43 +493,45 @@ export default function NewOrderPage() {
         </div>
 
         {/* ========================================================================= */}
-        {/* 6. Action Footer Bar (التكلفة الإجمالية وزر التأكيد أو الشحن)               */}
+        {/* 5. Floating Fixed Action Bar above BottomNav (مطابق تماماً للصورة)         */}
         {/* ========================================================================= */}
-        <div className="space-y-2 pt-2">
-          <div className="flex items-center justify-between px-1">
-            <span className="text-xs font-bold text-slate-500">التكلفة الإجمالية</span>
-            <span className="text-lg font-black text-rose-600 font-sans">
-              ${calculatedPrice.toFixed(4)}
-            </span>
-          </div>
+        <div className="fixed bottom-14 sm:bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-sky-100 shadow-xl p-3 sm:p-4">
+          <div className="max-w-xl mx-auto space-y-2">
+            <div className="flex items-center justify-between px-1">
+              <span className="text-xs font-bold text-slate-500">التكلفة الإجمالية</span>
+              <span className="text-lg font-black text-rose-600 font-sans">
+                ${calculatedPrice.toFixed(4)}
+              </span>
+            </div>
 
-          {!isBalanceSufficient ? (
-            <Link
-              href="/wallet#deposit-section"
-              className="w-full py-3.5 rounded-2xl bg-amber-400 hover:bg-amber-500 active:bg-amber-500 text-slate-950 font-black text-sm flex items-center justify-center gap-2 shadow-md transition active:scale-95"
-            >
-              <Wallet className="w-4 h-4" />
-              <span>اشحن رصيدك أولاً</span>
-            </Link>
-          ) : (
-            <button
-              type="submit"
-              disabled={submitting}
-              className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:opacity-95 text-white font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25 transition active:scale-95 disabled:opacity-50 cursor-pointer"
-            >
-              {submitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>جاري تأكيد الطلب...</span>
-                </>
-              ) : (
-                <>
-                  <Zap className="w-4 h-4" />
-                  <span>تأكيد الطلب ⚡</span>
-                </>
-              )}
-            </button>
-          )}
+            {!isBalanceSufficient ? (
+              <Link
+                href="/wallet#deposit-section"
+                className="w-full py-3.5 rounded-2xl bg-amber-400 hover:bg-amber-500 active:bg-amber-500 text-slate-950 font-black text-sm flex items-center justify-center gap-2 shadow-md transition active:scale-95"
+              >
+                <Wallet className="w-4 h-4" />
+                <span>اشحن رصيدك أولاً</span>
+              </Link>
+            ) : (
+              <button
+                type="submit"
+                disabled={submitting}
+                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:opacity-95 text-white font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25 transition active:scale-95 disabled:opacity-50 cursor-pointer"
+              >
+                {submitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>جاري تأكيد الطلب...</span>
+                  </>
+                ) : (
+                  <>
+                    <Zap className="w-4 h-4" />
+                    <span>تأكيد الطلب ⚡</span>
+                  </>
+                )}
+              </button>
+            )}
+          </div>
         </div>
       </form>
     </div>

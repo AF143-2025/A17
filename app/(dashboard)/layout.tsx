@@ -7,9 +7,8 @@ import db from '@/lib/db';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { PlusCircle } from 'lucide-react';
-import Logo from '@/components/Logo';
 import HeaderLogout from '@/components/HeaderLogout';
-import UserDropdownMenu from '@/components/UserDropdownMenu';
+import DashboardHeader from '@/components/DashboardHeader';
 
 export default async function DashboardLayout({
   children,
@@ -63,49 +62,16 @@ export default async function DashboardLayout({
 
       {/* Main Content Area */}
       <div className="lg:pr-64 flex-1 flex flex-col min-h-screen pb-28 lg:pb-8">
-        {/* Top Navbar Header */}
-        <header className="sticky top-0 z-30 h-16 sm:h-20 bg-white/95 backdrop-blur-xl border-b-0 lg:border-b lg:border-sky-100 px-4 sm:px-8 flex items-center justify-between shadow-xs lg:shadow-sm">
-          {/* Mobile Header: Logo on Right, Notification on Left (NO hamburger icon) */}
-          <div className="lg:hidden flex items-center justify-between w-full">
-            <Logo size="sm" href="/dashboard" showTagline={false} />
-            <NotificationDropdown />
-          </div>
-
-          {/* Desktop Header */}
-          <div className="hidden lg:flex items-center justify-between w-full">
-            <div className="flex items-center gap-3">
-              <h1 className="text-lg font-black text-slate-900">
-                مرحباً، <span className="text-blue-600">{user.username}</span> 👋
-              </h1>
-              <p className="text-xs text-slate-500">لوحة تحكم الخدمات والنمو الرقمي</p>
-            </div>
-
-            <div className="flex items-center gap-3">
-              {/* Quick New Order Button */}
-              <Link
-                href="/new-order"
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-xs font-bold text-white shadow-md shadow-blue-500/20 hover:opacity-95 transition"
-              >
-                <PlusCircle className="w-4 h-4" />
-                <span>طلب جديد ⚡</span>
-              </Link>
-
-              {/* Notification Bell */}
-              <NotificationDropdown />
-
-              {/* User Dropdown */}
-              <UserDropdownMenu
-                user={{
-                  id: user.id,
-                  username: user.username,
-                  email: user.email,
-                  role: user.role,
-                }}
-                balance={balance}
-              />
-            </div>
-          </div>
-        </header>
+        {/* Dashboard Header */}
+        <DashboardHeader
+          user={{
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            role: user.role,
+          }}
+          balance={balance}
+        />
 
         {/* Page Content */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
