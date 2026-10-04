@@ -65,32 +65,8 @@ export default async function DashboardLayout({
       <div className="lg:pr-64 flex-1 flex flex-col min-h-screen pb-28 lg:pb-8">
         {/* Top Navbar Header */}
         <header className="sticky top-0 z-30 h-16 sm:h-20 bg-white/90 backdrop-blur-xl border-b border-sky-100 px-4 sm:px-8 flex items-center justify-between shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="lg:hidden">
-              <Logo size="sm" href="/dashboard" showTagline={false} />
-            </div>
-            <div className="hidden lg:block">
-              <h1 className="text-lg font-black text-slate-900">
-                مرحباً، <span className="text-blue-600">{user.username}</span> 👋
-              </h1>
-              <p className="text-xs text-slate-500">لوحة تحكم الخدمات والنمو الرقمي</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 sm:gap-3">
-            {/* Quick New Order Button */}
-            <Link
-              href="/new-order"
-              className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-xs font-bold text-white shadow-md shadow-blue-500/20 hover:opacity-95 transition transform active:scale-95"
-            >
-              <PlusCircle className="w-4 h-4" />
-              <span>طلب جديد ⚡</span>
-            </Link>
-
-            {/* Notification Bell */}
-            <NotificationDropdown />
-
-            {/* ☰ Three-Lines Hamburger Menu Button */}
+          {/* Mobile Header: Hamburger on Right, Logo in Center, Bell on Left */}
+          <div className="lg:hidden flex items-center justify-between w-full">
             <UserDropdownMenu
               user={{
                 id: user.id,
@@ -100,6 +76,47 @@ export default async function DashboardLayout({
               }}
               balance={balance}
             />
+
+            <div className="flex items-center justify-center">
+              <Logo size="sm" href="/dashboard" showTagline={false} />
+            </div>
+
+            <NotificationDropdown />
+          </div>
+
+          {/* Desktop Header */}
+          <div className="hidden lg:flex items-center justify-between w-full">
+            <div className="flex items-center gap-3">
+              <h1 className="text-lg font-black text-slate-900">
+                مرحباً، <span className="text-blue-600">{user.username}</span> 👋
+              </h1>
+              <p className="text-xs text-slate-500">لوحة تحكم الخدمات والنمو الرقمي</p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              {/* Quick New Order Button */}
+              <Link
+                href="/new-order"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-xs font-bold text-white shadow-md shadow-blue-500/20 hover:opacity-95 transition"
+              >
+                <PlusCircle className="w-4 h-4" />
+                <span>طلب جديد ⚡</span>
+              </Link>
+
+              {/* Notification Bell */}
+              <NotificationDropdown />
+
+              {/* User Dropdown */}
+              <UserDropdownMenu
+                user={{
+                  id: user.id,
+                  username: user.username,
+                  email: user.email,
+                  role: user.role,
+                }}
+                balance={balance}
+              />
+            </div>
           </div>
         </header>
 
