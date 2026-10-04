@@ -165,7 +165,7 @@ export default function LandingPage() {
       <Navbar />
 
       {/* Hero Section */}
-      <section id="hero" className="relative pt-32 pb-20 md:pt-40 md:pb-28 overflow-hidden">
+      <section id="hero" className="relative pt-24 pb-16 md:pt-28 md:pb-20 lg:pt-24 lg:pb-16 overflow-hidden">
         {/* Background ambient glow effects */}
         <div className="absolute top-1/4 right-1/2 translate-x-1/2 -translate-y-1/2 w-[36rem] h-[36rem] bg-sky-200/40 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute top-1/3 left-10 w-96 h-96 bg-blue-200/30 rounded-full blur-3xl pointer-events-none" />
@@ -191,7 +191,7 @@ export default function LandingPage() {
           <div className="mt-6 flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-xs sm:text-sm text-slate-700 max-w-3xl">
             <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white border border-sky-100 text-slate-800 shadow-sm backdrop-blur-md">
               <Zap className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-              <span>بدء فوري خلال 5 دقائق</span>
+              <span>بدء فوري خلال دقائق</span>
             </span>
             <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white border border-sky-100 text-slate-800 shadow-sm backdrop-blur-md">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />

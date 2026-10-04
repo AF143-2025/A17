@@ -1,15 +1,15 @@
 import React from 'react';
-import { Rocket, Zap, ShieldCheck } from 'lucide-react';
+import { Rocket } from 'lucide-react';
 
 export default function HeroAnimatedLogo() {
   return (
-    <div className="relative flex flex-col items-center justify-center my-4 select-none">
+    <div className="relative flex flex-col items-center justify-center my-2 select-none">
       {/* Outer ambient glow circles */}
       <div className="absolute w-72 h-72 rounded-full bg-blue-600/20 blur-3xl pointer-events-none animate-pulse-glow" />
       <div className="absolute w-48 h-48 rounded-full bg-cyan-500/15 blur-2xl pointer-events-none" />
 
       {/* Main orbital container */}
-      <div className="relative w-40 h-40 sm:w-48 sm:h-48 flex items-center justify-center">
+      <div className="relative w-40 h-40 sm:w-44 sm:h-44 flex items-center justify-center">
         
         {/* Outer rotating dashed ring */}
         <div className="absolute inset-0 rounded-full border-2 border-dashed border-blue-500/30 animate-spin-slow pointer-events-none" />
@@ -46,18 +46,6 @@ export default function HeroAnimatedLogo() {
               ESAAD
             </span>
           </div>
-        </div>
-
-        {/* Left Floating Micro-Badge */}
-        <div className="hidden sm:flex absolute -left-8 top-1/2 -translate-y-1/2 items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-sky-100 text-slate-800 text-[11px] font-bold shadow-lg shadow-sky-200/50 backdrop-blur-md animate-bounce [animation-duration:5s]">
-          <Zap className="w-3.5 h-3.5 text-amber-500" />
-          <span>تنفيذ فوري</span>
-        </div>
-
-        {/* Right Floating Micro-Badge */}
-        <div className="hidden sm:flex absolute -right-8 top-1/2 -translate-y-1/2 items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-sky-100 text-slate-800 text-[11px] font-bold shadow-lg shadow-sky-200/50 backdrop-blur-md animate-bounce [animation-duration:6s] [animation-delay:1s]">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-          <span>جودة مضمونة</span>
         </div>
       </div>
     </div>
