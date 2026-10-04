@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, ListOrdered, Wallet, Bell, Menu } from 'lucide-react';
+import { Home, ListOrdered, Wallet, Bell, User } from 'lucide-react';
 
 export default function BottomNav() {
   const pathname = usePathname();
@@ -13,7 +13,7 @@ export default function BottomNav() {
     { label: 'طلباتي', href: '/orders', icon: ListOrdered },
     { label: 'شحن', href: '/wallet', icon: Wallet },
     { label: 'الإشعارات', href: '/support', icon: Bell },
-    { label: 'المزيد', href: '/profile', icon: Menu },
+    { label: 'حسابي', href: '/profile', icon: User },
   ];
 
   return (
@@ -31,11 +31,11 @@ export default function BottomNav() {
               key={item.href}
               href={item.href}
               className={`flex flex-col items-center py-1 px-3 rounded-xl transition-colors ${
-                isActive ? 'text-amber-500 font-bold' : 'text-slate-500 hover:text-slate-800'
+                isActive ? 'text-blue-600 font-bold' : 'text-slate-500 hover:text-slate-800'
               }`}
             >
-              <Icon className={`w-5 h-5 ${isActive ? 'text-amber-500' : 'text-slate-500'}`} />
-              <span className={`text-[11px] mt-1 ${isActive ? 'font-bold text-amber-500' : 'font-medium'}`}>
+              <Icon className={`w-5 h-5 ${isActive ? 'text-blue-600' : 'text-slate-500'}`} />
+              <span className={`text-[11px] mt-1 ${isActive ? 'font-bold text-blue-600' : 'font-medium'}`}>
                 {item.label}
               </span>
             </Link>

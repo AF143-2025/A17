@@ -5,20 +5,8 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import StatusBadge from '@/components/StatusBadge';
 import DashboardSearch from '@/components/DashboardSearch';
-import {
-  ShoppingBag,
-  Zap,
-  ArrowLeft,
-  Clock,
-  TrendingUp,
-  Instagram,
-  Video,
-  Youtube,
-  Facebook,
-  Send,
-  Twitter,
-  Sparkles,
-} from 'lucide-react';
+import PlatformServicesView from '@/components/PlatformServicesView';
+import { ShoppingBag, Zap, ArrowLeft, Clock } from 'lucide-react';
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();
@@ -29,10 +17,9 @@ export default async function DashboardPage() {
 
   const balance = user.wallet?.balance || 0;
 
-  // Fetch KPI counters, platforms, and recent orders concurrently
+  // Fetch KPI counters, platforms with full categories & services, and recent orders
   const [
     totalOrdersCount,
-    activeOrdersCount,
     completedOrdersCount,
     spentAgg,
     totalServicesCount,
@@ -44,15 +31,7 @@ export default async function DashboardPage() {
       where: { userId: user.id },
     }),
 
-    // 2. Active orders in progress
-    db.order.count({
-      where: {
-        userId: user.id,
-        status: { in: ['PENDING', 'PROCESSING', 'IN_PROGRESS'] },
-      },
-    }),
-
-    // 3. Completed orders
+    // 2. Completed orders
     db.order.count({
       where: {
         userId: user.id,
@@ -60,7 +39,7 @@ export default async function DashboardPage() {
       },
     }),
 
-    // 4. Total spent on valid orders
+    // 3. Total spent on valid orders
     db.order.aggregate({
       where: {
         userId: user.id,
@@ -69,28 +48,38 @@ export default async function DashboardPage() {
       _sum: { price: true },
     }),
 
-    // 5. Total active services in platform
+    // 4. Total active services in platform
     db.service.count({
       where: { status: true },
     }),
 
-    // 6. Active platforms with category and service counts
+    // 5. Active platforms with categories and services
     db.platform.findMany({
       where: { status: true },
       include: {
         categories: {
           where: { status: true },
           include: {
-            _count: {
-              select: { services: { where: { status: true } } },
+            services: {
+              where: { status: true },
+              select: {
+                id: true,
+                name: true,
+                nameAr: true,
+                pricePer1000: true,
+                minQuantity: true,
+                maxQuantity: true,
+              },
+              orderBy: { sortOrder: 'asc' },
             },
           },
+          orderBy: { sortOrder: 'asc' },
         },
       },
       orderBy: { sortOrder: 'asc' },
     }),
 
-    // 7. Last 6 user orders for live tracking
+    // 6. Last 6 user orders for live tracking
     db.order.findMany({
       where: { userId: user.id },
       include: {
@@ -106,55 +95,6 @@ export default async function DashboardPage() {
       take: 6,
     }),
   ]);
-
-  const totalSpent = spentAgg._sum.price || 0;
-
-  // Platform icon helper
-  const getPlatformIcon = (slug: string) => {
-    switch (slug) {
-      case 'instagram': return Instagram;
-      case 'tiktok': return Video;
-      case 'youtube': return Youtube;
-      case 'facebook': return Facebook;
-      case 'telegram': return Send;
-      case 'x': return Twitter;
-      default: return Sparkles;
-    }
-  };
-
-  // Platform branding styles matching the signature look
-  const getPlatformStyle = (slug: string) => {
-    switch (slug) {
-      case 'instagram':
-        return {
-          iconBg: 'bg-gradient-to-tr from-amber-500 via-pink-500 to-purple-600 text-white',
-        };
-      case 'tiktok':
-        return {
-          iconBg: 'bg-slate-900 text-cyan-400',
-        };
-      case 'youtube':
-        return {
-          iconBg: 'bg-red-600 text-white',
-        };
-      case 'facebook':
-        return {
-          iconBg: 'bg-blue-600 text-white',
-        };
-      case 'telegram':
-        return {
-          iconBg: 'bg-gradient-to-tr from-[#0088cc] to-[#00b0ff] text-white',
-        };
-      case 'x':
-        return {
-          iconBg: 'bg-slate-950 text-white',
-        };
-      default:
-        return {
-          iconBg: 'bg-emerald-600 text-white',
-        };
-    }
-  };
 
   return (
     <div className="space-y-4 sm:space-y-5 animate-in fade-in duration-200 font-sans max-w-5xl mx-auto">
@@ -205,58 +145,9 @@ export default async function DashboardPage() {
       </div>
 
       {/* ========================================================================= */}
-      {/* 4. Section Header: المنصات  10 منصة                                       */}
+      {/* 4 & 5. Platforms Grid & Interactive Categories Drill-Down (عند الضغط)     */}
       {/* ========================================================================= */}
-      <div className="flex items-center justify-between pt-1">
-        <h2 className="text-base sm:text-lg font-black text-slate-900 font-sans">
-          المنصات
-        </h2>
-        <span className="text-xs font-bold text-slate-500 font-sans">
-          {platforms.length} منصة
-        </span>
-      </div>
-
-      {/* ========================================================================= */}
-      {/* 5. Platforms Grid: شبكة المنصات في عمودين (2 Columns Grid)                */}
-      {/* ========================================================================= */}
-      <div className="grid grid-cols-2 gap-2.5 sm:gap-3 sm:grid-cols-3 lg:grid-cols-4">
-        {platforms.map((p) => {
-          const Icon = getPlatformIcon(p.slug);
-          const style = getPlatformStyle(p.slug);
-          const categoriesCount = p.categories.length;
-          const servicesCount = p.categories.reduce(
-            (acc, cat) => acc + (cat._count?.services || 0),
-            0
-          );
-
-          return (
-            <Link
-              key={p.id}
-              href={`/new-order?platform=${p.slug}`}
-              className="group p-3 sm:p-4 rounded-2xl bg-white border border-sky-100 hover:border-blue-400 shadow-xs hover:shadow-md transition flex items-center justify-between gap-2"
-            >
-              {/* Text Information (Right in RTL) */}
-              <div className="min-w-0 flex-1">
-                <h3 className="text-xs sm:text-sm font-black text-slate-900 truncate group-hover:text-blue-600 transition">
-                  {p.nameAr}
-                </h3>
-                <div className="text-[10px] sm:text-[11px] text-slate-500 font-semibold mt-0.5 truncate">
-                  <span>{categoriesCount} فئة</span>
-                  <span className="mx-1">•</span>
-                  <span>{servicesCount} خدمة</span>
-                </div>
-              </div>
-
-              {/* Platform Rounded Squircle Icon (Left in RTL) */}
-              <div
-                className={`w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition duration-200 ${style.iconBg}`}
-              >
-                <Icon className="w-5 h-5 sm:w-5 sm:h-5" />
-              </div>
-            </Link>
-          );
-        })}
-      </div>
+      <PlatformServicesView platforms={platforms} />
 
       {/* ========================================================================= */}
       {/* 6. Recent Orders Live Tracking (سجل آخر طلباتك)                             */}
