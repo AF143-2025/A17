@@ -24,6 +24,14 @@ export default function DashboardHeader({ user, balance }: DashboardHeaderProps)
 
   const isNewOrder = pathname === '/new-order';
 
+  const handleBack = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push('/dashboard');
+    }
+  };
+
   return (
     <header className="sticky top-0 z-30 h-16 sm:h-20 bg-white/95 backdrop-blur-xl border-b-0 lg:border-b lg:border-sky-100 px-4 sm:px-8 flex items-center justify-between shadow-xs lg:shadow-sm">
       {/* Mobile Header */}
@@ -33,7 +41,7 @@ export default function DashboardHeader({ user, balance }: DashboardHeaderProps)
             {/* Right: Back Arrow Button */}
             <button
               type="button"
-              onClick={() => router.back()}
+              onClick={handleBack}
               className="w-10 h-10 rounded-2xl bg-white border border-sky-100 flex items-center justify-center text-slate-700 hover:text-slate-900 shadow-xs active:scale-95 transition cursor-pointer"
               title="رجوع"
               aria-label="رجوع"
@@ -67,7 +75,7 @@ export default function DashboardHeader({ user, balance }: DashboardHeaderProps)
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                onClick={() => router.back()}
+                onClick={handleBack}
                 className="w-10 h-10 rounded-2xl bg-white border border-sky-100 flex items-center justify-center text-slate-700 hover:text-slate-900 shadow-xs transition cursor-pointer"
                 title="رجوع"
               >

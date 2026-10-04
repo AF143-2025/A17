@@ -39,6 +39,46 @@ export default function PlatformServicesView({ platforms }: PlatformServicesView
   const [selectedPlatformId, setSelectedPlatformId] = useState<string | null>(null);
   const [expandedCategoryId, setExpandedCategoryId] = useState<string | null>(null);
 
+  // Restore navigation state on mount (e.g. when returning from /new-order via back button)
+  React.useEffect(() => {
+    try {
+      const savedPlatformId = sessionStorage.getItem('dashboard_selected_platform_id');
+      const savedCategoryId = sessionStorage.getItem('dashboard_expanded_category_id');
+      const savedServiceId = sessionStorage.getItem('dashboard_last_service_id');
+      const savedScroll = sessionStorage.getItem('dashboard_scroll_pos');
+
+      if (savedPlatformId && platforms.some((p) => p.id === savedPlatformId)) {
+        setSelectedPlatformId(savedPlatformId);
+        if (savedCategoryId) {
+          setExpandedCategoryId(savedCategoryId);
+        }
+
+        // Smoothly scroll to the service that was clicked
+        const timer = setTimeout(() => {
+          if (savedServiceId) {
+            const el = document.getElementById(`service-item-${savedServiceId}`);
+            if (el) {
+              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              // Highlight the service card briefly for great UX
+              el.classList.add('ring-2', 'ring-blue-500', 'bg-blue-50/70');
+              setTimeout(() => {
+                el.classList.remove('ring-2', 'ring-blue-500', 'bg-blue-50/70');
+              }, 1800);
+              return;
+            }
+          }
+          if (savedScroll) {
+            window.scrollTo({ top: parseInt(savedScroll, 10), behavior: 'smooth' });
+          }
+        }, 120);
+
+        return () => clearTimeout(timer);
+      }
+    } catch (err) {
+      console.error('Failed to restore dashboard state:', err);
+    }
+  }, [platforms]);
+
   // Filter out any 'other' platform just in case
   const visiblePlatforms = platforms.filter(
     (p) => p.slug !== 'other' && !p.nameAr.includes('أخرى')
@@ -46,8 +86,48 @@ export default function PlatformServicesView({ platforms }: PlatformServicesView
 
   const selectedPlatform = visiblePlatforms.find((p) => p.id === selectedPlatformId);
 
+  const handleSelectPlatform = (platformId: string) => {
+    setSelectedPlatformId(platformId);
+    setExpandedCategoryId(null);
+    try {
+      sessionStorage.setItem('dashboard_selected_platform_id', platformId);
+      sessionStorage.removeItem('dashboard_expanded_category_id');
+      sessionStorage.removeItem('dashboard_last_service_id');
+    } catch (e) {}
+  };
+
+  const handleClosePlatform = () => {
+    setSelectedPlatformId(null);
+    setExpandedCategoryId(null);
+    try {
+      sessionStorage.removeItem('dashboard_selected_platform_id');
+      sessionStorage.removeItem('dashboard_expanded_category_id');
+      sessionStorage.removeItem('dashboard_last_service_id');
+      sessionStorage.removeItem('dashboard_scroll_pos');
+    } catch (e) {}
+  };
+
   const toggleCategory = (catId: string) => {
-    setExpandedCategoryId((prev) => (prev === catId ? null : catId));
+    setExpandedCategoryId((prev) => {
+      const next = prev === catId ? null : catId;
+      try {
+        if (next) {
+          sessionStorage.setItem('dashboard_expanded_category_id', next);
+        } else {
+          sessionStorage.removeItem('dashboard_expanded_category_id');
+        }
+      } catch (e) {}
+      return next;
+    });
+  };
+
+  const handleOrderClick = (serviceId: string, categoryId: string, platformId: string) => {
+    try {
+      sessionStorage.setItem('dashboard_selected_platform_id', platformId);
+      sessionStorage.setItem('dashboard_expanded_category_id', categoryId);
+      sessionStorage.setItem('dashboard_last_service_id', serviceId);
+      sessionStorage.setItem('dashboard_scroll_pos', window.scrollY.toString());
+    } catch (e) {}
   };
 
   // =========================================================================
@@ -82,10 +162,7 @@ export default function PlatformServicesView({ platforms }: PlatformServicesView
           {/* Close Button X (Left in RTL) to deselect and return to platforms grid */}
           <button
             type="button"
-            onClick={() => {
-              setSelectedPlatformId(null);
-              setExpandedCategoryId(null);
-            }}
+            onClick={handleClosePlatform}
             className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-100 hover:bg-slate-200 active:bg-slate-200 text-slate-600 hover:text-slate-900 border border-slate-200/80 flex items-center justify-center transition-colors shadow-xs shrink-0 cursor-pointer"
             title="رجوع إلى المنصات"
             aria-label="إغلاق"
@@ -148,7 +225,8 @@ export default function PlatformServicesView({ platforms }: PlatformServicesView
                         cat.services.map((s) => (
                           <div
                             key={s.id}
-                            className="p-3 rounded-xl bg-white border border-sky-100 hover:border-blue-300 flex items-center justify-between gap-3 transition shadow-xs"
+                            id={`service-item-${s.id}`}
+                            className="p-3 rounded-xl bg-white border border-sky-100 hover:border-blue-300 flex items-center justify-between gap-3 transition-all duration-300 shadow-xs"
                           >
                             <div className="min-w-0 flex-1">
                               <div className="text-xs font-bold text-slate-900 line-clamp-2">
@@ -167,7 +245,8 @@ export default function PlatformServicesView({ platforms }: PlatformServicesView
                               </span>
                               <Link
                                 href={`/new-order?serviceId=${s.id}`}
-                                className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold shadow-xs transition flex items-center gap-1 active:scale-95"
+                                onClick={() => handleOrderClick(s.id, cat.id, selectedPlatform.id)}
+                                className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold shadow-xs transition flex items-center gap-1 active:scale-95 cursor-pointer"
                               >
                                 <Zap className="w-3 h-3" />
                                 <span>طلب</span>
@@ -215,10 +294,7 @@ export default function PlatformServicesView({ platforms }: PlatformServicesView
             <button
               key={p.id}
               type="button"
-              onClick={() => {
-                setSelectedPlatformId(p.id);
-                setExpandedCategoryId(null);
-              }}
+              onClick={() => handleSelectPlatform(p.id)}
               className="group p-3 sm:p-4 rounded-2xl bg-white border border-sky-100 hover:border-blue-400 shadow-xs hover:shadow-md transition flex items-center justify-between gap-2 text-right cursor-pointer active:scale-[0.99]"
             >
               {/* Text Information (Right in RTL) */}

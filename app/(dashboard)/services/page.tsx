@@ -49,6 +49,28 @@ export default function ServicesPage() {
     load();
   }, []);
 
+  // Restore scroll position to clicked service when returning via back button
+  useEffect(() => {
+    if (!loading && platforms.length > 0) {
+      try {
+        const lastId = sessionStorage.getItem('services_last_id');
+        if (lastId) {
+          sessionStorage.removeItem('services_last_id');
+          setTimeout(() => {
+            const el = document.getElementById(`service-item-${lastId}`);
+            if (el) {
+              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              el.classList.add('ring-2', 'ring-blue-500', 'bg-blue-50/70');
+              setTimeout(() => {
+                el.classList.remove('ring-2', 'ring-blue-500', 'bg-blue-50/70');
+              }, 1800);
+            }
+          }, 120);
+        }
+      } catch (e) {}
+    }
+  }, [loading, platforms.length]);
+
   // Filter services
   const filteredList = React.useMemo(() => {
     const list: any[] = [];
@@ -147,7 +169,11 @@ export default function ServicesPage() {
                 </thead>
                 <tbody className="divide-y divide-sky-100 text-slate-700">
                   {filteredList.map((service) => (
-                    <tr key={service.id} className="hover:bg-sky-50/50 transition">
+                    <tr
+                      key={service.id}
+                      id={`service-item-${service.id}`}
+                      className="hover:bg-sky-50/50 transition-all duration-300"
+                    >
                       <td className="py-3.5 px-4 font-mono text-slate-400">
                         #{service.id.slice(-5)}
                       </td>
@@ -175,6 +201,11 @@ export default function ServicesPage() {
                       <td className="py-3.5 px-4 text-center whitespace-nowrap">
                         <Link
                           href={`/new-order?serviceId=${service.id}`}
+                          onClick={() => {
+                            try {
+                              sessionStorage.setItem('services_last_id', service.id);
+                            } catch (e) {}
+                          }}
                           className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-sky-100 border border-sky-300 text-blue-700 hover:bg-sky-200 text-xs font-bold transition shadow-sm"
                         >
                           <span>طلب</span>
@@ -190,7 +221,11 @@ export default function ServicesPage() {
             {/* Mobile Cards View (< sm) */}
             <div className="sm:hidden divide-y divide-sky-100">
               {filteredList.map((service) => (
-                <div key={service.id} className="p-4 space-y-2.5 hover:bg-sky-50/40 transition">
+                <div
+                  key={service.id}
+                  id={`service-item-${service.id}`}
+                  className="p-4 space-y-2.5 hover:bg-sky-50/40 transition-all duration-300"
+                >
                   <div className="flex items-center justify-between">
                     <span className="px-2 py-0.5 rounded-md bg-blue-50 border border-blue-200 text-[10px] font-bold text-blue-700">
                       {service.platformName} • {service.categoryName}
@@ -220,6 +255,11 @@ export default function ServicesPage() {
 
                   <Link
                     href={`/new-order?serviceId=${service.id}`}
+                    onClick={() => {
+                      try {
+                        sessionStorage.setItem('services_last_id', service.id);
+                      } catch (e) {}
+                    }}
                     className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-sm shadow-blue-500/20 transition transform active:scale-95"
                   >
                     <span>طلب هذه الخدمة الآن</span>
