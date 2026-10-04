@@ -2,38 +2,32 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import {
-  Sparkles,
-  AlertCircle,
-  CheckCircle2,
-  HelpCircle,
-  Coins,
+  ArrowRight,
+  ArrowUpRight,
   Wallet,
-  ArrowLeft,
-  Loader2,
-  Tag,
-  Zap,
   Clock,
-  ShieldAlert,
+  Tag,
+  Flame,
+  Info,
+  Link2,
+  Hash,
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
+  Zap,
+  Instagram,
+  Video,
+  Youtube,
+  Facebook,
   Send,
-  ExternalLink,
+  Twitter,
+  Sparkles,
+  ChevronDown,
+  Layers,
 } from 'lucide-react';
-
-interface Platform {
-  id: string;
-  name: string;
-  nameAr: string;
-  slug: string;
-  categories: Category[];
-}
-
-interface Category {
-  id: string;
-  name: string;
-  nameAr: string;
-  slug: string;
-  services: Service[];
-}
+import NotificationDropdown from '@/components/NotificationDropdown';
 
 interface Service {
   id: string;
@@ -46,6 +40,22 @@ interface Service {
   speed?: string;
   avgTime?: string;
   notes?: string;
+}
+
+interface Category {
+  id: string;
+  name: string;
+  nameAr: string;
+  slug: string;
+  services: Service[];
+}
+
+interface Platform {
+  id: string;
+  name: string;
+  nameAr: string;
+  slug: string;
+  categories: Category[];
 }
 
 export default function NewOrderPage() {
@@ -62,12 +72,14 @@ export default function NewOrderPage() {
   const [selectedServiceId, setSelectedServiceId] = useState<string>('');
   const [targetUrl, setTargetUrl] = useState<string>('');
   const [quantity, setQuantity] = useState<number>(1000);
+  const [descriptionExpanded, setDescriptionExpanded] = useState<boolean>(false);
+  const [selectorOpen, setSelectorOpen] = useState<boolean>(false);
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string>('');
   const [successOrder, setSuccessOrder] = useState<any>(null);
 
-  // Fetch services tree and current balance
+  // Fetch platforms & balance
   useEffect(() => {
     async function loadData() {
       try {
@@ -89,7 +101,6 @@ export default function NewOrderPage() {
           const serviceIdParam = searchParams.get('serviceId');
 
           if (serviceIdParam) {
-            // Find which platform & category this service belongs to
             for (const p of fetchedPlatforms) {
               for (const c of p.categories) {
                 const s = c.services.find((serv) => serv.id === serviceIdParam);
@@ -98,7 +109,6 @@ export default function NewOrderPage() {
                   setSelectedCategoryId(c.id);
                   setSelectedServiceId(s.id);
                   setQuantity(s.minQuantity);
-                  setLoadingInitial(false);
                   return;
                 }
               }
@@ -106,26 +116,31 @@ export default function NewOrderPage() {
           }
 
           if (platformSlug) {
-            const p = fetchedPlatforms.find((item) => item.slug === platformSlug);
-            if (p) {
-              setSelectedPlatformId(p.id);
-              if (p.categories.length > 0) {
-                setSelectedCategoryId(p.categories[0].id);
-                if (p.categories[0].services.length > 0) {
-                  const s = p.categories[0].services[0];
-                  setSelectedServiceId(s.id);
-                  setQuantity(s.minQuantity);
-                }
+            const foundPlatform = fetchedPlatforms.find((p) => p.slug === platformSlug);
+            if (foundPlatform && foundPlatform.categories.length > 0) {
+              setSelectedPlatformId(foundPlatform.id);
+              const firstCat = foundPlatform.categories[0];
+              setSelectedCategoryId(firstCat.id);
+              if (firstCat.services.length > 0) {
+                const firstServ = firstCat.services[0];
+                setSelectedServiceId(firstServ.id);
+                setQuantity(firstServ.minQuantity);
+                return;
               }
             }
-          } else if (fetchedPlatforms.length > 0) {
-            const firstP = fetchedPlatforms[0];
-            setSelectedPlatformId(firstP.id);
-            if (firstP.categories.length > 0) {
-              setSelectedCategoryId(firstP.categories[0].id);
-              if (firstP.categories[0].services.length > 0) {
-                setSelectedServiceId(firstP.categories[0].services[0].id);
-                setQuantity(firstP.categories[0].services[0].minQuantity);
+          }
+
+          // Default fallback to first available
+          if (fetchedPlatforms.length > 0) {
+            const p = fetchedPlatforms[0];
+            setSelectedPlatformId(p.id);
+            if (p.categories.length > 0) {
+              const c = p.categories[0];
+              setSelectedCategoryId(c.id);
+              if (c.services.length > 0) {
+                const s = c.services[0];
+                setSelectedServiceId(s.id);
+                setQuantity(s.minQuantity);
               }
             }
           }
@@ -140,111 +155,141 @@ export default function NewOrderPage() {
     loadData();
   }, [searchParams]);
 
-  // Derived selections
-  const currentPlatform = useMemo(
-    () => platforms.find((p) => p.id === selectedPlatformId),
-    [platforms, selectedPlatformId]
-  );
+  // Derived objects
+  const currentPlatform = useMemo(() => {
+    return platforms.find((p) => p.id === selectedPlatformId) || platforms[0] || null;
+  }, [platforms, selectedPlatformId]);
 
-  const availableCategories = useMemo(
-    () => currentPlatform?.categories || [],
-    [currentPlatform]
-  );
+  const availableCategories = useMemo(() => {
+    return currentPlatform?.categories || [];
+  }, [currentPlatform]);
 
-  const currentCategory = useMemo(
-    () => availableCategories.find((c) => c.id === selectedCategoryId),
-    [availableCategories, selectedCategoryId]
-  );
+  const currentCategory = useMemo(() => {
+    return availableCategories.find((c) => c.id === selectedCategoryId) || availableCategories[0] || null;
+  }, [availableCategories, selectedCategoryId]);
 
-  const availableServices = useMemo(
-    () => currentCategory?.services || [],
-    [currentCategory]
-  );
+  const availableServices = useMemo(() => {
+    return currentCategory?.services || [];
+  }, [currentCategory]);
 
-  const currentService = useMemo(
-    () => availableServices.find((s) => s.id === selectedServiceId),
-    [availableServices, selectedServiceId]
-  );
+  const currentService = useMemo(() => {
+    return availableServices.find((s) => s.id === selectedServiceId) || availableServices[0] || null;
+  }, [availableServices, selectedServiceId]);
 
-  // When platform changes, reset category & service
+  // Calculate live order cost
+  const calculatedPrice = useMemo(() => {
+    if (!currentService) return 0;
+    const qty = Number(quantity) || 0;
+    return (currentService.pricePer1000 * qty) / 1000;
+  }, [currentService, quantity]);
+
+  const isBalanceSufficient = balance >= calculatedPrice;
+  const balanceDifference = Math.max(0, calculatedPrice - balance);
+
+  // Number format helper (e.g. 1000 -> 1K)
+  const formatK = (num: number) => {
+    if (num >= 1000000) return `${(num / 1000000).toFixed(num % 1000000 === 0 ? 0 : 1)}M`;
+    if (num >= 1000) return `${(num / 1000).toFixed(num % 1000 === 0 ? 0 : 1)}K`;
+    return num.toLocaleString('en-US');
+  };
+
+  // Platform icon helper
+  const getPlatformIcon = (slug?: string) => {
+    switch (slug) {
+      case 'instagram': return Instagram;
+      case 'tiktok': return Video;
+      case 'youtube': return Youtube;
+      case 'facebook': return Facebook;
+      case 'telegram': return Send;
+      case 'x': return Twitter;
+      default: return Sparkles;
+    }
+  };
+
+  // Platform style helper
+  const getPlatformStyle = (slug?: string) => {
+    switch (slug) {
+      case 'instagram':
+        return { iconBg: 'bg-gradient-to-tr from-amber-500 via-pink-500 to-purple-600 text-white' };
+      case 'tiktok':
+        return { iconBg: 'bg-slate-900 text-cyan-400' };
+      case 'youtube':
+        return { iconBg: 'bg-red-600 text-white' };
+      case 'facebook':
+        return { iconBg: 'bg-blue-600 text-white' };
+      case 'telegram':
+        return { iconBg: 'bg-gradient-to-tr from-[#0088cc] to-[#00b0ff] text-white' };
+      case 'x':
+        return { iconBg: 'bg-slate-950 text-white' };
+      default:
+        return { iconBg: 'bg-emerald-600 text-white' };
+    }
+  };
+
   const handlePlatformChange = (pId: string) => {
     setSelectedPlatformId(pId);
     const p = platforms.find((item) => item.id === pId);
     if (p && p.categories.length > 0) {
       setSelectedCategoryId(p.categories[0].id);
       if (p.categories[0].services.length > 0) {
-        setSelectedServiceId(p.categories[0].services[0].id);
-        setQuantity(p.categories[0].services[0].minQuantity);
-      } else {
-        setSelectedServiceId('');
+        const s = p.categories[0].services[0];
+        setSelectedServiceId(s.id);
+        setQuantity(s.minQuantity);
       }
-    } else {
-      setSelectedCategoryId('');
-      setSelectedServiceId('');
     }
   };
 
-  // When category changes, reset service
   const handleCategoryChange = (cId: string) => {
     setSelectedCategoryId(cId);
     const c = availableCategories.find((item) => item.id === cId);
     if (c && c.services.length > 0) {
-      setSelectedServiceId(c.services[0].id);
-      setQuantity(c.services[0].minQuantity);
-    } else {
-      setSelectedServiceId('');
+      const s = c.services[0];
+      setSelectedServiceId(s.id);
+      setQuantity(s.minQuantity);
     }
   };
 
-  // Price calculations
-  const calculatedPrice = useMemo(() => {
-    if (!currentService || !quantity || quantity <= 0) return 0;
-    return Number(((quantity / 1000) * currentService.pricePer1000).toFixed(4));
-  }, [currentService, quantity]);
+  const handleServiceChange = (sId: string) => {
+    setSelectedServiceId(sId);
+    const s = availableServices.find((item) => item.id === sId);
+    if (s) {
+      setQuantity(s.minQuantity);
+    }
+  };
 
-  const balanceAfter = Number((balance - calculatedPrice).toFixed(4));
-  const isBalanceInsufficient = balanceAfter < 0;
-
-  const isQuantityValid = useMemo(() => {
-    if (!currentService) return true;
-    return quantity >= currentService.minQuantity && quantity <= currentService.maxQuantity;
-  }, [currentService, quantity]);
-
+  // Submit order
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!currentService) return;
     setErrorMsg('');
 
-    if (!selectedServiceId) {
-      setErrorMsg('يرجى اختيار الخدمة');
-      return;
-    }
-
     if (!targetUrl.trim()) {
-      setErrorMsg('يرجى إدخال رابط الحساب أو المنشور أو اسم المستخدم');
+      setErrorMsg('يرجى إدخال الرابط أو اسم المستخدم المطلوب');
       return;
     }
 
-    if (!isQuantityValid) {
+    if (quantity < currentService.minQuantity || quantity > currentService.maxQuantity) {
       setErrorMsg(
-        `الكمية يجب أن تكون بين ${currentService?.minQuantity.toLocaleString('en-US')} و ${currentService?.maxQuantity.toLocaleString('en-US')}`
+        `الكمية يجب أن تكون بين ${currentService.minQuantity.toLocaleString()} و ${currentService.maxQuantity.toLocaleString()}`
       );
       return;
     }
 
-    if (isBalanceInsufficient) {
-      setErrorMsg('رصيد محفظتك غير كافٍ لإتمام هذا الطلب. يرجى شحن الرصيد أولاً.');
+    if (!isBalanceSufficient) {
+      setErrorMsg('رصيدك الحالي غير كافٍ. يرجى شحن الرصيد أولاً.');
       return;
     }
 
     setSubmitting(true);
+
     try {
       const res = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          serviceId: selectedServiceId,
-          targetUrl: targetUrl.trim(),
-          quantity,
+          serviceId: currentService.id,
+          link: targetUrl.trim(),
+          quantity: Number(quantity),
         }),
       });
 
@@ -270,354 +315,390 @@ export default function NewOrderPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] text-slate-500">
         <Loader2 className="w-8 h-8 animate-spin text-blue-600 mb-2" />
-        <span className="text-xs">جاري تحميل الخدمات والأسعار...</span>
+        <span className="text-xs font-bold">جاري تجهيز تفاصيل الخدمة...</span>
       </div>
     );
   }
 
+  const PlatformIcon = getPlatformIcon(currentPlatform?.slug);
+  const platformStyle = getPlatformStyle(currentPlatform?.slug);
+
   return (
-    <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-200">
-      {/* Header Title */}
-      <div>
-        <h1 className="text-2xl font-black text-slate-900 font-sans flex items-center gap-2">
-          <span>إنشاء طلب جديد</span>
-          <span className="text-xs px-2.5 py-1 rounded-full bg-sky-100 border border-sky-300 text-blue-700 font-bold">
-            تنفيذ تلقائي ⚡
-          </span>
+    <div className="max-w-xl mx-auto space-y-4 pb-20 animate-in fade-in duration-200 font-sans">
+      {/* ========================================================================= */}
+      {/* 1. Header: زر رجوع يميناً، "طلب جديد" بالوسط، وجرس الإشعارات يساراً          */}
+      {/* ========================================================================= */}
+      <div className="flex items-center justify-between py-1">
+        <button
+          type="button"
+          onClick={() => router.back()}
+          className="w-10 h-10 rounded-2xl bg-white border border-sky-100 flex items-center justify-center text-slate-700 hover:text-slate-900 shadow-xs active:scale-95 transition"
+          title="رجوع"
+          aria-label="رجوع"
+        >
+          <ArrowRight className="w-5 h-5" />
+        </button>
+
+        <h1 className="text-base sm:text-lg font-black text-slate-900">
+          طلب جديد
         </h1>
-        <p className="text-xs text-slate-600 mt-1">
-          اختر قسم ونوع الخدمة وأدخل الرابط والكمية لتأكيد الطلب فوراً ($).
-        </p>
+
+        <div className="w-10 h-10 flex items-center justify-center">
+          <NotificationDropdown />
+        </div>
       </div>
 
-      {/* Success Modal / Banner */}
+      {/* Success Notification Banner */}
       {successOrder && (
-        <div className="p-6 rounded-3xl bg-emerald-50 border border-emerald-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="p-4 sm:p-5 rounded-3xl bg-emerald-50 border border-emerald-200 shadow-xs flex flex-col gap-3 animate-in zoom-in-95">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
-              <CheckCircle2 className="w-6 h-6" />
+            <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+              <CheckCircle2 className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-900">
+              <h3 className="text-xs sm:text-sm font-bold text-slate-900">
                 تم استلام طلبك بنجاح! (#{successOrder.id.slice(-6)})
               </h3>
-              <p className="text-xs text-emerald-700 mt-0.5">
-                طلبك الآن قيد المعالجة والإرسال التلقائي. تم خصم المبلغ من المحفظة.
+              <p className="text-[11px] text-emerald-700 mt-0.5">
+                طلبك الآن قيد التنفيذ التلقائي الفوري.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="flex items-center gap-2 pt-1">
             <button
               onClick={() => setSuccessOrder(null)}
-              className="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-slate-100 text-xs font-semibold text-slate-700 hover:bg-slate-200 transition"
+              className="flex-1 py-2 rounded-xl bg-white text-xs font-bold text-slate-700 hover:bg-slate-50 border border-emerald-200 transition"
             >
-              طلب آخر
+              طلب خدمة أخرى
             </button>
-            <button
-              onClick={() => router.push('/orders')}
-              className="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-emerald-600 text-xs font-bold text-white hover:bg-emerald-700 transition"
+            <Link
+              href="/orders"
+              className="flex-1 py-2 rounded-xl bg-emerald-600 text-xs font-bold text-white hover:bg-emerald-700 text-center transition shadow-xs"
             >
               متابعة في طلباتي →
-            </button>
+            </Link>
           </div>
         </div>
       )}
 
-      {/* Main Order Form and Summary Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left 2 Cols: Form Inputs */}
-        <div className="lg:col-span-2 space-y-6">
-          <form onSubmit={handleSubmit} className="rounded-2xl sm:rounded-3xl bg-white p-4 sm:p-8 border border-sky-100 shadow-sm space-y-6">
-            {errorMsg && (
-              <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 flex items-start gap-3 text-rose-700 text-xs leading-relaxed animate-shake">
-                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                <span>{errorMsg}</span>
-              </div>
-            )}
+      {/* Error Message Alert */}
+      {errorMsg && (
+        <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 flex items-start gap-2.5 text-rose-700 text-xs">
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-600" />
+          <span>{errorMsg}</span>
+        </div>
+      )}
 
-            {/* 1. Category / Service Department Selector */}
-            <div>
-              <label className="block text-xs font-bold text-slate-800 mb-2">
-                1. اختر قسم الخدمة المطلوب
-              </label>
-              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                {platforms.map((p) => {
-                  const isSelected = p.id === selectedPlatformId;
-                  return (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => handlePlatformChange(p.id)}
-                      className={`p-2 sm:p-3 rounded-xl sm:rounded-2xl border text-center transition flex flex-col items-center justify-center gap-0.5 sm:gap-1 ${
-                        isSelected
-                          ? 'bg-blue-600 border-blue-600 text-white shadow-md'
-                          : 'bg-sky-50/60 border-sky-200/80 text-slate-700 hover:border-sky-300 hover:bg-sky-100/50'
-                      }`}
-                    >
-                      <span className="text-xs font-bold">{p.nameAr}</span>
-                      <span className={`text-[10px] font-mono ${isSelected ? 'text-blue-100' : 'text-slate-500'}`}>{p.name}</span>
-                    </button>
-                  );
-                })}
+      <form onSubmit={handleSubmit} className="space-y-3.5">
+        {/* ========================================================================= */}
+        {/* 2. Top Selected Service Card (بطاقة الخدمة المختارة)                        */}
+        {/* ========================================================================= */}
+        {currentService && (
+          <div className="rounded-3xl bg-white p-4 sm:p-5 border border-sky-100 shadow-xs space-y-3.5">
+            {/* Service Title & Category Header */}
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <h2 className="text-xs sm:text-sm font-black text-slate-900 leading-snug line-clamp-2">
+                  {currentService.nameAr || currentService.name}
+                </h2>
+                <div className="flex items-center gap-1.5 text-[11px] text-slate-500 font-semibold mt-1">
+                  <span className="font-mono px-1.5 py-0.2 rounded-md bg-slate-100 text-slate-700 text-[10px] font-bold">
+                    #{currentService.id.slice(-4)}
+                  </span>
+                  <span>•</span>
+                  <span className="truncate">{currentCategory?.nameAr}</span>
+                </div>
+              </div>
+
+              <div
+                className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 shadow-xs ${platformStyle.iconBg}`}
+              >
+                <PlatformIcon className="w-5 h-5" />
               </div>
             </div>
 
-            {/* 2. Category Dropdown */}
-            <div>
-              <label className="block text-xs font-bold text-slate-800 mb-1.5">
-                2. اختر نوع الخدمة المطلوب
-              </label>
-              <select
-                value={selectedCategoryId}
-                onChange={(e) => handleCategoryChange(e.target.value)}
-                className="w-full rounded-xl bg-white border border-sky-200 px-4 py-3 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-sm transition"
-              >
-                {availableCategories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.nameAr} ({c.name})
-                  </option>
-                ))}
-              </select>
-            </div>
+            {/* Quick Switch Button (لتغيير الخدمة إذا رغب المستخدم) */}
+            <button
+              type="button"
+              onClick={() => setSelectorOpen((prev) => !prev)}
+              className="w-full py-2 px-3 rounded-xl bg-sky-50/70 hover:bg-sky-100 border border-sky-100 text-[11px] font-bold text-blue-600 flex items-center justify-between transition cursor-pointer"
+            >
+              <div className="flex items-center gap-1.5">
+                <Layers className="w-3.5 h-3.5" />
+                <span>تغيير القسم أو الخدمة</span>
+              </div>
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform ${selectorOpen ? 'rotate-180' : ''}`} />
+            </button>
 
-            {/* 3. Service Dropdown */}
-            <div>
-              <label className="block text-xs font-bold text-slate-800 mb-1.5">
-                3. اختر الخدمة (Service)
-              </label>
-              <select
-                value={selectedServiceId}
-                onChange={(e) => {
-                  setSelectedServiceId(e.target.value);
-                  const s = availableServices.find((item) => item.id === e.target.value);
-                  if (s) setQuantity(s.minQuantity);
-                }}
-                className="w-full rounded-xl bg-white border border-sky-200 px-4 py-3 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-sm transition"
-              >
-                {availableServices.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name} — (${s.pricePer1000.toLocaleString('en-US')} لكل 1000)
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Service Details Card */}
-            {currentService && (
-              <div className="p-4 rounded-2xl bg-sky-50/70 border border-sky-100 text-xs space-y-3">
-                <div className="flex flex-wrap items-center gap-4 text-slate-700">
-                  <div className="flex items-center gap-1.5">
-                    <Coins className="w-3.5 h-3.5 text-blue-600" />
-                    <span>السعر:</span>
-                    <strong className="text-blue-600 font-sans">
-                      ${currentService.pricePer1000.toLocaleString('en-US')}
-                    </strong>
-                    <span className="text-[10px] text-slate-500">/ 1,000</span>
-                  </div>
-
-                  <div className="flex items-center gap-1.5">
-                    <Zap className="w-3.5 h-3.5 text-amber-500" />
-                    <span>السرعة:</span>
-                    <span className="font-semibold text-slate-800">
-                      {currentService.speed || 'فوري'}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-sky-600" />
-                    <span>وقت البدء:</span>
-                    <span className="font-semibold text-slate-800">
-                      {currentService.avgTime || '15 دقيقة'}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-1.5 text-slate-600 text-[11px]">
-                    <span>الحد الأدنى: <strong>{currentService.minQuantity.toLocaleString('en-US')}</strong></span>
-                    <span>|</span>
-                    <span>الحد الأقصى: <strong>{currentService.maxQuantity.toLocaleString('en-US')}</strong></span>
+            {/* Collapsible Selector for Platform / Category / Service */}
+            {selectorOpen && (
+              <div className="p-3 rounded-2xl bg-sky-50/40 border border-sky-100 space-y-2.5 text-xs animate-in fade-in duration-150">
+                <div>
+                  <label className="text-[10px] font-bold text-slate-500 block mb-1">المنصة:</label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {platforms.map((p) => (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => handlePlatformChange(p.id)}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition ${
+                          p.id === selectedPlatformId
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-white text-slate-700 border border-sky-200'
+                        }`}
+                      >
+                        {p.nameAr}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
-                <div className="text-slate-600 leading-relaxed border-t border-sky-200/60 pt-2.5">
-                  {currentService.description}
+                <div>
+                  <label className="text-[10px] font-bold text-slate-500 block mb-1">الفئة:</label>
+                  <select
+                    value={selectedCategoryId}
+                    onChange={(e) => handleCategoryChange(e.target.value)}
+                    className="w-full h-9 rounded-xl bg-white border border-sky-200 px-3 text-xs text-slate-800 font-semibold"
+                  >
+                    {availableCategories.map((c) => (
+                      <option key={c.id} value={c.id}>{c.nameAr}</option>
+                    ))}
+                  </select>
                 </div>
 
-                {currentService.notes && (
-                  <div className="flex items-start gap-2 text-amber-800 text-[11px] bg-amber-50 p-2.5 rounded-xl border border-amber-200">
-                    <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5 text-amber-600" />
-                    <span>{currentService.notes}</span>
-                  </div>
-                )}
+                <div>
+                  <label className="text-[10px] font-bold text-slate-500 block mb-1">الخدمة:</label>
+                  <select
+                    value={selectedServiceId}
+                    onChange={(e) => handleServiceChange(e.target.value)}
+                    className="w-full h-9 rounded-xl bg-white border border-sky-200 px-3 text-xs text-slate-800 font-semibold"
+                  >
+                    {availableServices.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.nameAr || s.name} (${s.pricePer1000.toFixed(2)})
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             )}
 
-            {/* 4. Target Link / Username */}
-            <div>
-              <label className="block text-xs font-bold text-slate-800 mb-1.5">
-                4. الرابط أو اسم المستخدم (Target URL / Username)
-              </label>
-              <input
-                type="text"
-                value={targetUrl}
-                onChange={(e) => setTargetUrl(e.target.value)}
-                placeholder="https://instagram.com/username أو https://tiktok.com/@username/video/..."
-                required
-                className="w-full rounded-xl bg-white border border-sky-200 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-sm transition font-mono"
-              />
-              <span className="text-[11px] text-slate-500 mt-1 block">
-                تأكد من أن الحساب عام (Public) وليس خاصاً قبل إرسال الطلب.
+            {/* 4-Columns Metric Bar (الأدنى, الأقصى, 1000/, التنفيذ) */}
+            <div className="grid grid-cols-4 gap-1.5 sm:gap-2 p-2.5 rounded-2xl bg-sky-50/60 border border-sky-100 text-center">
+              <div>
+                <span className="text-[10px] text-slate-400 font-bold block">الأدنى</span>
+                <span className="text-xs sm:text-sm font-black text-slate-900 font-sans mt-0.5 block">
+                  {formatK(currentService.minQuantity)}
+                </span>
+              </div>
+              <div>
+                <span className="text-[10px] text-slate-400 font-bold block">الأقصى</span>
+                <span className="text-xs sm:text-sm font-black text-slate-900 font-sans mt-0.5 block">
+                  {formatK(currentService.maxQuantity)}
+                </span>
+              </div>
+              <div>
+                <span className="text-[10px] text-slate-400 font-bold block">1000/</span>
+                <span className="text-xs sm:text-sm font-black text-slate-900 font-sans mt-0.5 block">
+                  ${currentService.pricePer1000.toFixed(2)}
+                </span>
+              </div>
+              <div>
+                <span className="text-[10px] text-slate-400 font-bold block">التنفيذ</span>
+                <span className="text-xs sm:text-sm font-black text-blue-600 font-sans mt-0.5 block truncate">
+                  {currentService.speed || 'خلال دقائق'}
+                </span>
+              </div>
+            </div>
+
+            {/* Badges Row (30 يوم ضمان, حقيقي, الأكثر طلباً) */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold border border-slate-200">
+                <Clock className="w-3 h-3 text-sky-600" />
+                <span>30 يوم ضمان</span>
+              </span>
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-sky-50 text-blue-700 text-[10px] font-bold border border-sky-200">
+                <Tag className="w-3 h-3 text-blue-600" />
+                <span>حقيقي</span>
+              </span>
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-[10px] font-bold border border-amber-200">
+                <Flame className="w-3 h-3 text-amber-500 fill-amber-500" />
+                <span>الأكثر طلباً</span>
               </span>
             </div>
 
-            {/* 5. Quantity & Quick Select Chips */}
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-bold text-slate-800">
-                  5. الكمية المطلوبة (Quantity)
-                </label>
-                {currentService && (
-                  <span className="text-[11px] text-slate-500 font-mono">
-                    الحدود: {currentService.minQuantity.toLocaleString('en-US')} - {currentService.maxQuantity.toLocaleString('en-US')}
-                  </span>
-                )}
+            {/* Service Description Card with Expand/Collapse */}
+            <div className="p-3 rounded-2xl bg-sky-50/40 border border-sky-100/70 text-xs text-slate-600 space-y-1.5">
+              <div className="flex items-start gap-2">
+                <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                <p className={`text-[11px] sm:text-xs leading-relaxed ${descriptionExpanded ? '' : 'line-clamp-2'}`}>
+                  {currentService.description || 'خدمة سريعة وآمنة ومضمونة بنسبة 100% لتنمية حسابك.'}
+                </p>
               </div>
-              <input
-                type="number"
-                value={quantity}
-                onChange={(e) => setQuantity(parseInt(e.target.value || '0', 10))}
-                min={currentService?.minQuantity || 10}
-                max={currentService?.maxQuantity || 1000000}
-                step={50}
-                required
-                className="w-full rounded-xl bg-white border border-sky-200 px-4 py-3 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-sm transition font-sans font-bold"
-              />
 
-              {/* Quick quantity chips */}
-              <div className="flex flex-wrap items-center gap-2 mt-2.5">
-                {[500, 1000, 2500, 5000, 10000].map((q) => (
+              {currentService.description && currentService.description.length > 80 && (
+                <div className="text-left">
                   <button
-                    key={q}
                     type="button"
-                    onClick={() => setQuantity(q)}
-                    className="px-2.5 py-1 rounded-lg bg-sky-50 border border-sky-200 text-[11px] font-semibold text-slate-700 hover:bg-sky-100 hover:text-slate-900 transition font-sans"
+                    onClick={() => setDescriptionExpanded((prev) => !prev)}
+                    className="text-[11px] font-bold text-blue-600 hover:underline inline-flex items-center gap-0.5 cursor-pointer"
                   >
-                    +{q.toLocaleString('en-US')}
+                    <span>{descriptionExpanded ? 'عرض أقل ˄' : 'عرض المزيد ˅'}</span>
                   </button>
-                ))}
-              </div>
-            </div>
-
-          </form>
-        </div>
-
-        {/* Right 1 Col: Summary & Confirmation Card */}
-        <div className="space-y-4">
-          <div className="rounded-3xl bg-white p-6 sm:p-7 border border-sky-100 sticky top-24 shadow-sm">
-            <h3 className="text-base font-black text-slate-900 pb-3 border-b border-sky-100 flex items-center justify-between">
-              <span>ملخص الطلب (Summary)</span>
-              <span className="w-2 h-2 rounded-full bg-blue-500 animate-ping" />
-            </h3>
-
-            <div className="mt-4 space-y-3.5 text-xs">
-              <div className="flex justify-between items-start gap-2">
-                <span className="text-slate-500">الخدمة:</span>
-                <span className="font-semibold text-slate-900 text-left line-clamp-2 max-w-[180px]">
-                  {currentService?.name || 'لم تحدد'}
-                </span>
-              </div>
-
-              <div className="flex justify-between items-center">
-                <span className="text-slate-500">الكمية:</span>
-                <span className="font-bold text-slate-800 font-sans">
-                  {quantity.toLocaleString('en-US')}
-                </span>
-              </div>
-
-              <div className="flex justify-between items-center">
-                <span className="text-slate-500">السعر الإجمالي:</span>
-                <span className="text-base font-black text-blue-600 font-sans">
-                  ${calculatedPrice.toFixed(2)}
-                </span>
-              </div>
-
-              <div className="h-px bg-sky-100 my-2" />
-
-              <div className="flex justify-between items-center">
-                <span className="text-slate-500">رصيدك الحالي:</span>
-                <span className="font-bold text-slate-700 font-sans">
-                  ${balance.toFixed(2)}
-                </span>
-              </div>
-
-              <div className="flex justify-between items-center">
-                <span className="text-slate-500">الرصيد بعد الطلب:</span>
-                <span
-                  className={`font-black font-sans ${
-                    isBalanceInsufficient ? 'text-rose-600' : 'text-slate-800'
-                  }`}
-                >
-                  ${balanceAfter.toFixed(2)}
-                </span>
-              </div>
-
-              {isBalanceInsufficient && (
-                <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs leading-relaxed space-y-2">
-                  <div className="font-bold text-rose-600 flex items-center gap-1.5">
-                    <AlertCircle className="w-4 h-4 shrink-0" />
-                    <span>رصيد محفظتك الحالي غير كافٍ لإتمام هذا الطلب</span>
-                  </div>
-                  <p className="text-[11px] text-slate-600">
-                    يمكنك شحن رصيدك فوراً عبر مراسلة الدعم المالي المعتمد على تيليجرام:
-                  </p>
-                  <div className="flex flex-wrap items-center gap-2 pt-1">
-                    <a
-                      href="https://t.me/Hexc8re"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#0088cc] to-[#00b0ff] hover:opacity-90 text-white font-bold text-[11px] flex items-center gap-1.5 shadow-sm transition"
-                    >
-                      <Send className="w-3 h-3" />
-                      <span>شحن عبر تيليجرام (@Hexc8re)</span>
-                      <ExternalLink className="w-3 h-3 opacity-80" />
-                    </a>
-                    <button
-                      type="button"
-                      onClick={() => router.push('/wallet')}
-                      className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[11px] transition"
-                    >
-                      صفحة المحفظة
-                    </button>
-                  </div>
                 </div>
               )}
             </div>
+          </div>
+        )}
 
+        {/* ========================================================================= */}
+        {/* 3. Target URL / Account Card (رابط الحساب أو اسم المستخدم)                 */}
+        {/* ========================================================================= */}
+        <div className="rounded-3xl bg-white p-4 sm:p-5 border border-sky-100 shadow-xs space-y-2.5">
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-900">
+            <span className="w-2 h-2 rounded-full bg-amber-400" />
+            <span>رابط الحساب أو اسم المستخدم</span>
+          </div>
+
+          <div className="relative">
+            <input
+              type="text"
+              dir="ltr"
+              value={targetUrl}
+              onChange={(e) => setTargetUrl(e.target.value)}
+              placeholder="https://instagram.com/username"
+              required
+              className="w-full h-12 pr-4 pl-11 rounded-2xl bg-sky-50/30 border border-sky-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 text-xs sm:text-sm text-slate-900 font-mono shadow-xs outline-hidden transition"
+            />
+            <Link2 className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          </div>
+        </div>
+
+        {/* ========================================================================= */}
+        {/* 4. Quantity Card (الكمية المطلوبة)                                       */}
+        {/* ========================================================================= */}
+        {currentService && (
+          <div className="rounded-3xl bg-white p-4 sm:p-5 border border-sky-100 shadow-xs space-y-2.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-900">
+                <span className="w-2 h-2 rounded-full bg-amber-400" />
+                <span>الكمية المطلوبة</span>
+              </div>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 font-sans">
+                {formatK(currentService.minQuantity)} – {formatK(currentService.maxQuantity)}
+              </span>
+            </div>
+
+            <div className="relative">
+              <input
+                type="number"
+                dir="ltr"
+                value={quantity}
+                min={currentService.minQuantity}
+                max={currentService.maxQuantity}
+                onChange={(e) => setQuantity(Number(e.target.value))}
+                required
+                className="w-full h-12 pr-4 pl-11 rounded-2xl bg-sky-50/30 border border-sky-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 text-slate-900 font-black text-sm font-sans shadow-xs outline-hidden transition"
+              />
+              <Hash className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================================= */}
+        {/* 5. Order Summary Card (ملخص الطلب)                                       */}
+        {/* ========================================================================= */}
+        <div className="rounded-3xl bg-white p-4 sm:p-5 border border-sky-100 shadow-xs space-y-3.5">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-amber-600">
+            <span className="font-sans text-sm font-black">$</span>
+            <span className="text-slate-900">ملخص الطلب</span>
+          </div>
+
+          {/* 2 Stat Boxes Side-by-Side: التكلفة و رصيدك */}
+          <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+            <div className="p-3.5 rounded-2xl bg-rose-50/50 border border-rose-100 text-center">
+              <span className="text-xs text-slate-500 font-bold block mb-1">التكلفة</span>
+              <span className="text-lg sm:text-xl font-black text-rose-600 font-sans">
+                ${calculatedPrice.toFixed(4)}
+              </span>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-sky-50/60 border border-sky-100 text-center">
+              <span className="text-xs text-slate-500 font-bold block mb-1">رصيدك</span>
+              <span className="text-lg sm:text-xl font-black text-slate-900 font-sans">
+                ${balance.toFixed(4)}
+              </span>
+            </div>
+          </div>
+
+          {/* Balance Status Box */}
+          {!isBalanceSufficient ? (
+            <Link
+              href="/wallet#deposit-section"
+              className="flex items-center justify-between p-3.5 rounded-2xl bg-rose-50/80 border border-rose-200 text-rose-700 hover:bg-rose-100 transition group"
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                  <Wallet className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-rose-900">رصيد غير كافٍ</div>
+                  <div className="text-[11px] text-rose-600 font-semibold">
+                    تحتاج ${balanceDifference.toFixed(4)} إضافية
+                  </div>
+                </div>
+              </div>
+              <ArrowUpRight className="w-4 h-4 text-rose-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition" />
+            </Link>
+          ) : (
+            <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>رصيدك كافٍ وجاهز للتنفيذ الفوري ⚡</span>
+            </div>
+          )}
+        </div>
+
+        {/* ========================================================================= */}
+        {/* 6. Sticky Action Footer Bar (التكلفة الإجمالية وزر التأكيد أو الشحن)       */}
+        {/* ========================================================================= */}
+        <div className="space-y-2 pt-2">
+          <div className="flex items-center justify-between px-1">
+            <span className="text-xs font-bold text-slate-500">التكلفة الإجمالية</span>
+            <span className="text-lg font-black text-rose-600 font-sans">
+              ${calculatedPrice.toFixed(4)}
+            </span>
+          </div>
+
+          {!isBalanceSufficient ? (
+            <Link
+              href="/wallet#deposit-section"
+              className="w-full py-3.5 rounded-2xl bg-amber-400 hover:bg-amber-500 active:bg-amber-500 text-slate-950 font-black text-sm flex items-center justify-center gap-2 shadow-md transition active:scale-95"
+            >
+              <Wallet className="w-4 h-4" />
+              <span>اشحن رصيدك أولاً</span>
+            </Link>
+          ) : (
             <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={submitting || isBalanceInsufficient || !isQuantityValid}
-              className="w-full mt-6 flex items-center justify-center gap-2 py-3.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500 text-white font-bold shadow-lg shadow-blue-500/25 hover:opacity-95 transition transform active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+              type="submit"
+              disabled={submitting}
+              className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:opacity-95 text-white font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25 transition active:scale-95 disabled:opacity-50 cursor-pointer"
             >
               {submitting ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin text-white" />
+                  <Loader2 className="w-4 h-4 animate-spin" />
                   <span>جاري تأكيد الطلب...</span>
                 </>
               ) : (
                 <>
-                  <CheckCircle2 className="w-4 h-4 text-white" />
-                  <span>تأكيد الطلب الآن</span>
+                  <Zap className="w-4 h-4" />
+                  <span>تأكيد الطلب ⚡</span>
                 </>
               )}
             </button>
-
-            <div className="mt-4 text-[10px] text-slate-500 text-center leading-relaxed">
-              بالنقر على تأكيد الطلب، يتم خصم الرصيد تلقائياً وتوجيه الطلب لنظام المزود.
-            </div>
-          </div>
+          )}
         </div>
-      </div>
+      </form>
     </div>
   );
 }
