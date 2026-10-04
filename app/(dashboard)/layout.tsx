@@ -64,7 +64,7 @@ export default async function DashboardLayout({
       {/* Main Content Area */}
       <div className="lg:pr-64 flex-1 flex flex-col min-h-screen pb-28 lg:pb-8">
         {/* Top Navbar Header */}
-        <header className="sticky top-0 z-30 h-16 sm:h-20 bg-white/90 backdrop-blur-xl border-b border-sky-100 px-4 sm:px-8 flex items-center justify-between shadow-sm">
+        <header className="sticky top-0 z-30 h-16 sm:h-20 bg-white/95 backdrop-blur-xl border-b-0 lg:border-b lg:border-sky-100 px-4 sm:px-8 flex items-center justify-between shadow-xs lg:shadow-sm">
           {/* Mobile Header: Logo on Right, Notification on Left (NO hamburger icon) */}
           <div className="lg:hidden flex items-center justify-between w-full">
             <Logo size="sm" href="/dashboard" showTagline={false} />

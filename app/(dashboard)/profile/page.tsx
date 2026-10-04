@@ -16,7 +16,6 @@ import {
   Loader2,
   Save,
   LogOut,
-  Layers,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -207,23 +206,6 @@ export default function ProfilePage() {
               </span>
             </div>
           </div>
-        </div>
-
-        <div className="pt-4 border-t border-sky-100 flex flex-col sm:flex-row gap-3">
-          <Link
-            href="/services"
-            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-sky-50 hover:bg-sky-100 text-xs font-bold text-slate-800 transition border border-sky-200"
-          >
-            <Layers className="w-4 h-4 text-blue-600" />
-            <span>تصفح دليل الخدمات</span>
-          </Link>
-          <Link
-            href="/wallet"
-            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500 text-xs font-bold text-white shadow-lg shadow-blue-500/25 hover:opacity-90 transition"
-          >
-            <Wallet className="w-4 h-4" />
-            <span>شحن المحفظة</span>
-          </Link>
         </div>
       </div>
 

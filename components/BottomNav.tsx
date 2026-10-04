@@ -30,7 +30,8 @@ export default function BottomNav() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center py-1 px-3 rounded-xl transition-colors ${
+              prefetch={true}
+              className={`flex flex-col items-center py-1 px-3 rounded-xl transition-all active:scale-90 active:opacity-70 ${
                 isActive ? 'text-blue-600 font-bold' : 'text-slate-500 hover:text-slate-800'
               }`}
             >
