@@ -55,8 +55,7 @@ export default function AdminShell({ adminUser, children }: AdminShellProps) {
         adminUser={adminUser}
       />
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-h-screen md:pr-60 transition-all duration-300">
+      <div className="flex-1 flex flex-col min-h-screen md:pr-60">
         {/* Top Header */}
         <header className="sticky top-0 z-30 h-16 bg-white/90 backdrop-blur-md border-b border-sky-100 px-4 sm:px-6 flex items-center justify-between shadow-sm">
           {/* Right Side (in RTL): Title & Logo */}
