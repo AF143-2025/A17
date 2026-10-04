@@ -26,10 +26,10 @@ export default function QuantityInput({
     <div className="rounded-3xl bg-white p-4 sm:p-5 border border-sky-100 shadow-xs space-y-2.5">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-xs font-bold text-slate-900">
-          <span className="w-2 h-2 rounded-full bg-amber-400" />
+          <span className="w-2 h-2 rounded-full bg-blue-600" />
           <span>الكمية المطلوبة</span>
         </div>
-        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 font-sans">
+        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-50 text-blue-700 border border-sky-200 font-sans">
           {formatK(minQuantity)} – {formatK(maxQuantity)}
         </span>
       </div>

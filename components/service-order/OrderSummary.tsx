@@ -19,9 +19,9 @@ export default function OrderSummary({
 }: OrderSummaryProps) {
   return (
     <div className="rounded-3xl bg-white p-4 sm:p-5 border border-sky-100 shadow-xs space-y-3.5">
-      <div className="flex items-center gap-1.5 text-xs font-bold text-amber-600">
-        <span className="font-sans text-sm font-black">$</span>
-        <span className="text-slate-900">ملخص الطلب</span>
+      <div className="flex items-center gap-2 text-xs font-bold text-slate-900">
+        <span className="w-2 h-2 rounded-full bg-blue-600" />
+        <span>ملخص الطلب</span>
       </div>
 
       {/* 2 Stat Boxes Side-by-Side: التكلفة و رصيدك */}
@@ -35,7 +35,7 @@ export default function OrderSummary({
 
         <div className="p-3.5 rounded-2xl bg-sky-50/60 border border-sky-100 text-center">
           <span className="text-xs text-slate-500 font-bold block mb-1">رصيدك</span>
-          <span className="text-lg sm:text-xl font-black text-slate-900 font-sans">
+          <span className="text-lg sm:text-xl font-black text-blue-600 font-sans">
             ${balance.toFixed(4)}
           </span>
         </div>
@@ -52,10 +52,7 @@ export default function OrderSummary({
               <Wallet className="w-4 h-4" />
             </div>
             <div>
-              <div className="text-xs font-bold text-rose-900 flex items-center gap-1.5">
-                <span>🔴</span>
-                <span>رصيد غير كافٍ</span>
-              </div>
+              <div className="text-xs font-bold text-rose-900">رصيد غير كافٍ</div>
               <div className="text-[11px] text-rose-600 font-semibold font-sans mt-0.5">
                 تحتاج ${balanceDifference.toFixed(4)} إضافية
               </div>
@@ -66,7 +63,7 @@ export default function OrderSummary({
       ) : (
         <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold">
           <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-          <span>🟢 رصيدك كافٍ وجاهز للتنفيذ الفوري ⚡</span>
+          <span>رصيدك كافٍ وجاهز للتنفيذ الفوري ⚡</span>
         </div>
       )}
     </div>

@@ -31,7 +31,7 @@ export default function CheckoutBar({
             className="w-full py-3.5 rounded-2xl bg-amber-400 hover:bg-amber-500 active:bg-amber-500 text-slate-950 font-black text-sm flex items-center justify-center gap-2 shadow-md transition active:scale-95"
           >
             <Wallet className="w-4 h-4" />
-            <span>💳 اشحن رصيدك أولاً</span>
+            <span>اشحن رصيدك أولاً</span>
           </Link>
         ) : (
           <button
@@ -47,7 +47,7 @@ export default function CheckoutBar({
             ) : (
               <>
                 <Zap className="w-4 h-4" />
-                <span>⚡ تأكيد الطلب</span>
+                <span>تأكيد الطلب</span>
               </>
             )}
           </button>

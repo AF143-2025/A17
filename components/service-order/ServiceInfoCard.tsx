@@ -69,26 +69,26 @@ export default function ServiceInfoCard({
         </div>
         <div>
           <span className="text-[10px] text-slate-400 font-bold block">السعر</span>
-          <span className="text-xs sm:text-sm font-black text-slate-900 font-sans mt-0.5 block">
+          <span className="text-xs sm:text-sm font-black text-blue-600 font-sans mt-0.5 block">
             ${service.pricePer1000.toFixed(2)}
           </span>
         </div>
         <div>
           <span className="text-[10px] text-slate-400 font-bold block">التنفيذ</span>
-          <span className="text-xs sm:text-sm font-black text-blue-600 font-sans mt-0.5 block truncate">
-            {service.speed || '4320د'}
+          <span className="text-xs sm:text-sm font-black text-slate-800 font-sans mt-0.5 block truncate">
+            {service.speed || 'خلال دقائق'}
           </span>
         </div>
       </div>
 
       {/* Badges Row (30 يوم ضمان, حقيقي, الأكثر طلباً) */}
       <div className="flex flex-wrap items-center gap-2">
-        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold border border-slate-200">
-          <Clock className="w-3 h-3 text-sky-600" />
+        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-sky-50 text-blue-700 text-[10px] font-bold border border-sky-200">
+          <Clock className="w-3 h-3 text-blue-600" />
           <span>30 يوم ضمان</span>
         </span>
-        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-sky-50 text-blue-700 text-[10px] font-bold border border-sky-200">
-          <Tag className="w-3 h-3 text-blue-600" />
+        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200">
+          <Tag className="w-3 h-3 text-emerald-600" />
           <span>حقيقي</span>
         </span>
         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-[10px] font-bold border border-amber-200">
