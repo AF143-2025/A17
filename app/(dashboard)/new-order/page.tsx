@@ -16,6 +16,7 @@ import {
   AlertCircle,
   Loader2,
   Zap,
+  AtSign,
 } from 'lucide-react';
 import PlatformBrandIcon from '@/components/PlatformBrandIcon';
 
@@ -178,6 +179,122 @@ export default function NewOrderPage() {
   const isBalanceSufficient = balance >= calculatedPrice;
   const balanceDifference = Math.max(0, calculatedPrice - balance);
 
+  // Dynamic target type detection based on service name & category
+  const targetConfig = useMemo(() => {
+    const textToScan = [
+      currentService?.nameAr || '',
+      currentService?.name || '',
+      currentCategory?.nameAr || '',
+      currentPlatform?.nameAr || '',
+    ]
+      .join(' ')
+      .toLowerCase();
+
+    // 1. Followers / Subscribers / Members (متابعين، مشتركين، أعضاء)
+    if (
+      textToScan.includes('متابع') ||
+      textToScan.includes('follower') ||
+      textToScan.includes('مشترك') ||
+      textToScan.includes('subscrib') ||
+      textToScan.includes('عضو') ||
+      textToScan.includes('أعضاء') ||
+      textToScan.includes('اعضاء') ||
+      textToScan.includes('member')
+    ) {
+      return {
+        isUser: true,
+        label: 'اسم المستخدم أو رابط الحساب',
+        badge: 'متابعين / حساب',
+        placeholder: 'username@ أو رابط الحساب المباشر',
+        tip: 'تأكد من أن الحساب عام (Public) وليس خاصاً (Private) حتى يكتمل الطلب بنجاح.',
+      };
+    }
+
+    // 2. Likes / Views / Reels / Video / Post / Retweet / Comments (لايكات، مشاهدات، ريلز، بوست، تعليقات)
+    if (
+      textToScan.includes('لايك') ||
+      textToScan.includes('إعجاب') ||
+      textToScan.includes('اعجاب') ||
+      textToScan.includes('like') ||
+      textToScan.includes('مشاهد') ||
+      textToScan.includes('view') ||
+      textToScan.includes('ريلز') ||
+      textToScan.includes('reel') ||
+      textToScan.includes('فيديو') ||
+      textToScan.includes('video') ||
+      textToScan.includes('منشور') ||
+      textToScan.includes('بوست') ||
+      textToScan.includes('post') ||
+      textToScan.includes('تغريد') ||
+      textToScan.includes('tweet') ||
+      textToScan.includes('retweet') ||
+      textToScan.includes('كومنت') ||
+      textToScan.includes('تعليق') ||
+      textToScan.includes('comment')
+    ) {
+      return {
+        isUser: false,
+        label: 'رابط المنشور أو الفيديو (الريلز)',
+        badge: 'منشور / فيديو',
+        placeholder: 'https://... رابط المنشور أو الفيديو المباشر',
+        tip: 'تأكد من أن المنشور أو الفيديو عام ومتاح للجميع وليس محذوفاً أو مؤقتاً.',
+      };
+    }
+
+    // 3. Telegram channels / groups
+    if (
+      textToScan.includes('قناة') ||
+      textToScan.includes('مجموعة') ||
+      textToScan.includes('جروب') ||
+      textToScan.includes('t.me')
+    ) {
+      return {
+        isUser: false,
+        label: 'رابط أو معرف القناة / المجموعة',
+        badge: 'قناة / تيليجرام',
+        placeholder: 'https://t.me/channel أو معرف القناة',
+        tip: 'تأكد من أن رابط القناة عام ويعمل بشكل صحيح.',
+      };
+    }
+
+    // 4. Default fallback
+    return {
+      isUser: false,
+      label: 'رابط الحساب أو المنشور المطلوب',
+      badge: 'الرابط المطلوب',
+      placeholder: 'https://... أو اسم المستخدم',
+      tip: 'يرجى إدخال الرابط بدقة للتأكد من وصول الخدمة لحسابك فوراً.',
+    };
+  }, [currentService, currentCategory, currentPlatform]);
+
+  // Quick quantity options within min/max bounds
+  const quickQuantities = useMemo(() => {
+    if (!currentService) return [];
+    const min = currentService.minQuantity;
+    const max = currentService.maxQuantity;
+
+    const candidates = [
+      min,
+      500,
+      1000,
+      2500,
+      5000,
+      10000,
+      max,
+    ];
+
+    // Filter valid unique values within min-max range
+    const valid = Array.from(new Set(candidates)).filter(
+      (v) => v >= min && v <= max
+    );
+
+    // Limit to max 5 pills to keep layout neat
+    if (valid.length > 5) {
+      return [valid[0], valid[1], valid[2], valid[valid.length - 2], valid[valid.length - 1]];
+    }
+    return valid;
+  }, [currentService]);
+
   // Number format helper (e.g. 1000 -> 1K)
   const formatK = (num: number) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(num % 1000000 === 0 ? 0 : 1)}M`;
@@ -294,10 +411,21 @@ export default function NewOrderPage() {
 
       <form onSubmit={handleSubmit} className="space-y-3.5">
         {/* ========================================================================= */}
-        {/* 1. Top Selected Service Card (بطاقة الخدمة المختارة)                        */}
+        {/* 1. تفاصيل الخدمة (المستطيل الأول)                                         */}
         {/* ========================================================================= */}
         {currentService && (
           <div className="rounded-3xl bg-white p-4 sm:p-5 border border-sky-100 shadow-xs space-y-3.5">
+            {/* Header with Title */}
+            <div className="flex items-center justify-between pb-1 border-b border-sky-100/60">
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-900">
+                <span className="w-2 h-2 rounded-full bg-blue-600" />
+                <span>تفاصيل الخدمة</span>
+              </div>
+              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                {currentPlatform?.nameAr || 'خدمة سريعة'}
+              </span>
+            </div>
+
             {/* Service Title & Category Header */}
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
@@ -386,12 +514,17 @@ export default function NewOrderPage() {
         )}
 
         {/* ========================================================================= */}
-        {/* 2. Target URL / Account Card (رابط الحساب أو اسم المستخدم)                 */}
+        {/* 2. الرابط أو اسم المستخدم (المستطيل الثاني الذكي)                           */}
         {/* ========================================================================= */}
-        <div className="rounded-3xl bg-white p-4 sm:p-5 border border-sky-100 shadow-xs space-y-2.5">
-          <div className="flex items-center gap-2 text-xs font-bold text-slate-900">
-            <span className="w-2 h-2 rounded-full bg-amber-400" />
-            <span>رابط الحساب أو اسم المستخدم</span>
+        <div className="rounded-3xl bg-white p-4 sm:p-5 border border-sky-100 shadow-xs space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-xs font-bold text-slate-900">
+              <span className="w-2 h-2 rounded-full bg-amber-400" />
+              <span>{targetConfig.label}</span>
+            </div>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-50 text-blue-700 border border-sky-200">
+              {targetConfig.badge}
+            </span>
           </div>
 
           <div className="relative">
@@ -400,19 +533,29 @@ export default function NewOrderPage() {
               dir="ltr"
               value={targetUrl}
               onChange={(e) => setTargetUrl(e.target.value)}
-              placeholder="https://instagram.com/username"
+              placeholder={targetConfig.placeholder}
               required
-              className="w-full h-12 pr-4 pl-11 rounded-2xl bg-sky-50/30 border border-sky-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 text-xs sm:text-sm text-slate-900 font-mono shadow-xs outline-hidden transition"
+              className="w-full h-12 pr-4 pl-11 rounded-2xl bg-sky-50/30 border border-sky-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 text-xs sm:text-sm text-slate-900 font-mono shadow-xs outline-hidden transition placeholder:text-slate-400"
             />
-            <Link2 className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            {targetConfig.isUser ? (
+              <AtSign className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            ) : (
+              <Link2 className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            )}
+          </div>
+
+          {/* Dynamic Tip Warning */}
+          <div className="flex items-center gap-2 text-[11px] text-amber-700 bg-amber-50/80 border border-amber-200/70 rounded-2xl px-3 py-2 font-medium">
+            <Info className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+            <span>{targetConfig.tip}</span>
           </div>
         </div>
 
         {/* ========================================================================= */}
-        {/* 3. Quantity Card (الكمية المطلوبة)                                       */}
+        {/* 3. الكمية المطلوبة (المستطيل الثالث)                                       */}
         {/* ========================================================================= */}
         {currentService && (
-          <div className="rounded-3xl bg-white p-4 sm:p-5 border border-sky-100 shadow-xs space-y-2.5">
+          <div className="rounded-3xl bg-white p-4 sm:p-5 border border-sky-100 shadow-xs space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-xs font-bold text-slate-900">
                 <span className="w-2 h-2 rounded-full bg-amber-400" />
@@ -427,7 +570,7 @@ export default function NewOrderPage() {
               <input
                 type="number"
                 dir="ltr"
-                value={quantity}
+                value={quantity || ''}
                 min={currentService.minQuantity}
                 max={currentService.maxQuantity}
                 onChange={(e) => setQuantity(Number(e.target.value))}
@@ -436,16 +579,53 @@ export default function NewOrderPage() {
               />
               <Hash className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             </div>
+
+            {/* In-range check alert */}
+            {quantity > 0 && (quantity < currentService.minQuantity || quantity > currentService.maxQuantity) && (
+              <p className="text-[11px] font-bold text-rose-600">
+                ⚠️ الكمية يجب أن تكون بين {currentService.minQuantity.toLocaleString()} و {currentService.maxQuantity.toLocaleString()}
+              </p>
+            )}
+
+            {/* Quick Quantity Chips */}
+            {quickQuantities.length > 0 && (
+              <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                <span className="text-[10px] text-slate-400 font-bold ml-1">كميات سريعة:</span>
+                {quickQuantities.map((q) => (
+                  <button
+                    key={q}
+                    type="button"
+                    onClick={() => setQuantity(q)}
+                    className={`px-2.5 py-1 rounded-xl text-[11px] font-bold font-sans transition cursor-pointer active:scale-95 ${
+                      quantity === q
+                        ? 'bg-blue-600 text-white shadow-xs'
+                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/80'
+                    }`}
+                  >
+                    {q === currentService.minQuantity
+                      ? `الأدنى (${formatK(q)})`
+                      : q === currentService.maxQuantity
+                      ? `الأقصى (${formatK(q)})`
+                      : formatK(q)}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
         {/* ========================================================================= */}
-        {/* 4. Order Summary Card (ملخص الطلب)                                       */}
+        {/* 4. ملخص الطلب (المستطيل الرابع)                                           */}
         {/* ========================================================================= */}
         <div className="rounded-3xl bg-white p-4 sm:p-5 border border-sky-100 shadow-xs space-y-3.5">
-          <div className="flex items-center gap-1.5 text-xs font-bold text-amber-600">
-            <span className="font-sans text-sm font-black">$</span>
-            <span className="text-slate-900">ملخص الطلب</span>
+          <div className="flex items-center justify-between pb-1 border-b border-sky-100/60">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-amber-600">
+              <span className="font-sans text-sm font-black">$</span>
+              <span className="text-slate-900">ملخص الطلب</span>
+            </div>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-sans">
+              حساب فوري
+            </span>
           </div>
 
           {/* 2 Stat Boxes Side-by-Side: التكلفة و رصيدك */}
@@ -490,6 +670,13 @@ export default function NewOrderPage() {
               <span>رصيدك كافٍ وجاهز للتنفيذ الفوري ⚡</span>
             </div>
           )}
+
+          {/* Instant start note */}
+          <div className="text-center pt-0.5">
+            <span className="text-[10px] text-slate-400 font-semibold">
+              ⚡ يبدأ التنفيذ تلقائياً عبر المزود المباشر بعد التأكيد فوراً
+            </span>
+          </div>
         </div>
 
         {/* ========================================================================= */}
