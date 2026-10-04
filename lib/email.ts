@@ -48,7 +48,7 @@ function getTransporter(): Transporter | null {
  * Plaintext secrets or credentials are NEVER exposed.
  */
 export async function sendEmail({ to, subject, html, text }: SendEmailOptions): Promise<SendEmailResult> {
-  const from = process.env.SMTP_FROM || `"منصة اصعد | ESAAD" <${process.env.SMTP_USER || 'no-reply@es3ad.iq'}>`;
+  const from = process.env.SMTP_FROM || `"منصة اصعد | ESAAD" <${process.env.SMTP_USER || 'no-reply@esaad.social'}>`;
   const mailTransporter = getTransporter();
 
   // 1. Try sending via SMTP

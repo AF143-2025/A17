@@ -129,7 +129,7 @@ export default function ProfilePage() {
       <div>
         <h1 className="text-2xl font-black text-slate-900 font-sans">الملف الشخصي وإعدادات الأمان</h1>
         <p className="text-xs text-slate-500 mt-1">
-          بيانات الحساب وتفاصيل الأمان والمعاملات المالية بالدولار ($)
+          بيانات الحساب وتفاصيل الأمان والمعاملات المالية ($)
         </p>
       </div>
 

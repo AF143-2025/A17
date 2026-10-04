@@ -91,7 +91,7 @@ export default function ServicesPage() {
       <div>
         <h1 className="text-2xl font-black text-slate-900 font-sans">دليل الخدمات والأسعار</h1>
         <p className="text-xs text-slate-500 mt-1">
-          استعرض قائمة كافة الخدمات المتاحة وأسعارها بالدولار الأمريكي ($)
+          استعرض قائمة كافة الخدمات المتاحة وأسعارها ($)
         </p>
       </div>
 

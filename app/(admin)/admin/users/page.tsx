@@ -1273,14 +1273,14 @@ export default function AdminUsersPage() {
                     <div>User: <strong>{generatedPassInfo.user}</strong></div>
                     <div>Email: <strong>{generatedPassInfo.email}</strong></div>
                     <div>New Password: <strong className="text-rose-600 bg-rose-50 px-1 py-0.5 rounded">{generatedPassInfo.pass}</strong></div>
-                    <div>Login URL: <strong>https://es3ad.iq/login</strong></div>
+                    <div>Login URL: <strong>https://esaad.social/login</strong></div>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => {
-                      const text = `مرحباً بك في منصة اصعد (es3ad.iq) 🚀\nتمت استعادة حسابك وتعيين كلمة المرور بنجاح:\n\n👤 اسم المستخدم: ${generatedPassInfo.user}\n📧 البريد الإلكتروني: ${generatedPassInfo.email}\n🔑 كلمة المرور الجديدة: ${generatedPassInfo.pass}\n🔗 رابط تسجيل الدخول: https://es3ad.iq/login\n\nيرجى تغيير كلمة المرور بعد الدخول للأمان.`;
+                      const text = `مرحباً بك في منصة اصعد (esaad.social) 🚀\nتمت استعادة حسابك وتعيين كلمة المرور بنجاح:\n\n👤 اسم المستخدم: ${generatedPassInfo.user}\n📧 البريد الإلكتروني: ${generatedPassInfo.email}\n🔑 كلمة المرور الجديدة: ${generatedPassInfo.pass}\n🔗 رابط تسجيل الدخول: https://esaad.social/login\n\nيرجى تغيير كلمة المرور بعد الدخول للأمان.`;
                       handleCopy(text, 'full-recovery-msg');
                       showFeedback('success', 'تم نسخ الرسالة الجاهزة، يمكنك لصقها الآن في واتساب أو تليجرام');
                     }}

@@ -83,7 +83,7 @@ export default function WalletPage() {
           </div>
           <div className="mt-2 text-4xl sm:text-5xl font-black text-slate-900 font-sans tracking-tight">
             ${balance.toFixed(2)}{' '}
-            <span className="text-base sm:text-lg font-bold text-blue-600">دولار أمريكي ($)</span>
+            <span className="text-base sm:text-lg font-bold text-blue-600">USD ($)</span>
           </div>
           <p className="text-xs text-slate-500 mt-1">
             جميع المعاملات المالية محمية بنظام الـ Ledger الذري غير القابل للتلاعب.
@@ -127,7 +127,7 @@ export default function WalletPage() {
                   شحن الرصيد الفوري عبر تيليجرام
                 </h2>
                 <p className="text-xs text-slate-600 mt-0.5">
-                  تواصل مباشرة مع الإدارة المالية عبر الحساب المعتمد لشحن رصيدك بالدولار ($) خلال دقائق معدودة
+                  تواصل مباشرة مع الإدارة المالية عبر الحساب المعتمد لشحن رصيدك ($) خلال دقائق معدودة
                 </p>
               </div>
             </div>
@@ -192,7 +192,7 @@ export default function WalletPage() {
               </div>
               <h4 className="font-bold text-slate-900">أرسل بيانات حسابك</h4>
               <p className="text-[11px] text-slate-600 leading-relaxed">
-                أرسل اسم المستخدم أو بريدك الإلكتروني في المنصة مع المبلغ المراد شحنه بالدولار ($).
+                أرسل اسم المستخدم أو بريدك الإلكتروني في المنصة مع المبلغ المراد شحنه ($).
               </p>
             </div>
 
@@ -235,7 +235,7 @@ export default function WalletPage() {
           >
             @Hexc8re
           </a>
-          . كل عملية إيداع توثق بدقة في سجل المعاملات أدناه وتنعكس في رصيدك بالدولار ($) لضمان حقوقك بنسبة 100%.
+          . كل عملية إيداع توثق بدقة في سجل المعاملات أدناه وتنعكس في رصيدك ($) لضمان حقوقك بنسبة 100%.
         </p>
       </div>
 
