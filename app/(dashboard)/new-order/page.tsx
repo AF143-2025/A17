@@ -366,361 +366,296 @@ export default function NewOrderPage() {
   }
 
   return (
-    <div className="max-w-xl mx-auto space-y-3.5 pb-36 animate-in fade-in duration-200 font-sans">
-      {/* Success Notification Banner */}
-      {successOrder && (
-        <div className="p-4 sm:p-5 rounded-3xl bg-emerald-50 border border-emerald-200 shadow-xs flex flex-col gap-3 animate-in zoom-in-95">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
-              <CheckCircle2 className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="text-xs sm:text-sm font-bold text-slate-900">
-                تم استلام طلبك بنجاح! (#{successOrder.id.slice(-6)})
-              </h3>
-              <p className="text-[11px] text-emerald-700 mt-0.5">
-                طلبك الآن قيد التنفيذ التلقائي الفوري.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 pt-1">
-            <button
-              onClick={() => setSuccessOrder(null)}
-              className="flex-1 py-2 rounded-xl bg-white text-xs font-bold text-slate-700 hover:bg-slate-50 border border-emerald-200 transition"
-            >
-              طلب خدمة أخرى
-            </button>
-            <Link
-              href="/orders"
-              className="flex-1 py-2 rounded-xl bg-emerald-600 text-xs font-bold text-white hover:bg-emerald-700 text-center transition shadow-xs"
-            >
-              متابعة في طلباتي →
-            </Link>
-          </div>
-        </div>
-      )}
-
-      {/* Error Message Alert */}
-      {errorMsg && (
-        <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 flex items-start gap-2.5 text-rose-700 text-xs">
-          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-600" />
-          <span>{errorMsg}</span>
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-3.5">
-        {/* ========================================================================= */}
-        {/* 1. تفاصيل الخدمة (المستطيل الأول)                                         */}
-        {/* ========================================================================= */}
-        {currentService && (
-          <div className="rounded-3xl bg-white p-4 sm:p-5 border border-sky-100 shadow-xs space-y-3.5">
-            {/* Header with Title */}
-            <div className="flex items-center justify-between pb-1 border-b border-sky-100/60">
-              <div className="flex items-center gap-2 text-xs font-bold text-slate-900">
-                <span className="w-2 h-2 rounded-full bg-blue-600" />
-                <span>تفاصيل الخدمة</span>
+    <div className="-m-4 sm:-m-6 lg:-m-8 p-4 sm:p-6 lg:p-8 bg-[#090d16] min-h-screen text-slate-100 font-sans">
+      <div className="max-w-xl mx-auto space-y-3.5 pb-40 animate-in fade-in duration-200">
+        {/* Success Notification Banner */}
+        {successOrder && (
+          <div className="p-4 sm:p-5 rounded-3xl bg-emerald-950/50 border border-emerald-800/80 shadow-lg flex flex-col gap-3 animate-in zoom-in-95">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-900/60 text-emerald-400 flex items-center justify-center shrink-0">
+                <CheckCircle2 className="w-5 h-5" />
               </div>
-              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
-                {currentPlatform?.nameAr || 'خدمة سريعة'}
-              </span>
+              <div>
+                <h3 className="text-xs sm:text-sm font-bold text-white">
+                  تم استلام طلبك بنجاح! (#{successOrder.id.slice(-6)})
+                </h3>
+                <p className="text-[11px] text-emerald-400 mt-0.5">
+                  طلبك الآن قيد التنفيذ التلقائي الفوري.
+                </p>
+              </div>
             </div>
 
-            {/* Service Title & Category Header */}
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <h2 className="text-xs sm:text-sm font-black text-slate-900 leading-snug line-clamp-2">
-                  {currentService.nameAr || currentService.name}
-                </h2>
-                <div className="flex items-center gap-1.5 text-[11px] text-slate-500 font-semibold mt-1">
-                  <span className="font-mono px-1.5 py-0.2 rounded-md bg-slate-100 text-slate-700 text-[10px] font-bold">
-                    #{currentService.id.slice(-4)}
+            <div className="flex items-center gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => setSuccessOrder(null)}
+                className="flex-1 py-2 rounded-xl bg-slate-800 text-xs font-bold text-slate-200 hover:bg-slate-700 border border-slate-700 transition"
+              >
+                طلب خدمة أخرى
+              </button>
+              <Link
+                href="/orders"
+                className="flex-1 py-2 rounded-xl bg-emerald-600 text-xs font-bold text-white hover:bg-emerald-500 text-center transition shadow-xs"
+              >
+                متابعة في طلباتي →
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* Error Message Alert */}
+        {errorMsg && (
+          <div className="p-3.5 rounded-2xl bg-rose-950/60 border border-rose-900/80 flex items-start gap-2.5 text-rose-300 text-xs">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-400" />
+            <span>{errorMsg}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-3.5">
+          {/* ========================================================================= */}
+          {/* 1. Selected Service Card (بطاقة الخدمة المختارة)                          */}
+          {/* ========================================================================= */}
+          {currentService && (
+            <div className="rounded-3xl bg-[#131926] p-4 sm:p-5 border border-slate-800 shadow-xl space-y-3.5">
+              {/* Service Title & Category Header */}
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-sm sm:text-base font-black text-white leading-snug">
+                    {currentService.nameAr || currentService.name}
+                  </h2>
+                  <div className="flex items-center gap-1.5 text-xs text-slate-400 font-semibold mt-1">
+                    <span className="font-mono px-2 py-0.5 rounded-lg bg-[#1e2738] border border-slate-700/60 text-slate-300 text-[11px] font-bold">
+                      #{currentService.id.slice(-4)}
+                    </span>
+                    <span className="text-slate-600 font-bold">•</span>
+                    <span className="truncate text-slate-400">{currentCategory?.nameAr}</span>
+                  </div>
+                </div>
+
+                {/* Real Official Platform Brand Icon */}
+                <PlatformBrandIcon slug={currentPlatform?.slug} size="md" />
+              </div>
+
+              {/* 4-Columns Metric Bar (الأدنى, الأقصى, 1000/, التنفيذ) */}
+              <div className="grid grid-cols-4 gap-1.5 sm:gap-2 p-2.5 rounded-2xl bg-[#0a0e17] border border-slate-800/80 text-center">
+                <div>
+                  <span className="text-[10px] text-slate-400 font-bold block">الأدنى</span>
+                  <span className="text-xs sm:text-sm font-black text-white font-sans mt-0.5 block">
+                    {formatK(currentService.minQuantity)}
                   </span>
-                  <span>•</span>
-                  <span className="truncate">{currentCategory?.nameAr}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 font-bold block">الأقصى</span>
+                  <span className="text-xs sm:text-sm font-black text-white font-sans mt-0.5 block">
+                    {formatK(currentService.maxQuantity)}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 font-bold block">1000/</span>
+                  <span className="text-xs sm:text-sm font-black text-white font-sans mt-0.5 block">
+                    ${currentService.pricePer1000.toFixed(2)}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 font-bold block">التنفيذ</span>
+                  <span className="text-xs sm:text-sm font-black text-white font-sans mt-0.5 block truncate">
+                    {currentService.speed || '4320د'}
+                  </span>
                 </div>
               </div>
 
-              {/* Real Official Platform Brand Icon */}
-              <PlatformBrandIcon slug={currentPlatform?.slug} size="md" />
-            </div>
-
-            {/* 4-Columns Metric Bar (الأدنى, الأقصى, 1000/, التنفيذ) */}
-            <div className="grid grid-cols-4 gap-1.5 sm:gap-2 p-2.5 rounded-2xl bg-sky-50/60 border border-sky-100 text-center">
-              <div>
-                <span className="text-[10px] text-slate-400 font-bold block">الأدنى</span>
-                <span className="text-xs sm:text-sm font-black text-slate-900 font-sans mt-0.5 block">
-                  {formatK(currentService.minQuantity)}
+              {/* Badges Row (30 يوم ضمان, حقيقي, الأكثر طلباً) */}
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#1c2436] border border-slate-700/60 text-slate-300 text-[10px] sm:text-xs font-bold">
+                  <Clock className="w-3.5 h-3.5 text-slate-400" />
+                  <span>30 يوم ضمان</span>
+                </span>
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#0f1f38] border border-blue-900/60 text-blue-400 text-[10px] sm:text-xs font-bold">
+                  <Tag className="w-3.5 h-3.5 text-blue-400" />
+                  <span>حقيقي</span>
+                </span>
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#2a1d0d] border border-amber-900/60 text-amber-400 text-[10px] sm:text-xs font-bold">
+                  <Flame className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                  <span>الأكثر طلباً</span>
                 </span>
               </div>
-              <div>
-                <span className="text-[10px] text-slate-400 font-bold block">الأقصى</span>
-                <span className="text-xs sm:text-sm font-black text-slate-900 font-sans mt-0.5 block">
-                  {formatK(currentService.maxQuantity)}
-                </span>
-              </div>
-              <div>
-                <span className="text-[10px] text-slate-400 font-bold block">1000/</span>
-                <span className="text-xs sm:text-sm font-black text-slate-900 font-sans mt-0.5 block">
-                  ${currentService.pricePer1000.toFixed(2)}
-                </span>
-              </div>
-              <div>
-                <span className="text-[10px] text-slate-400 font-bold block">التنفيذ</span>
-                <span className="text-xs sm:text-sm font-black text-blue-600 font-sans mt-0.5 block truncate">
-                  {currentService.speed || 'خلال دقائق'}
-                </span>
-              </div>
-            </div>
 
-            {/* Badges Row (30 يوم ضمان, حقيقي, الأكثر طلباً) */}
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold border border-slate-200">
-                <Clock className="w-3 h-3 text-sky-600" />
-                <span>30 يوم ضمان</span>
-              </span>
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-sky-50 text-blue-700 text-[10px] font-bold border border-sky-200">
-                <Tag className="w-3 h-3 text-blue-600" />
-                <span>حقيقي</span>
-              </span>
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-[10px] font-bold border border-amber-200">
-                <Flame className="w-3 h-3 text-amber-500 fill-amber-500" />
-                <span>الأكثر طلباً</span>
-              </span>
-            </div>
+              {/* Service Description Card with Expand/Collapse */}
+              <div className="text-xs text-slate-300 space-y-1.5 pt-1">
+                <div className="flex items-start gap-2">
+                  <Info className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                  <p className={`text-xs leading-relaxed text-slate-300 ${descriptionExpanded ? '' : 'line-clamp-2'}`}>
+                    {currentService.description || 'الأضافات تكون من حسابات حقيقية ونشطة وآمنة تماماً لحسابك.'}
+                  </p>
+                </div>
 
-            {/* Service Description Card with Expand/Collapse */}
-            <div className="p-3 rounded-2xl bg-sky-50/40 border border-sky-100/70 text-xs text-slate-600 space-y-1.5">
-              <div className="flex items-start gap-2">
-                <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-                <p className={`text-[11px] sm:text-xs leading-relaxed ${descriptionExpanded ? '' : 'line-clamp-2'}`}>
-                  {currentService.description || 'خدمة سريعة وآمنة ومضمونة بنسبة 100% لتنمية حسابك.'}
-                </p>
-              </div>
-
-              {currentService.description && currentService.description.length > 80 && (
-                <div className="text-left">
+                <div className="text-center pt-1">
                   <button
                     type="button"
                     onClick={() => setDescriptionExpanded((prev) => !prev)}
-                    className="text-[11px] font-bold text-blue-600 hover:underline inline-flex items-center gap-0.5 cursor-pointer"
+                    className="text-xs font-bold text-amber-400 hover:text-amber-300 inline-flex items-center gap-1 cursor-pointer transition"
                   >
                     <span>{descriptionExpanded ? 'عرض أقل ˄' : 'عرض المزيد ˅'}</span>
                   </button>
                 </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* ========================================================================= */}
-        {/* 2. الرابط أو اسم المستخدم (المستطيل الثاني الذكي)                           */}
-        {/* ========================================================================= */}
-        <div className="rounded-3xl bg-white p-4 sm:p-5 border border-sky-100 shadow-xs space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs font-bold text-slate-900">
-              <span className="w-2 h-2 rounded-full bg-amber-400" />
-              <span>{targetConfig.label}</span>
-            </div>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-50 text-blue-700 border border-sky-200">
-              {targetConfig.badge}
-            </span>
-          </div>
-
-          <div className="relative">
-            <input
-              type="text"
-              dir="ltr"
-              value={targetUrl}
-              onChange={(e) => setTargetUrl(e.target.value)}
-              placeholder={targetConfig.placeholder}
-              required
-              className="w-full h-12 pr-4 pl-11 rounded-2xl bg-sky-50/30 border border-sky-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 text-xs sm:text-sm text-slate-900 font-mono shadow-xs outline-hidden transition placeholder:text-slate-400"
-            />
-            {targetConfig.isUser ? (
-              <AtSign className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            ) : (
-              <Link2 className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            )}
-          </div>
-
-          {/* Dynamic Tip Warning */}
-          <div className="flex items-center gap-2 text-[11px] text-amber-700 bg-amber-50/80 border border-amber-200/70 rounded-2xl px-3 py-2 font-medium">
-            <Info className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-            <span>{targetConfig.tip}</span>
-          </div>
-        </div>
-
-        {/* ========================================================================= */}
-        {/* 3. الكمية المطلوبة (المستطيل الثالث)                                       */}
-        {/* ========================================================================= */}
-        {currentService && (
-          <div className="rounded-3xl bg-white p-4 sm:p-5 border border-sky-100 shadow-xs space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-xs font-bold text-slate-900">
-                <span className="w-2 h-2 rounded-full bg-amber-400" />
-                <span>الكمية المطلوبة</span>
               </div>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 font-sans">
-                {formatK(currentService.minQuantity)} – {formatK(currentService.maxQuantity)}
-              </span>
+            </div>
+          )}
+
+          {/* ========================================================================= */}
+          {/* 2. Target Link / Account Card (رابط الحساب أو اسم المستخدم)                 */}
+          {/* ========================================================================= */}
+          <div className="rounded-3xl bg-[#131926] p-4 sm:p-5 border border-slate-800 shadow-xl space-y-3">
+            <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-white">
+              <span className="w-2 h-2 rounded-full bg-amber-400" />
+              <span>رابط الحساب أو اسم المستخدم</span>
             </div>
 
             <div className="relative">
               <input
-                type="number"
+                type="text"
                 dir="ltr"
-                value={quantity || ''}
-                min={currentService.minQuantity}
-                max={currentService.maxQuantity}
-                onChange={(e) => setQuantity(Number(e.target.value))}
+                value={targetUrl}
+                onChange={(e) => setTargetUrl(e.target.value)}
+                placeholder="https://instagram.com/username"
                 required
-                className="w-full h-12 pr-4 pl-11 rounded-2xl bg-sky-50/30 border border-sky-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 text-slate-900 font-black text-sm font-sans shadow-xs outline-hidden transition"
+                className="w-full h-12 pr-4 pl-11 rounded-2xl bg-[#0a0e17] border border-slate-800 focus:border-amber-400/80 focus:ring-2 focus:ring-amber-400/20 text-xs sm:text-sm text-white font-mono shadow-xs outline-hidden transition placeholder:text-slate-500"
               />
-              <Hash className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            </div>
-
-            {/* In-range check alert */}
-            {quantity > 0 && (quantity < currentService.minQuantity || quantity > currentService.maxQuantity) && (
-              <p className="text-[11px] font-bold text-rose-600">
-                ⚠️ الكمية يجب أن تكون بين {currentService.minQuantity.toLocaleString()} و {currentService.maxQuantity.toLocaleString()}
-              </p>
-            )}
-
-            {/* Quick Quantity Chips */}
-            {quickQuantities.length > 0 && (
-              <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                <span className="text-[10px] text-slate-400 font-bold ml-1">كميات سريعة:</span>
-                {quickQuantities.map((q) => (
-                  <button
-                    key={q}
-                    type="button"
-                    onClick={() => setQuantity(q)}
-                    className={`px-2.5 py-1 rounded-xl text-[11px] font-bold font-sans transition cursor-pointer active:scale-95 ${
-                      quantity === q
-                        ? 'bg-blue-600 text-white shadow-xs'
-                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/80'
-                    }`}
-                  >
-                    {q === currentService.minQuantity
-                      ? `الأدنى (${formatK(q)})`
-                      : q === currentService.maxQuantity
-                      ? `الأقصى (${formatK(q)})`
-                      : formatK(q)}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ========================================================================= */}
-        {/* 4. ملخص الطلب (المستطيل الرابع)                                           */}
-        {/* ========================================================================= */}
-        <div className="rounded-3xl bg-white p-4 sm:p-5 border border-sky-100 shadow-xs space-y-3.5">
-          <div className="flex items-center justify-between pb-1 border-b border-sky-100/60">
-            <div className="flex items-center gap-1.5 text-xs font-bold text-amber-600">
-              <span className="font-sans text-sm font-black">$</span>
-              <span className="text-slate-900">ملخص الطلب</span>
-            </div>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-sans">
-              حساب فوري
-            </span>
-          </div>
-
-          {/* 2 Stat Boxes Side-by-Side: التكلفة و رصيدك */}
-          <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
-            <div className="p-3.5 rounded-2xl bg-rose-50/50 border border-rose-100 text-center">
-              <span className="text-xs text-slate-500 font-bold block mb-1">التكلفة</span>
-              <span className="text-lg sm:text-xl font-black text-rose-600 font-sans">
-                ${calculatedPrice.toFixed(4)}
-              </span>
-            </div>
-
-            <div className="p-3.5 rounded-2xl bg-sky-50/60 border border-sky-100 text-center">
-              <span className="text-xs text-slate-500 font-bold block mb-1">رصيدك</span>
-              <span className="text-lg sm:text-xl font-black text-slate-900 font-sans">
-                ${balance.toFixed(4)}
-              </span>
+              <Link2 className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
             </div>
           </div>
 
-          {/* Balance Status Box */}
-          {!isBalanceSufficient ? (
-            <Link
-              href="/wallet#deposit-section"
-              className="flex items-center justify-between p-3.5 rounded-2xl bg-rose-50/80 border border-rose-200 text-rose-700 hover:bg-rose-100 transition group"
-            >
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
-                  <Wallet className="w-4 h-4" />
+          {/* ========================================================================= */}
+          {/* 3. Quantity Card (الكمية المطلوبة)                                       */}
+          {/* ========================================================================= */}
+          {currentService && (
+            <div className="rounded-3xl bg-[#131926] p-4 sm:p-5 border border-slate-800 shadow-xl space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-white">
+                  <span className="w-2 h-2 rounded-full bg-amber-400" />
+                  <span>الكمية المطلوبة</span>
                 </div>
-                <div>
-                  <div className="text-xs font-bold text-rose-900">رصيد غير كافٍ</div>
-                  <div className="text-[11px] text-rose-600 font-semibold">
-                    تحتاج ${balanceDifference.toFixed(4)} إضافية
-                  </div>
+                <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#2a1d0d] text-amber-400 border border-amber-900/60 font-sans">
+                  {formatK(currentService.minQuantity)} – {formatK(currentService.maxQuantity)}
+                </span>
+              </div>
+
+              <div className="relative">
+                <input
+                  type="number"
+                  dir="ltr"
+                  value={quantity || ''}
+                  min={currentService.minQuantity}
+                  max={currentService.maxQuantity}
+                  onChange={(e) => setQuantity(Number(e.target.value))}
+                  required
+                  className="w-full h-12 pr-11 pl-11 rounded-2xl bg-[#0a0e17] border border-slate-800 focus:border-amber-400/80 focus:ring-2 focus:ring-amber-400/20 text-white font-black text-sm font-sans shadow-xs outline-hidden transition text-center sm:text-right"
+                />
+                <Hash className="w-4 h-4 text-slate-500 absolute right-3.5 top-1/2 -translate-y-1/2" />
+                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex flex-col items-center justify-center text-slate-500 pointer-events-none select-none">
+                  <span className="text-[8px] leading-tight">▲</span>
+                  <span className="text-[8px] leading-tight">▼</span>
                 </div>
               </div>
-              <ArrowUpRight className="w-4 h-4 text-rose-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition" />
-            </Link>
-          ) : (
-            <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>رصيدك كافٍ وجاهز للتنفيذ الفوري ⚡</span>
             </div>
           )}
 
-          {/* Instant start note */}
-          <div className="text-center pt-0.5">
-            <span className="text-[10px] text-slate-400 font-semibold">
-              ⚡ يبدأ التنفيذ تلقائياً عبر المزود المباشر بعد التأكيد فوراً
-            </span>
-          </div>
-        </div>
-
-        {/* ========================================================================= */}
-        {/* 5. Floating Fixed Action Bar above BottomNav (مطابق تماماً للصورة)         */}
-        {/* ========================================================================= */}
-        <div className="fixed bottom-14 sm:bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-sky-100 shadow-xl p-3 sm:p-4">
-          <div className="max-w-xl mx-auto space-y-2">
-            <div className="flex items-center justify-between px-1">
-              <span className="text-xs font-bold text-slate-500">التكلفة الإجمالية</span>
-              <span className="text-lg font-black text-rose-600 font-sans">
-                ${calculatedPrice.toFixed(4)}
-              </span>
+          {/* ========================================================================= */}
+          {/* 4. Order Summary Card (ملخص الطلب)                                       */}
+          {/* ========================================================================= */}
+          <div className="rounded-3xl bg-[#131926] p-4 sm:p-5 border border-slate-800 shadow-xl space-y-3.5">
+            <div className="flex items-center gap-1.5 text-xs sm:text-sm font-bold text-amber-400">
+              <span className="font-sans text-sm sm:text-base font-black">$</span>
+              <span className="text-white">ملخص الطلب</span>
             </div>
 
+            {/* 2 Stat Boxes Side-by-Side: التكلفة و رصيدك */}
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+              <div className="p-3.5 sm:p-4 rounded-2xl bg-[#1f1017] border border-rose-950/80 text-center">
+                <span className="text-xs text-slate-400 font-bold block mb-1">التكلفة</span>
+                <span className="text-lg sm:text-xl font-black text-rose-500 font-sans">
+                  ${calculatedPrice.toFixed(4)}
+                </span>
+              </div>
+
+              <div className="p-3.5 sm:p-4 rounded-2xl bg-[#211a0e] border border-amber-950/80 text-center">
+                <span className="text-xs text-slate-400 font-bold block mb-1">رصيدك</span>
+                <span className="text-lg sm:text-xl font-black text-amber-400 font-sans">
+                  ${balance.toFixed(4)}
+                </span>
+              </div>
+            </div>
+
+            {/* Balance Status Box */}
             {!isBalanceSufficient ? (
               <Link
                 href="/wallet#deposit-section"
-                className="w-full py-3.5 rounded-2xl bg-amber-400 hover:bg-amber-500 active:bg-amber-500 text-slate-950 font-black text-sm flex items-center justify-center gap-2 shadow-md transition active:scale-95"
+                className="flex items-center justify-between p-3.5 rounded-2xl bg-[#1f1017] border border-rose-900/60 text-rose-400 hover:bg-[#28131e] transition group"
               >
-                <Wallet className="w-4 h-4" />
-                <span>اشحن رصيدك أولاً</span>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-[#2e131d] text-rose-400 flex items-center justify-center shrink-0">
+                    <Wallet className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-rose-400">رصيد غير كافٍ</div>
+                    <div className="text-[11px] text-rose-400/80 font-medium font-sans">
+                      تحتاج {balanceDifference.toFixed(4)}$ إضافية
+                    </div>
+                  </div>
+                </div>
+                <ArrowUpRight className="w-4 h-4 text-rose-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition" />
               </Link>
             ) : (
-              <button
-                type="submit"
-                disabled={submitting}
-                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:opacity-95 text-white font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25 transition active:scale-95 disabled:opacity-50 cursor-pointer"
-              >
-                {submitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>جاري تأكيد الطلب...</span>
-                  </>
-                ) : (
-                  <>
-                    <Zap className="w-4 h-4" />
-                    <span>تأكيد الطلب ⚡</span>
-                  </>
-                )}
-              </button>
+              <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-[#0e2118] border border-emerald-900/60 text-emerald-400 text-xs font-bold">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>رصيدك كافٍ وجاهز للتنفيذ الفوري ⚡</span>
+              </div>
             )}
           </div>
-        </div>
-      </form>
+
+          {/* ========================================================================= */}
+          {/* 5. Floating Fixed Action Bar above BottomNav                              */}
+          {/* ========================================================================= */}
+          <div className="fixed bottom-14 sm:bottom-0 left-0 right-0 z-30 bg-[#090d16]/95 backdrop-blur-md border-t border-slate-800 shadow-2xl p-3 sm:p-4">
+            <div className="max-w-xl mx-auto space-y-2">
+              <div className="flex items-center justify-between px-1">
+                <span className="text-xs font-bold text-slate-400">التكلفة الإجمالية</span>
+                <span className="text-lg font-black text-rose-500 font-sans">
+                  ${calculatedPrice.toFixed(4)}
+                </span>
+              </div>
+
+              {!isBalanceSufficient ? (
+                <Link
+                  href="/wallet#deposit-section"
+                  className="w-full py-3.5 rounded-2xl bg-[#856414] hover:bg-[#967118] active:bg-[#725510] text-[#fef3c7] font-black text-sm flex items-center justify-center gap-2 shadow-lg transition active:scale-95 cursor-pointer"
+                >
+                  <Wallet className="w-4 h-4" />
+                  <span>اشحن رصيدك أولاً</span>
+                </Link>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:opacity-95 text-white font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25 transition active:scale-95 disabled:opacity-50 cursor-pointer"
+                >
+                  {submitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>جاري تأكيد الطلب...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="w-4 h-4" />
+                      <span>تأكيد الطلب ⚡</span>
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
