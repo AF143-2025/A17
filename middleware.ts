@@ -58,10 +58,13 @@ export function middleware(req: NextRequest) {
     '/new-order',
     '/orders',
     '/wallet',
-    '/api-keys',
     '/profile',
     '/support',
   ];
+
+  if (pathname.startsWith('/api-keys')) {
+    return NextResponse.redirect(new URL('/dashboard', req.url));
+  }
 
   const isProtectedUserRoute = protectedUserPrefixes.some((prefix) =>
     pathname.startsWith(prefix)

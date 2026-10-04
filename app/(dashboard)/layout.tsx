@@ -1,12 +1,8 @@
 import React from 'react';
-import Sidebar from '@/components/Sidebar';
 import BottomNav from '@/components/BottomNav';
-import NotificationDropdown from '@/components/NotificationDropdown';
 import { getCurrentUser } from '@/lib/auth';
 import db from '@/lib/db';
 import { redirect } from 'next/navigation';
-import Link from 'next/link';
-import { PlusCircle } from 'lucide-react';
 import HeaderLogout from '@/components/HeaderLogout';
 import DashboardHeader from '@/components/DashboardHeader';
 
@@ -57,29 +53,25 @@ export default async function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-[#F0F8FF] text-slate-900 flex flex-col">
-      {/* Desktop Sidebar */}
-      <Sidebar userRole={user.role} balance={balance} />
+      {/* Dashboard Header */}
+      <DashboardHeader
+        user={{
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+        }}
+        balance={balance}
+      />
 
-      {/* Main Content Area */}
-      <div className="lg:pr-64 flex-1 flex flex-col min-h-screen pb-28 lg:pb-8">
-        {/* Dashboard Header */}
-        <DashboardHeader
-          user={{
-            id: user.id,
-            username: user.username,
-            email: user.email,
-            role: user.role,
-          }}
-          balance={balance}
-        />
-
-        {/* Page Content */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+      {/* Main Content Area - Clean, centered, and NO SIDEBAR */}
+      <div className="flex-1 flex flex-col min-h-screen pb-24 sm:pb-28">
+        <main className="flex-1 p-3.5 sm:p-5 lg:p-6 max-w-5xl w-full mx-auto">
           {children}
         </main>
       </div>
 
-      {/* Mobile Bottom Navigation */}
+      {/* Bottom Navigation (Mobile & Laptop) */}
       <BottomNav />
     </div>
   );

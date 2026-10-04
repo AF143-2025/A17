@@ -281,8 +281,8 @@ export default function PlatformServicesView({ platforms }: PlatformServicesView
         </span>
       </div>
 
-      {/* 2-Columns Grid */}
-      <div className="grid grid-cols-2 gap-2.5 sm:gap-3 sm:grid-cols-3 lg:grid-cols-4">
+      {/* 2-Columns Grid (matches reference on mobile & desktop) */}
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-3.5">
         {visiblePlatforms.map((p) => {
           const categoriesCount = p.categories.length;
           const servicesCount = p.categories.reduce(

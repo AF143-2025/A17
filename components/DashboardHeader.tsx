@@ -68,10 +68,11 @@ export default function DashboardHeader({ user, balance }: DashboardHeaderProps)
         )}
       </div>
 
-      {/* Desktop Header */}
-      <div className="hidden lg:flex items-center justify-between w-full">
-        <div className="flex items-center gap-3">
-          {isNewOrder ? (
+      {/* Desktop / Laptop Header */}
+      <div className="hidden lg:flex items-center justify-between w-full max-w-5xl mx-auto">
+        {isNewOrder ? (
+          <>
+            {/* Right: Back button + Title */}
             <div className="flex items-center gap-3">
               <button
                 type="button"
@@ -82,38 +83,39 @@ export default function DashboardHeader({ user, balance }: DashboardHeaderProps)
                 <ArrowRight className="w-5 h-5" />
               </button>
               <div>
-                <h1 className="text-lg font-black text-slate-900">طلب جديد</h1>
+                <h1 className="text-base sm:text-lg font-black text-slate-900">طلب جديد</h1>
                 <p className="text-xs text-slate-500">اختر تفاصيل الخدمة وأكد طلبك فوراً</p>
               </div>
             </div>
-          ) : (
-            <div>
-              <h1 className="text-lg font-black text-slate-900">
-                مرحباً، <span className="text-blue-600">{user.username}</span> 👋
-              </h1>
-              <p className="text-xs text-slate-500">لوحة تحكم الخدمات والنمو الرقمي</p>
+
+            {/* Center: Official Logo */}
+            <div className="flex items-center justify-center">
+              <Logo size="sm" href="/dashboard" showTagline={false} />
             </div>
-          )}
-        </div>
 
-        <div className="flex items-center gap-3">
-          {!isNewOrder && (
-            <Link
-              href="/new-order"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-xs font-bold text-white shadow-md shadow-blue-500/20 hover:opacity-95 transition"
-            >
-              <PlusCircle className="w-4 h-4" />
-              <span>طلب جديد ⚡</span>
-            </Link>
-          )}
+            {/* Left: Notification Bell */}
+            <div className="w-10 h-10 flex items-center justify-center">
+              <NotificationDropdown />
+            </div>
+          </>
+        ) : (
+          <>
+            {/* Right in RTL: 3-Lines Hamburger Menu Button */}
+            <div className="w-10 h-10 flex items-center justify-center">
+              <UserDropdownMenu user={user} balance={balance} />
+            </div>
 
-          <NotificationDropdown />
+            {/* Center: Official Logo */}
+            <div className="flex items-center justify-center">
+              <Logo size="sm" href="/dashboard" showTagline={false} />
+            </div>
 
-          <UserDropdownMenu
-            user={user}
-            balance={balance}
-          />
-        </div>
+            {/* Left in RTL: Notification Bell */}
+            <div className="w-10 h-10 flex items-center justify-center">
+              <NotificationDropdown />
+            </div>
+          </>
+        )}
       </div>
     </header>
   );

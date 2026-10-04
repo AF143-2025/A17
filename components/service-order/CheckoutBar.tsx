@@ -16,7 +16,7 @@ export default function CheckoutBar({
   submitting,
 }: CheckoutBarProps) {
   return (
-    <div className="fixed bottom-14 sm:bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-sky-100 shadow-xl p-3 sm:p-4">
+    <div className="fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-sky-100 shadow-xl p-3 sm:p-4">
       <div className="max-w-xl mx-auto space-y-2">
         <div className="flex items-center justify-between px-1">
           <span className="text-xs font-bold text-slate-500">التكلفة الإجمالية</span>

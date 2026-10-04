@@ -42,7 +42,6 @@ export default function Sidebar({ userRole = 'USER', balance = 0 }: SidebarProps
     { label: 'طلباتي', href: '/orders', icon: ShoppingBag },
     { label: 'المحفظة والمدفوعات', href: '/wallet', icon: Wallet },
     { label: 'دليل الخدمات', href: '/services', icon: Layers },
-    { label: 'مفاتيح الربط (API)', href: '/api-keys', icon: KeyRound },
     { label: 'الدعم الفني', href: '/support', icon: HeadphonesIcon },
     { label: 'الملف الشخصي', href: '/profile', icon: User },
   ];
