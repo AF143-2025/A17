@@ -37,7 +37,11 @@ export default async function DashboardPage() {
 
     // 3. Active platforms with categories and services
     db.platform.findMany({
-      where: { status: true },
+      where: {
+        status: true,
+        slug: { not: 'other' },
+        NOT: { nameAr: { contains: 'أخرى' } },
+      },
       include: {
         categories: {
           where: { status: true },

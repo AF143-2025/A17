@@ -17,17 +17,9 @@ import {
   AlertCircle,
   Loader2,
   Zap,
-  Instagram,
-  Video,
-  Youtube,
-  Facebook,
-  Send,
-  Twitter,
-  Sparkles,
-  ChevronDown,
-  Layers,
 } from 'lucide-react';
 import NotificationDropdown from '@/components/NotificationDropdown';
+import PlatformBrandIcon from '@/components/PlatformBrandIcon';
 
 interface Service {
   id: string;
@@ -73,7 +65,6 @@ export default function NewOrderPage() {
   const [targetUrl, setTargetUrl] = useState<string>('');
   const [quantity, setQuantity] = useState<number>(1000);
   const [descriptionExpanded, setDescriptionExpanded] = useState<boolean>(false);
-  const [selectorOpen, setSelectorOpen] = useState<boolean>(false);
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string>('');
@@ -92,7 +83,11 @@ export default function NewOrderPage() {
           const servicesData = await servicesRes.json();
           const userData = await userRes.json();
 
-          const fetchedPlatforms: Platform[] = servicesData.platforms || [];
+          // Filter out 'other' platform
+          const fetchedPlatforms: Platform[] = (servicesData.platforms || []).filter(
+            (p: Platform) => p.slug !== 'other' && !p.nameAr.includes('أخرى')
+          );
+
           setPlatforms(fetchedPlatforms);
           setBalance(userData.user?.balance || 0);
 
@@ -193,70 +188,6 @@ export default function NewOrderPage() {
     return num.toLocaleString('en-US');
   };
 
-  // Platform icon helper
-  const getPlatformIcon = (slug?: string) => {
-    switch (slug) {
-      case 'instagram': return Instagram;
-      case 'tiktok': return Video;
-      case 'youtube': return Youtube;
-      case 'facebook': return Facebook;
-      case 'telegram': return Send;
-      case 'x': return Twitter;
-      default: return Sparkles;
-    }
-  };
-
-  // Platform style helper
-  const getPlatformStyle = (slug?: string) => {
-    switch (slug) {
-      case 'instagram':
-        return { iconBg: 'bg-gradient-to-tr from-amber-500 via-pink-500 to-purple-600 text-white' };
-      case 'tiktok':
-        return { iconBg: 'bg-slate-900 text-cyan-400' };
-      case 'youtube':
-        return { iconBg: 'bg-red-600 text-white' };
-      case 'facebook':
-        return { iconBg: 'bg-blue-600 text-white' };
-      case 'telegram':
-        return { iconBg: 'bg-gradient-to-tr from-[#0088cc] to-[#00b0ff] text-white' };
-      case 'x':
-        return { iconBg: 'bg-slate-950 text-white' };
-      default:
-        return { iconBg: 'bg-emerald-600 text-white' };
-    }
-  };
-
-  const handlePlatformChange = (pId: string) => {
-    setSelectedPlatformId(pId);
-    const p = platforms.find((item) => item.id === pId);
-    if (p && p.categories.length > 0) {
-      setSelectedCategoryId(p.categories[0].id);
-      if (p.categories[0].services.length > 0) {
-        const s = p.categories[0].services[0];
-        setSelectedServiceId(s.id);
-        setQuantity(s.minQuantity);
-      }
-    }
-  };
-
-  const handleCategoryChange = (cId: string) => {
-    setSelectedCategoryId(cId);
-    const c = availableCategories.find((item) => item.id === cId);
-    if (c && c.services.length > 0) {
-      const s = c.services[0];
-      setSelectedServiceId(s.id);
-      setQuantity(s.minQuantity);
-    }
-  };
-
-  const handleServiceChange = (sId: string) => {
-    setSelectedServiceId(sId);
-    const s = availableServices.find((item) => item.id === sId);
-    if (s) {
-      setQuantity(s.minQuantity);
-    }
-  };
-
   // Submit order
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -319,9 +250,6 @@ export default function NewOrderPage() {
       </div>
     );
   }
-
-  const PlatformIcon = getPlatformIcon(currentPlatform?.slug);
-  const platformStyle = getPlatformStyle(currentPlatform?.slug);
 
   return (
     <div className="max-w-xl mx-auto space-y-4 pb-20 animate-in fade-in duration-200 font-sans">
@@ -411,78 +339,9 @@ export default function NewOrderPage() {
                 </div>
               </div>
 
-              <div
-                className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 shadow-xs ${platformStyle.iconBg}`}
-              >
-                <PlatformIcon className="w-5 h-5" />
-              </div>
+              {/* Real Official Platform Brand Icon */}
+              <PlatformBrandIcon slug={currentPlatform?.slug} size="md" />
             </div>
-
-            {/* Quick Switch Button (لتغيير الخدمة إذا رغب المستخدم) */}
-            <button
-              type="button"
-              onClick={() => setSelectorOpen((prev) => !prev)}
-              className="w-full py-2 px-3 rounded-xl bg-sky-50/70 hover:bg-sky-100 border border-sky-100 text-[11px] font-bold text-blue-600 flex items-center justify-between transition cursor-pointer"
-            >
-              <div className="flex items-center gap-1.5">
-                <Layers className="w-3.5 h-3.5" />
-                <span>تغيير القسم أو الخدمة</span>
-              </div>
-              <ChevronDown className={`w-3.5 h-3.5 transition-transform ${selectorOpen ? 'rotate-180' : ''}`} />
-            </button>
-
-            {/* Collapsible Selector for Platform / Category / Service */}
-            {selectorOpen && (
-              <div className="p-3 rounded-2xl bg-sky-50/40 border border-sky-100 space-y-2.5 text-xs animate-in fade-in duration-150">
-                <div>
-                  <label className="text-[10px] font-bold text-slate-500 block mb-1">المنصة:</label>
-                  <div className="flex flex-wrap gap-1.5">
-                    {platforms.map((p) => (
-                      <button
-                        key={p.id}
-                        type="button"
-                        onClick={() => handlePlatformChange(p.id)}
-                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition ${
-                          p.id === selectedPlatformId
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-white text-slate-700 border border-sky-200'
-                        }`}
-                      >
-                        {p.nameAr}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-[10px] font-bold text-slate-500 block mb-1">الفئة:</label>
-                  <select
-                    value={selectedCategoryId}
-                    onChange={(e) => handleCategoryChange(e.target.value)}
-                    className="w-full h-9 rounded-xl bg-white border border-sky-200 px-3 text-xs text-slate-800 font-semibold"
-                  >
-                    {availableCategories.map((c) => (
-                      <option key={c.id} value={c.id}>{c.nameAr}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-[10px] font-bold text-slate-500 block mb-1">الخدمة:</label>
-                  <select
-                    value={selectedServiceId}
-                    onChange={(e) => handleServiceChange(e.target.value)}
-                    className="w-full h-9 rounded-xl bg-white border border-sky-200 px-3 text-xs text-slate-800 font-semibold"
-                  >
-                    {availableServices.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.nameAr || s.name} (${s.pricePer1000.toFixed(2)})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            )}
 
             {/* 4-Columns Metric Bar (الأدنى, الأقصى, 1000/, التنفيذ) */}
             <div className="grid grid-cols-4 gap-1.5 sm:gap-2 p-2.5 rounded-2xl bg-sky-50/60 border border-sky-100 text-center">
@@ -660,7 +519,7 @@ export default function NewOrderPage() {
         </div>
 
         {/* ========================================================================= */}
-        {/* 6. Sticky Action Footer Bar (التكلفة الإجمالية وزر التأكيد أو الشحن)       */}
+        {/* 6. Action Footer Bar (التكلفة الإجمالية وزر التأكيد أو الشحن)               */}
         {/* ========================================================================= */}
         <div className="space-y-2 pt-2">
           <div className="flex items-center justify-between px-1">

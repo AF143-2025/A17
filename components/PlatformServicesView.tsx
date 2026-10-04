@@ -6,14 +6,8 @@ import {
   X,
   ChevronDown,
   Zap,
-  Instagram,
-  Video,
-  Youtube,
-  Facebook,
-  Send,
-  Twitter,
-  Sparkles,
 } from 'lucide-react';
+import PlatformBrandIcon from './PlatformBrandIcon';
 
 interface ServiceItem {
   id: string;
@@ -45,65 +39,21 @@ export default function PlatformServicesView({ platforms }: PlatformServicesView
   const [selectedPlatformId, setSelectedPlatformId] = useState<string | null>(null);
   const [expandedCategoryId, setExpandedCategoryId] = useState<string | null>(null);
 
-  // Platform icon helper
-  const getPlatformIcon = (slug: string) => {
-    switch (slug) {
-      case 'instagram': return Instagram;
-      case 'tiktok': return Video;
-      case 'youtube': return Youtube;
-      case 'facebook': return Facebook;
-      case 'telegram': return Send;
-      case 'x': return Twitter;
-      default: return Sparkles;
-    }
-  };
+  // Filter out any 'other' platform just in case
+  const visiblePlatforms = platforms.filter(
+    (p) => p.slug !== 'other' && !p.nameAr.includes('أخرى')
+  );
 
-  // Platform branding styles
-  const getPlatformStyle = (slug: string) => {
-    switch (slug) {
-      case 'instagram':
-        return {
-          iconBg: 'bg-gradient-to-tr from-amber-500 via-pink-500 to-purple-600 text-white',
-        };
-      case 'tiktok':
-        return {
-          iconBg: 'bg-slate-900 text-cyan-400',
-        };
-      case 'youtube':
-        return {
-          iconBg: 'bg-red-600 text-white',
-        };
-      case 'facebook':
-        return {
-          iconBg: 'bg-blue-600 text-white',
-        };
-      case 'telegram':
-        return {
-          iconBg: 'bg-gradient-to-tr from-[#0088cc] to-[#00b0ff] text-white',
-        };
-      case 'x':
-        return {
-          iconBg: 'bg-slate-950 text-white',
-        };
-      default:
-        return {
-          iconBg: 'bg-emerald-600 text-white',
-        };
-    }
-  };
-
-  const selectedPlatform = platforms.find((p) => p.id === selectedPlatformId);
+  const selectedPlatform = visiblePlatforms.find((p) => p.id === selectedPlatformId);
 
   const toggleCategory = (catId: string) => {
     setExpandedCategoryId((prev) => (prev === catId ? null : catId));
   };
 
   // =========================================================================
-  // VIEW 1: Categories Drill-Down View (عند الضغط على أي منصة - مطابق للصورة)
+  // VIEW 1: Categories Drill-Down View (عند الضغط على أي منصة)
   // =========================================================================
   if (selectedPlatform) {
-    const Icon = getPlatformIcon(selectedPlatform.slug);
-    const style = getPlatformStyle(selectedPlatform.slug);
     const totalServices = selectedPlatform.categories.reduce(
       (acc, c) => acc + c.services.length,
       0
@@ -115,11 +65,7 @@ export default function PlatformServicesView({ platforms }: PlatformServicesView
         <div className="p-3.5 sm:p-4 rounded-2xl bg-white border border-sky-100 shadow-xs flex items-center justify-between gap-3">
           {/* Platform Info (Right in RTL) */}
           <div className="flex items-center gap-3 min-w-0">
-            <div
-              className={`w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center shrink-0 shadow-xs ${style.iconBg}`}
-            >
-              <Icon className="w-5 h-5 sm:w-5 sm:h-5" />
-            </div>
+            <PlatformBrandIcon slug={selectedPlatform.slug} size="md" />
 
             <div className="min-w-0">
               <h2 className="text-sm sm:text-base font-black text-slate-900 truncate">
@@ -171,11 +117,7 @@ export default function PlatformServicesView({ platforms }: PlatformServicesView
                   >
                     {/* Category Title & Services Count */}
                     <div className="flex items-center gap-3 min-w-0 flex-1">
-                      <div
-                        className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-xs ${style.iconBg}`}
-                      >
-                        <Icon className="w-4 h-4" />
-                      </div>
+                      <PlatformBrandIcon slug={selectedPlatform.slug} size="sm" />
 
                       <div className="min-w-0 flex-1">
                         <h3 className="text-xs sm:text-sm font-black text-slate-900 truncate">
@@ -256,15 +198,13 @@ export default function PlatformServicesView({ platforms }: PlatformServicesView
           المنصات
         </h2>
         <span className="text-xs font-bold text-slate-500 font-sans">
-          {platforms.length} منصة
+          {visiblePlatforms.length} منصة
         </span>
       </div>
 
       {/* 2-Columns Grid */}
       <div className="grid grid-cols-2 gap-2.5 sm:gap-3 sm:grid-cols-3 lg:grid-cols-4">
-        {platforms.map((p) => {
-          const Icon = getPlatformIcon(p.slug);
-          const style = getPlatformStyle(p.slug);
+        {visiblePlatforms.map((p) => {
           const categoriesCount = p.categories.length;
           const servicesCount = p.categories.reduce(
             (acc, cat) => acc + cat.services.length,
@@ -293,12 +233,8 @@ export default function PlatformServicesView({ platforms }: PlatformServicesView
                 </div>
               </div>
 
-              {/* Platform Rounded Squircle Icon (Left in RTL) */}
-              <div
-                className={`w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition duration-200 ${style.iconBg}`}
-              >
-                <Icon className="w-5 h-5 sm:w-5 sm:h-5" />
-              </div>
+              {/* Real Official Platform Brand Icon (Left in RTL) */}
+              <PlatformBrandIcon slug={p.slug} size="md" className="group-hover:scale-105 transition-transform" />
             </button>
           );
         })}

@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, ListOrdered, Wallet, Bell, User } from 'lucide-react';
+import { Home, ListOrdered, Wallet, Headphones, User } from 'lucide-react';
 
 export default function BottomNav() {
   const pathname = usePathname();
@@ -12,7 +12,7 @@ export default function BottomNav() {
     { label: 'الرئيسية', href: '/dashboard', icon: Home },
     { label: 'طلباتي', href: '/orders', icon: ListOrdered },
     { label: 'شحن', href: '/wallet', icon: Wallet },
-    { label: 'الإشعارات', href: '/support', icon: Bell },
+    { label: 'الدعم', href: '/support', icon: Headphones },
     { label: 'حسابي', href: '/profile', icon: User },
   ];
 
