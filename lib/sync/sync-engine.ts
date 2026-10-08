@@ -273,7 +273,13 @@ export class SyncEngine {
         `c${Date.now().toString(36)}${Math.random().toString(36).substring(2, 10)}${Math.random().toString(36).substring(2, 8)}`.slice(0, 25);
 
       const servicesToCreate: any[] = [];
-      const servicesToUpdateCost: { id: string; providerCostPer1000: number }[] = [];
+      const servicesToUpdate: {
+        id: string;
+        providerCostPer1000: number;
+        pricePer1000: number;
+        minQuantity: number;
+        maxQuantity: number;
+      }[] = [];
       const serviceProvidersToCreate: any[] = [];
       const serviceProvidersToUpdate: any[] = [];
 
@@ -303,16 +309,17 @@ export class SyncEngine {
           }
         }
 
-        if (!service) {
-          const { customerPrice } = await calculateCustomerPrice(
-            {
-              providerCost: rate,
-              categoryId: category.id,
-              platformId: platform.id,
-            },
-            pricingRules
-          );
+        const { customerPrice } = await calculateCustomerPrice(
+          {
+            providerCost: rate,
+            categoryId: category.id,
+            platformId: platform.id,
+            serviceId: service?.id,
+          },
+          pricingRules
+        );
 
+        if (!service) {
           const newId = generateCuid();
           const newService = {
             id: newId,
@@ -337,12 +344,14 @@ export class SyncEngine {
           serviceByNameAndCat.set(catNameKey, service);
           newCount++;
         } else {
-          if (Math.abs(service.providerCostPer1000 - rate) > 0.0001) {
-            servicesToUpdateCost.push({
-              id: service.id,
-              providerCostPer1000: rate,
-            });
-          }
+          // Update existing service price, cost, and min/max limits
+          servicesToUpdate.push({
+            id: service.id,
+            providerCostPer1000: rate,
+            pricePer1000: customerPrice,
+            minQuantity: min,
+            maxQuantity: max,
+          });
           updatedCount++;
         }
 
@@ -397,16 +406,22 @@ export class SyncEngine {
         });
       }
 
-      // Batch update changed service costs
-      if (servicesToUpdateCost.length > 0) {
-        const BATCH_SIZE = 25;
-        for (let i = 0; i < servicesToUpdateCost.length; i += BATCH_SIZE) {
-          const batch = servicesToUpdateCost.slice(i, i + BATCH_SIZE);
+      // Batch update changed services (cost, price, min, max)
+      if (servicesToUpdate.length > 0) {
+        const BATCH_SIZE = 50;
+        for (let i = 0; i < servicesToUpdate.length; i += BATCH_SIZE) {
+          const batch = servicesToUpdate.slice(i, i + BATCH_SIZE);
           await Promise.all(
             batch.map((item) =>
               db.service.update({
                 where: { id: item.id },
-                data: { providerCostPer1000: item.providerCostPer1000 },
+                data: {
+                  providerCostPer1000: item.providerCostPer1000,
+                  pricePer1000: item.pricePer1000,
+                  minQuantity: item.minQuantity,
+                  maxQuantity: item.maxQuantity,
+                  status: true,
+                },
               })
             )
           );
@@ -726,24 +741,42 @@ export class SyncEngine {
     let platformSlug = 'other';
     let platformNameAr = 'خدمات أخرى';
 
-    if (text.includes('instagram') || text.includes('ig ')) {
+    if (text.includes('instagram') || text.includes('ig ') || text.includes('انستقرام') || text.includes('إنستغرام')) {
       platformSlug = 'instagram';
       platformNameAr = 'إنستغرام';
-    } else if (text.includes('tiktok') || text.includes('tik tok') || text.includes('tt ')) {
+    } else if (text.includes('tiktok') || text.includes('tik tok') || text.includes('tt ') || text.includes('تيك توك')) {
       platformSlug = 'tiktok';
       platformNameAr = 'تيك توك';
-    } else if (text.includes('youtube') || text.includes('yt ')) {
+    } else if (text.includes('youtube') || text.includes('yt ') || text.includes('يوتيوب')) {
       platformSlug = 'youtube';
       platformNameAr = 'يوتيوب';
-    } else if (text.includes('facebook') || text.includes('fb ')) {
+    } else if (text.includes('facebook') || text.includes('fb ') || text.includes('فيسبوك')) {
       platformSlug = 'facebook';
       platformNameAr = 'فيسبوك';
-    } else if (text.includes('telegram') || text.includes('tg ')) {
+    } else if (text.includes('telegram') || text.includes('tg ') || text.includes('تيليجرام') || text.includes('تليجرام')) {
       platformSlug = 'telegram';
       platformNameAr = 'تيليجرام';
-    } else if (text.includes('twitter') || text.includes(' x ') || text.includes('x -') || text.includes('x /')) {
+    } else if (text.includes('twitter') || text.includes(' x ') || text.includes('x -') || text.includes('x /') || text.includes('تويتر') || text.includes('تغريد')) {
       platformSlug = 'x';
       platformNameAr = 'إكس (تويتر)';
+    } else if (text.includes('snapchat') || text.includes('snap') || text.includes('سناب')) {
+      platformSlug = 'snapchat';
+      platformNameAr = 'سناب شات';
+    } else if (text.includes('threads') || text.includes('ثريدز')) {
+      platformSlug = 'threads';
+      platformNameAr = 'ثريدز';
+    } else if (text.includes('twitch') || text.includes('تويتش')) {
+      platformSlug = 'twitch';
+      platformNameAr = 'تويتش';
+    } else if (text.includes('discord') || text.includes('ديسكورد')) {
+      platformSlug = 'discord';
+      platformNameAr = 'ديسكورد';
+    } else if (text.includes('whatsapp') || text.includes('واتساب')) {
+      platformSlug = 'whatsapp';
+      platformNameAr = 'واتساب';
+    } else if (text.includes('linkedin') || text.includes('لينكد')) {
+      platformSlug = 'linkedin';
+      platformNameAr = 'لينكد إن';
     }
 
     // 2. Identify Category
@@ -771,6 +804,18 @@ export class SyncEngine {
     } else if (text.includes('reaction') || text.includes('تفاعل')) {
       categorySlug = 'reactions';
       categoryNameAr = 'تفاعلات الإيموجي';
+    } else if (text.includes('watch') || text.includes('ساعات')) {
+      categorySlug = 'watch-time';
+      categoryNameAr = 'ساعات المشاهدة';
+    } else if (text.includes('live') || text.includes('stream') || text.includes('بث')) {
+      categorySlug = 'livestream';
+      categoryNameAr = 'مشاهدات البث المباشر';
+    } else if (text.includes('save') || text.includes('حفظ') || text.includes('مفضلة')) {
+      categorySlug = 'saves';
+      categoryNameAr = 'الحفظ والمفضلة';
+    } else if (text.includes('vote') || text.includes('poll') || text.includes('تصويت')) {
+      categorySlug = 'votes';
+      categoryNameAr = 'التصويت والاستطلاعات';
     }
 
     return { platformSlug, platformNameAr, categorySlug, categoryNameAr };
@@ -784,6 +829,12 @@ export class SyncEngine {
       case 'facebook': return 'Facebook';
       case 'telegram': return 'Telegram';
       case 'x': return 'X (Twitter)';
+      case 'snapchat': return 'Snapchat';
+      case 'threads': return 'Threads';
+      case 'twitch': return 'Twitch';
+      case 'discord': return 'Discord';
+      case 'whatsapp': return 'WhatsApp';
+      case 'linkedin': return 'LinkedIn';
       default: return 'Other Platforms';
     }
   }
@@ -796,6 +847,12 @@ export class SyncEngine {
       case 'facebook': return 'Facebook';
       case 'telegram': return 'Send';
       case 'x': return 'Twitter';
+      case 'snapchat': return 'Ghost';
+      case 'threads': return 'AtSign';
+      case 'twitch': return 'Tv';
+      case 'discord': return 'MessageSquare';
+      case 'whatsapp': return 'Phone';
+      case 'linkedin': return 'Briefcase';
       default: return 'TrendingUp';
     }
   }

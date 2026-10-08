@@ -925,9 +925,9 @@ export default function AdminProvidersPage() {
           {pricingRules.length === 0 ? (
             <div className="p-12 text-center rounded-3xl bg-white border border-sky-100 text-slate-500 shadow-sm">
               <Sliders className="w-10 h-10 mx-auto mb-3 text-slate-300" />
-              <p className="font-bold text-sm text-slate-800">لا توجد قواعد تسعير مخصصة</p>
-              <p className="text-xs mt-1 text-slate-500">
-                يطبق النظام حالياً هامش ربح افتراضي قدره (+50%) على تكلفة المزود.
+              <p className="font-bold text-sm text-slate-800">لا توجد قواعد تسعير مخصصة حالياً</p>
+              <p className="text-xs mt-1 text-slate-500 max-w-md mx-auto">
+                يطبق النظام تلقائياً سعر المزود الحقيقي المباشر (0% زيادة تلقائية) بدون إضافة أي مبالغ عشوائية. يمكنك إضافة قاعدة تسعير لتحديد نسبة ربحك (مثلاً +20% أو +15%).
               </p>
             </div>
           ) : (

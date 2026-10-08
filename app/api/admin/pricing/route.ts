@@ -60,10 +60,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    let recalculatedCount = 0;
-    if (recalculateNow) {
-      recalculatedCount = await recalculateServicePrices();
-    }
+    const recalculatedCount = await recalculateServicePrices();
 
     await logAdminAction({
       adminId: admin.id,
@@ -91,7 +88,7 @@ export async function PUT(req: NextRequest) {
   try {
     const admin = await requireAdmin();
     const body = await req.json();
-    const { id, name, scope, targetId, markupType, markupValue, priority, status, recalculateNow } = body;
+    const { id, name, scope, targetId, markupType, markupValue, priority, status } = body;
 
     if (!id) {
       return NextResponse.json({ error: 'Rule ID is required' }, { status: 400 });
@@ -111,10 +108,7 @@ export async function PUT(req: NextRequest) {
       data: updateData,
     });
 
-    let recalculatedCount = 0;
-    if (recalculateNow) {
-      recalculatedCount = await recalculateServicePrices();
-    }
+    const recalculatedCount = await recalculateServicePrices();
 
     await logAdminAction({
       adminId: admin.id,
@@ -128,7 +122,7 @@ export async function PUT(req: NextRequest) {
       success: true,
       rule,
       recalculatedCount,
-      message: 'تم تحديث قاعدة التسعير بنجاح',
+      message: 'تم تحديث قاعدة التسعير وإعادة ضبط الأسعار بنجاح',
     });
   } catch (error: any) {
     return NextResponse.json(
@@ -160,9 +154,13 @@ export async function DELETE(req: NextRequest) {
       details: {},
     });
 
+    // Automatically recalculate all service prices upon deleting a rule!
+    const recalculatedCount = await recalculateServicePrices();
+
     return NextResponse.json({
       success: true,
-      message: 'تم حذف قاعدة التسعير بنجاح',
+      recalculatedCount,
+      message: 'تم حذف قاعدة التسعير وإعادة ضبط جميع الأسعار بنجاح',
     });
   } catch (error: any) {
     return NextResponse.json(

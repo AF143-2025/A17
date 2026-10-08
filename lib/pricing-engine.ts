@@ -30,7 +30,7 @@ export async function calculateCustomerPrice(
   preloadedRules?: any[]
 ): Promise<PriceCalculationResult> {
   // If provider cost is 0 or negative, set safe fallback
-  const baseCost = Math.max(0.001, providerCost);
+  const baseCost = Math.max(0, providerCost);
 
   // Fetch all active pricing rules ordered by priority descending if not preloaded
   const rules = preloadedRules || await db.pricingRule.findMany({
@@ -74,39 +74,49 @@ export async function calculateCustomerPrice(
     return computePrice(baseCost, globalRule);
   }
 
-  // 5. Default fallback: +50% markup
-  const defaultMarkupPercent = 50.0;
-  const calculated = baseCost * (1 + defaultMarkupPercent / 100);
+  // 5. Default fallback: EXACT PROVIDER COST (0% markup)
+  // No arbitrary markup added automatically - "ما اريد يضيف اسعار من كيفه"
   return {
-    customerPrice: roundPrice(calculated),
+    customerPrice: roundPrice(baseCost),
     markupType: 'PERCENTAGE',
-    markupValue: defaultMarkupPercent,
-    appliedRuleName: 'افتراضي (+50%)',
+    markupValue: 0,
+    appliedRuleName: 'سعر المزود المباشر (بدون زيادة تلقائية)',
   };
 }
 
 function computePrice(baseCost: number, rule: any): PriceCalculationResult {
   let price = baseCost;
+  const markup = parseFloat(String(rule.markupValue)) || 0;
+
   if (rule.markupType === 'FIXED') {
-    price = baseCost + rule.markupValue;
+    price = baseCost + markup;
   } else {
     // Default PERCENTAGE
-    price = baseCost * (1 + rule.markupValue / 100);
+    price = baseCost * (1 + markup / 100);
   }
 
   return {
     customerPrice: roundPrice(price),
     markupType: rule.markupType as 'PERCENTAGE' | 'FIXED',
-    markupValue: rule.markupValue,
+    markupValue: markup,
     appliedRuleId: rule.id,
     appliedRuleName: rule.name,
   };
 }
 
 function roundPrice(val: number): number {
-  // Round to 3 decimal places, min 0.01
-  const rounded = Math.round(val * 1000) / 1000;
-  return Math.max(0.01, rounded);
+  if (val <= 0) return 0;
+  // High precision for SMM rates without artificial price floors:
+  // For micro-rates (< $0.01), keep up to 5 decimals (e.g. 0.00065)
+  if (val < 0.01) {
+    return Math.round(val * 100000) / 100000;
+  }
+  // For small rates (< $1.0), keep 4 decimals (e.g. 0.1746)
+  if (val < 1) {
+    return Math.round(val * 10000) / 10000;
+  }
+  // For regular rates, keep 3 decimals (e.g. 2.500)
+  return Math.round(val * 1000) / 1000;
 }
 
 /**
@@ -114,56 +124,136 @@ function roundPrice(val: number): number {
  * using the best available provider cost and active pricing rules.
  */
 export async function recalculateServicePrices(serviceId?: string): Promise<number> {
-  const whereClause: any = { status: true };
+  // If specific service requested, handle single service calculation
   if (serviceId) {
-    whereClause.id = serviceId;
-  }
-
-  const services = await db.service.findMany({
-    where: whereClause,
-    include: {
-      category: {
-        include: { platform: true },
+    const service = await db.service.findUnique({
+      where: { id: serviceId },
+      include: {
+        category: true,
+        serviceProviders: {
+          where: { status: true },
+          orderBy: { costRate: 'asc' },
+        },
       },
-      serviceProviders: {
-        where: { status: true },
-        include: { provider: true },
-        orderBy: { costRate: 'asc' }, // Cheapest first
-      },
-    },
-  });
+    });
 
-  let updatedCount = 0;
+    if (!service) return 0;
 
-  for (const s of services) {
-    // Best cost: either from the cheapest active serviceProvider or existing cost
-    let bestCost = s.providerCostPer1000;
-
-    const activeProviders = s.serviceProviders.filter(
-      (sp) => sp.status && sp.provider.status
-    );
-
-    if (activeProviders.length > 0) {
-      bestCost = activeProviders[0].costRate;
+    let bestCost = service.providerCostPer1000 || 0;
+    if (service.serviceProviders.length > 0 && service.serviceProviders[0].costRate > 0) {
+      bestCost = service.serviceProviders[0].costRate;
     }
 
     const { customerPrice } = await calculateCustomerPrice({
       providerCost: bestCost,
-      serviceId: s.id,
-      categoryId: s.categoryId,
-      platformId: s.category.platformId,
+      serviceId: service.id,
+      categoryId: service.categoryId,
+      platformId: service.category?.platformId,
     });
 
     await db.service.update({
-      where: { id: s.id },
+      where: { id: serviceId },
       data: {
         providerCostPer1000: bestCost,
         pricePer1000: customerPrice,
       },
     });
 
-    updatedCount++;
+    return 1;
   }
 
-  return updatedCount;
+  // Global fast recalculation across all services using atomic SQL execution
+  // 1. Sync provider cost from service_providers where missing or 0
+  await db.$executeRawUnsafe(`
+    UPDATE "services" s
+    SET "providerCostPer1000" = sp."costRate"
+    FROM (
+      SELECT DISTINCT ON ("serviceId") "serviceId", "costRate"
+      FROM "service_providers"
+      WHERE "status" = true AND "costRate" > 0
+      ORDER BY "serviceId", "costRate" ASC
+    ) sp
+    WHERE s."id" = sp."serviceId" AND (s."providerCostPer1000" = 0 OR s."providerCostPer1000" IS NULL);
+  `);
+
+  // 2. Default: set pricePer1000 = providerCostPer1000 (0% arbitrary markup)
+  const defaultUpdated = await db.$executeRawUnsafe(`
+    UPDATE "services"
+    SET "pricePer1000" = "providerCostPer1000"
+    WHERE "providerCostPer1000" > 0;
+  `);
+
+  // 3. Fetch active rules ordered by priority ascending so higher priorities take precedence
+  const rules = await db.pricingRule.findMany({
+    where: { status: true },
+    orderBy: [{ priority: 'asc' }, { createdAt: 'asc' }],
+  });
+
+  // 4. Apply rules sequentially
+  for (const rule of rules) {
+    const markup = parseFloat(String(rule.markupValue)) || 0;
+    const isFixed = rule.markupType === 'FIXED';
+
+    if (rule.scope === 'GLOBAL') {
+      if (isFixed) {
+        await db.$executeRawUnsafe(`
+          UPDATE "services"
+          SET "pricePer1000" = ROUND(("providerCostPer1000" + ${markup})::numeric, 4)
+          WHERE "providerCostPer1000" > 0;
+        `);
+      } else {
+        await db.$executeRawUnsafe(`
+          UPDATE "services"
+          SET "pricePer1000" = ROUND(("providerCostPer1000" * (1 + ${markup} / 100))::numeric, 4)
+          WHERE "providerCostPer1000" > 0;
+        `);
+      }
+    } else if (rule.scope === 'PLATFORM' && rule.targetId) {
+      if (isFixed) {
+        await db.$executeRawUnsafe(`
+          UPDATE "services"
+          SET "pricePer1000" = ROUND(("providerCostPer1000" + ${markup})::numeric, 4)
+          WHERE "providerCostPer1000" > 0
+          AND "categoryId" IN (SELECT "id" FROM "categories" WHERE "platformId" = '${rule.targetId}');
+        `);
+      } else {
+        await db.$executeRawUnsafe(`
+          UPDATE "services"
+          SET "pricePer1000" = ROUND(("providerCostPer1000" * (1 + ${markup} / 100))::numeric, 4)
+          WHERE "providerCostPer1000" > 0
+          AND "categoryId" IN (SELECT "id" FROM "categories" WHERE "platformId" = '${rule.targetId}');
+        `);
+      }
+    } else if (rule.scope === 'CATEGORY' && rule.targetId) {
+      if (isFixed) {
+        await db.$executeRawUnsafe(`
+          UPDATE "services"
+          SET "pricePer1000" = ROUND(("providerCostPer1000" + ${markup})::numeric, 4)
+          WHERE "providerCostPer1000" > 0 AND "categoryId" = '${rule.targetId}';
+        `);
+      } else {
+        await db.$executeRawUnsafe(`
+          UPDATE "services"
+          SET "pricePer1000" = ROUND(("providerCostPer1000" * (1 + ${markup} / 100))::numeric, 4)
+          WHERE "providerCostPer1000" > 0 AND "categoryId" = '${rule.targetId}';
+        `);
+      }
+    } else if (rule.scope === 'SERVICE' && rule.targetId) {
+      if (isFixed) {
+        await db.$executeRawUnsafe(`
+          UPDATE "services"
+          SET "pricePer1000" = ROUND(("providerCostPer1000" + ${markup})::numeric, 4)
+          WHERE "id" = '${rule.targetId}';
+        `);
+      } else {
+        await db.$executeRawUnsafe(`
+          UPDATE "services"
+          SET "pricePer1000" = ROUND(("providerCostPer1000" * (1 + ${markup} / 100))::numeric, 4)
+          WHERE "id" = '${rule.targetId}';
+        `);
+      }
+    }
+  }
+
+  return defaultUpdated;
 }

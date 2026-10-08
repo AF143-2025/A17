@@ -111,6 +111,17 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // Recalculate & Normalize All Prices action
+    if (action === 'recalculate_all_prices') {
+      const { recalculateServicePrices } = await import('@/lib/pricing-engine');
+      const count = await recalculateServicePrices();
+      return NextResponse.json({
+        success: true,
+        recalculatedCount: count,
+        message: `تمت إعادة ضبط ومزامنة أسعار ${count} خدمة بدقة مع المزودين بنجاح.`,
+      });
+    }
+
     // Toggle Provider Active/Paused status (إيقاف وتشغيل المزود)
     if (action === 'toggle_status') {
       const provider = await db.provider.findUnique({
