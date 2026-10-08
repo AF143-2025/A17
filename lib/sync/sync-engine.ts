@@ -141,7 +141,7 @@ export class SyncEngine {
       }
 
       // 3. Discover and Bulk Create Missing Categories
-      const missingCategories = new Map<string, { platformId: string; name: string; nameAr: string; slug: string; status: boolean }>();
+      const missingCategories = new Map<string, { platformId: string; name: string; nameAr: string; slug: string; sortOrder: number; status: boolean }>();
       for (const ext of extServices) {
         const { platformSlug, categorySlug, categoryNameAr } = SyncEngine.classifyService(ext.category || '', ext.name || '');
         const platform = platformCache.get(platformSlug);
@@ -151,8 +151,9 @@ export class SyncEngine {
           missingCategories.set(catKey, {
             platformId: platform.id,
             name: categorySlug.replace(/-/g, ' '),
-            nameAr: categoryNameAr,
+            nameAr: categorySlug === 'general' ? 'الخدمات العامة' : categoryNameAr,
             slug: categorySlug,
+            sortOrder: SyncEngine.getCategorySortOrder(categorySlug, platformSlug),
             status: true,
           });
         }
@@ -781,7 +782,7 @@ export class SyncEngine {
 
     // 2. Identify Category
     let categorySlug = 'general';
-    let categoryNameAr = 'خدمات عامة';
+    let categoryNameAr = 'الخدمات العامة';
 
     if (text.includes('follower') || text.includes('متابعين') || text.includes('subscriber') || text.includes('مشترك')) {
       categorySlug = 'followers';
@@ -836,6 +837,24 @@ export class SyncEngine {
       case 'whatsapp': return 'WhatsApp';
       case 'linkedin': return 'LinkedIn';
       default: return 'Other Platforms';
+    }
+  }
+
+  static getCategorySortOrder(categorySlug: string, platformSlug?: string): number {
+    switch (categorySlug) {
+      case 'general': return 1;          // 1. الخدمات العامة
+      case 'followers': return 2;        // 2. المتابعين والمشتركين
+      case 'members': return (platformSlug === 'telegram') ? 2 : 8; // أعضاء القنوات (تيليجرام: 2)
+      case 'likes': return 3;            // 3. الإعجابات واللايكات
+      case 'views': return 4;            // 4. المشاهدات والظهور
+      case 'reactions': return 5;        // 5. تفاعلات الإيموجي
+      case 'comments': return 6;         // 6. التعليقات المخصصة
+      case 'shares': return 7;           // 7. المشاركات وإعادة النشر
+      case 'watch-time': return 9;       // 9. ساعات المشاهدة
+      case 'livestream': return 10;      // 10. مشاهدات البث المباشر
+      case 'saves': return 11;           // 11. الحفظ والمفضلة
+      case 'votes': return 12;           // 12. التصويت والاستطلاعات
+      default: return 99;
     }
   }
 
