@@ -19,6 +19,7 @@ interface Service {
   maxQuantity: number;
   pricePer1000: number;
   speed?: string;
+  avgTime?: string;
 }
 
 interface Category {
@@ -408,6 +409,8 @@ export default function ServiceDetailsOrder() {
           balance={balance}
           isBalanceSufficient={isBalanceSufficient}
           balanceDifference={balanceDifference}
+          avgTime={currentService?.avgTime}
+          speed={currentService?.speed}
         />
 
         {/* 5. FIXED BOTTOM CHECKOUT BAR */}

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Clock, Tag, Flame, Info } from 'lucide-react';
+import { Clock, Tag, Flame, Info, Zap } from 'lucide-react';
 import PlatformBrandIcon from '@/components/PlatformBrandIcon';
 
 interface ServiceInfoCardProps {
@@ -14,6 +14,7 @@ interface ServiceInfoCardProps {
     maxQuantity: number;
     pricePer1000: number;
     speed?: string;
+    avgTime?: string;
   };
   categoryName: string;
   platformSlug: string;
@@ -53,7 +54,7 @@ export default function ServiceInfoCard({
         <PlatformBrandIcon slug={platformSlug} size="md" />
       </div>
 
-      {/* 4-Columns Metric Bar (الأدنى, الأقصى, السعر, التنفيذ) */}
+      {/* 4-Columns Metric Bar (الأدنى, الأقصى, السعر, وقت الإنجاز) */}
       <div className="grid grid-cols-4 gap-1.5 sm:gap-2 p-2.5 rounded-2xl bg-sky-50/60 border border-sky-100 text-center">
         <div>
           <span className="text-[10px] text-slate-400 font-bold block">الأدنى</span>
@@ -74,18 +75,52 @@ export default function ServiceInfoCard({
           </span>
         </div>
         <div>
-          <span className="text-[10px] text-slate-400 font-bold block">التنفيذ</span>
-          <span className="text-xs sm:text-sm font-black text-slate-800 font-sans mt-0.5 block truncate">
-            {service.speed || 'خلال دقائق'}
+          <span className="text-[10px] text-slate-400 font-bold block">وقت الإنجاز</span>
+          <span className="text-xs sm:text-sm font-black text-slate-800 font-sans mt-0.5 block truncate text-blue-700">
+            {service.avgTime || '15 دقيقة'}
           </span>
         </div>
       </div>
 
-      {/* Badges Row (30 يوم ضمان, حقيقي, الأكثر طلباً) */}
+      {/* Dedicated Estimated Completion Time Banner */}
+      <div className="p-3.5 rounded-2xl bg-gradient-to-l from-blue-50/90 via-sky-50/70 to-indigo-50/60 border border-blue-200/80 flex items-center justify-between gap-3 shadow-xs">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-blue-500/20">
+            <Clock className="w-4 h-4" />
+          </div>
+          <div className="min-w-0">
+            <span className="text-xs font-black text-slate-900 flex items-center gap-1.5">
+              <span>الوقت المستغرق المقدر</span>
+              <span className="text-[9px] px-1.5 py-0.2 rounded-md bg-blue-100 text-blue-800 font-bold">تسليم آلي</span>
+            </span>
+            <span className="text-[11px] text-slate-500 font-medium truncate block mt-0.5">
+              يبدأ الطلب تلقائياً ويكتمل خلال المدة الموضحة
+            </span>
+          </div>
+        </div>
+
+        <div className="text-left shrink-0">
+          <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white border border-blue-200 text-xs font-black text-blue-700 shadow-xs font-sans">
+            <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+            <span>{service.avgTime || '15 دقيقة'}</span>
+          </span>
+          {service.speed && (
+            <span className="text-[10px] text-slate-500 font-bold block text-left mt-0.5 font-sans">
+              🚀 {service.speed}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Badges Row (وقت الإنجاز, 30 يوم ضمان, حقيقي, الأكثر طلباً) */}
       <div className="flex flex-wrap items-center gap-2">
-        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-sky-50 text-blue-700 text-[10px] font-bold border border-sky-200">
+        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 text-[10px] font-bold border border-blue-200">
           <Clock className="w-3 h-3 text-blue-600" />
-          <span>30 يوم ضمان</span>
+          <span>الوقت: {service.avgTime || '15 دقيقة'}</span>
+        </span>
+        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-sky-50 text-blue-700 text-[10px] font-bold border border-sky-200">
+          <Zap className="w-3 h-3 text-amber-500" />
+          <span>بدء فوري ⚡</span>
         </span>
         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200">
           <Tag className="w-3 h-3 text-emerald-600" />

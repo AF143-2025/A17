@@ -163,7 +163,7 @@ export default function ServicesPage() {
                     <th className="py-3.5 px-4">اسم الخدمة</th>
                     <th className="py-3.5 px-4">السعر لكل 1,000</th>
                     <th className="py-3.5 px-4">الحدود (Min / Max)</th>
-                    <th className="py-3.5 px-4">السرعة</th>
+                    <th className="py-3.5 px-4">الوقت والسرعة</th>
                     <th className="py-3.5 px-4 text-center">إجراء</th>
                   </tr>
                 </thead>
@@ -195,8 +195,16 @@ export default function ServicesPage() {
                       <td className="py-3.5 px-4 font-sans text-slate-600 whitespace-nowrap">
                         {service.minQuantity.toLocaleString('en-US')} - {service.maxQuantity.toLocaleString('en-US')}
                       </td>
-                      <td className="py-3.5 px-4 text-slate-600 whitespace-nowrap">
-                        {service.speed || 'فوري'}
+                      <td className="py-3.5 px-4 whitespace-nowrap">
+                        <span className="inline-flex items-center gap-1 font-bold text-blue-700 bg-sky-50 px-2 py-0.5 rounded-md border border-sky-200 text-[11px]">
+                          <Clock className="w-3 h-3 text-blue-600" />
+                          <span>{service.avgTime || '15 دقيقة'}</span>
+                        </span>
+                        {service.speed && (
+                          <span className="block text-[10px] text-slate-500 mt-0.5 font-sans">
+                            🚀 {service.speed}
+                          </span>
+                        )}
                       </td>
                       <td className="py-3.5 px-4 text-center whitespace-nowrap">
                         <Link
@@ -249,7 +257,10 @@ export default function ServicesPage() {
 
                     <div className="text-left text-[11px] text-slate-600">
                       <span className="block font-medium">الحدود: {service.minQuantity} - {service.maxQuantity}</span>
-                      <span className="block text-[10px] text-emerald-600 font-bold">{service.speed || 'فوري ⚡'}</span>
+                      <span className="inline-flex items-center gap-1 text-[10px] text-blue-700 font-bold bg-sky-50 px-2 py-0.5 rounded-md border border-sky-200 mt-0.5">
+                        <Clock className="w-3 h-3 text-blue-600" />
+                        <span>الوقت: {service.avgTime || '15 دقيقة'}</span>
+                      </span>
                     </div>
                   </div>
 
