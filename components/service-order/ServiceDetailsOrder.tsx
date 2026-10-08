@@ -7,6 +7,7 @@ import { CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import ServiceInfoCard from './ServiceInfoCard';
 import ServiceInput from './ServiceInput';
 import QuantityInput from './QuantityInput';
+import ServiceExecutionTime from './ServiceExecutionTime';
 import OrderSummary from './OrderSummary';
 import CheckoutBar from './CheckoutBar';
 
@@ -403,7 +404,12 @@ export default function ServiceDetailsOrder() {
           />
         )}
 
-        {/* 4. ORDER SUMMARY */}
+        {/* 4. TIME CARD DIRECTLY UNDER QUANTITY INPUT */}
+        {currentService && (
+          <ServiceExecutionTime service={currentService} />
+        )}
+
+        {/* 5. ORDER SUMMARY */}
         <OrderSummary
           calculatedPrice={calculatedPrice}
           balance={balance}

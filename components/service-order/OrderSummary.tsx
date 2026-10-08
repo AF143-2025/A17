@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Wallet, ArrowUpRight, CheckCircle2, Clock, Zap } from 'lucide-react';
+import { Wallet, ArrowUpRight, CheckCircle2 } from 'lucide-react';
 
 interface OrderSummaryProps {
   calculatedPrice: number;
@@ -45,24 +45,7 @@ export default function OrderSummary({
         </div>
       </div>
 
-      {/* Estimated Delivery Time Box (الوقت المستغرق التقريبي) */}
-      <div className="flex items-center justify-between p-3 rounded-2xl bg-sky-50/70 border border-sky-100 text-xs">
-        <div className="flex items-center gap-2 text-slate-700 font-bold">
-          <Clock className="w-4 h-4 text-blue-600 shrink-0" />
-          <span>الوقت المستغرق التقريبي:</span>
-        </div>
-        <div className="flex items-center gap-1.5 font-bold">
-          <span className="text-blue-700 bg-white px-2.5 py-1 rounded-xl border border-sky-200 font-sans shadow-xs flex items-center gap-1">
-            <Zap className="w-3 h-3 text-amber-500 fill-amber-500" />
-            <span>{avgTime || '15 دقيقة'}</span>
-          </span>
-          {speed && (
-            <span className="text-[10px] text-slate-500 font-normal hidden sm:inline">
-              ({speed})
-            </span>
-          )}
-        </div>
-      </div>
+
 
       {/* Balance Status Box */}
       {!isBalanceSufficient ? (
