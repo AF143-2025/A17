@@ -39,13 +39,21 @@ export async function calculateCustomerPrice(
     orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
   });
 
+  let isFollowerCategory = false;
+  if (categoryId) {
+    const cat = await db.category.findUnique({ where: { id: categoryId }, select: { slug: true } });
+    if (cat?.slug && (cat.slug.includes('follower') || cat.slug.includes('subscriber'))) {
+      isFollowerCategory = true;
+    }
+  }
+
   // 1. Check SERVICE level rule
   if (serviceId) {
     const serviceRule = rules.find(
       (r) => r.scope === 'SERVICE' && r.targetId === serviceId
     );
     if (serviceRule) {
-      return computePrice(baseCost, serviceRule);
+      return computePrice(baseCost, serviceRule, isFollowerCategory);
     }
   }
 
@@ -55,7 +63,7 @@ export async function calculateCustomerPrice(
       (r) => r.scope === 'CATEGORY' && r.targetId === categoryId
     );
     if (categoryRule) {
-      return computePrice(baseCost, categoryRule);
+      return computePrice(baseCost, categoryRule, isFollowerCategory);
     }
   }
 
@@ -65,27 +73,26 @@ export async function calculateCustomerPrice(
       (r) => r.scope === 'PLATFORM' && r.targetId === platformId
     );
     if (platformRule) {
-      return computePrice(baseCost, platformRule);
+      return computePrice(baseCost, platformRule, isFollowerCategory);
     }
   }
 
   // 4. Check GLOBAL rule
   const globalRule = rules.find((r) => r.scope === 'GLOBAL');
   if (globalRule) {
-    return computePrice(baseCost, globalRule);
+    return computePrice(baseCost, globalRule, isFollowerCategory);
   }
 
-  // 5. Default fallback: EXACT PROVIDER COST (0% markup)
-  // No arbitrary markup added automatically - "ما اريد يضيف اسعار من كيفه"
+  // 5. Default fallback: EXACT PROVIDER COST (0% markup, or minimum $1.50 for followers)
   return {
-    customerPrice: roundPrice(baseCost),
+    customerPrice: isFollowerCategory ? Math.max(1.50, roundPrice(baseCost)) : roundPrice(baseCost),
     markupType: 'PERCENTAGE',
     markupValue: 0,
     appliedRuleName: 'سعر المزود المباشر (بدون زيادة تلقائية)',
   };
 }
 
-function computePrice(baseCost: number, rule: any): PriceCalculationResult {
+function computePrice(baseCost: number, rule: any, isFollowerCategory: boolean = false): PriceCalculationResult {
   let price = baseCost;
   const markup = parseFloat(String(rule.markupValue)) || 0;
 
@@ -96,8 +103,13 @@ function computePrice(baseCost: number, rule: any): PriceCalculationResult {
     price = baseCost * (1 + markup / 100);
   }
 
+  let finalPrice = roundPrice(price);
+  if (isFollowerCategory) {
+    finalPrice = Math.max(1.50, finalPrice);
+  }
+
   return {
-    customerPrice: roundPrice(price),
+    customerPrice: finalPrice,
     markupType: rule.markupType as 'PERCENTAGE' | 'FIXED',
     markupValue: markup,
     appliedRuleId: rule.id,
@@ -256,6 +268,15 @@ export async function recalculateServicePrices(serviceId?: string): Promise<numb
       }
     }
   }
+
+  // 4. Enforce minimum price of $1.50 for all follower & subscriber services to guarantee high profit margin
+  await db.$executeRawUnsafe(`
+    UPDATE "services" s
+    SET "pricePer1000" = GREATEST("pricePer1000", 1.50)
+    FROM "categories" c
+    WHERE s."categoryId" = c."id"
+      AND (c."slug" LIKE '%follower%' OR c."slug" LIKE '%subscriber%');
+  `);
 
   // Clear services cache so updated prices are reflected immediately to all users
   invalidateServicesCache();

@@ -189,13 +189,8 @@ export default function ServicesPage() {
                           {service.description}
                         </div>
                       </td>
-                      <td className="py-3.5 px-4">
-                        <div className="font-sans font-black text-blue-600">
-                          ${service.pricePer1000 >= 1 ? service.pricePer1000.toFixed(2) : service.pricePer1000.toFixed(4)}
-                        </div>
-                        <span className="text-[9px] text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 inline-block mt-0.5">
-                          شامل هامش 80%
-                        </span>
+                      <td className="py-3.5 px-4 font-sans font-black text-blue-600">
+                        ${service.pricePer1000 >= 1 ? service.pricePer1000.toFixed(2) : service.pricePer1000.toFixed(4)}
                       </td>
                       <td className="py-3.5 px-4 font-sans text-slate-600 whitespace-nowrap">
                         {service.minQuantity.toLocaleString('en-US')} - {service.maxQuantity.toLocaleString('en-US')}
@@ -255,14 +250,9 @@ export default function ServicesPage() {
                   <div className="flex items-center justify-between text-xs pt-1">
                     <div>
                       <span className="text-[10px] text-slate-500 block">السعر لكل 1,000</span>
-                      <div className="flex items-center gap-1.5 mt-0.5">
-                        <span className="font-sans font-black text-blue-600 text-sm">
-                          ${service.pricePer1000 >= 1 ? service.pricePer1000.toFixed(2) : service.pricePer1000.toFixed(4)}
-                        </span>
-                        <span className="text-[9px] text-emerald-600 font-bold bg-emerald-50 px-1 py-0.5 rounded border border-emerald-200">
-                          شامل هامش 80%
-                        </span>
-                      </div>
+                      <span className="font-sans font-black text-blue-600 text-sm">
+                        ${service.pricePer1000 >= 1 ? service.pricePer1000.toFixed(2) : service.pricePer1000.toFixed(4)}
+                      </span>
                     </div>
 
                     <div className="text-left text-[11px] text-slate-600">

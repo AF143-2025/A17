@@ -239,12 +239,9 @@ export default function PlatformServicesView({ platforms }: PlatformServicesView
                               </div>
                             </div>
 
-                            <div className="flex flex-col items-end gap-1 shrink-0">
+                            <div className="flex flex-col items-end gap-1.5 shrink-0">
                               <span className="text-xs font-black text-blue-600 font-sans">
                                 ${s.pricePer1000 >= 1 ? s.pricePer1000.toFixed(2) : s.pricePer1000.toFixed(4)}
-                              </span>
-                              <span className="text-[9px] text-emerald-600 font-bold bg-emerald-50 px-1 py-0.5 rounded border border-emerald-200">
-                                شامل هامش 80%
                               </span>
                               <Link
                                 href={`/new-order?serviceId=${s.id}`}

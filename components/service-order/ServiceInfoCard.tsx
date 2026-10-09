@@ -87,7 +87,6 @@ export default function ServiceInfoCard({
           <span className="text-xs sm:text-sm font-black text-blue-600 font-sans mt-0.5 block">
             ${service.pricePer1000 >= 1 ? service.pricePer1000.toFixed(2) : service.pricePer1000.toFixed(4)}
           </span>
-          <span className="text-[9px] font-bold text-emerald-600 block mt-0.5">شامل هامش 80%</span>
         </div>
         <div>
           <span className="text-[10px] text-slate-400 font-bold block">التنفيذ</span>
@@ -105,7 +104,7 @@ export default function ServiceInfoCard({
         </span>
         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200">
           <Tag className="w-3 h-3 text-emerald-600" />
-          <span>شامل هامش ربح 80%</span>
+          <span>حقيقي ومعتمد</span>
         </span>
         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-[10px] font-bold border border-amber-200">
           <Flame className="w-3 h-3 text-amber-500 fill-amber-500" />
