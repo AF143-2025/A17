@@ -14,6 +14,7 @@ import {
   Headphones,
   Settings,
   FileText,
+  DollarSign,
   LogOut,
   X,
   UserCog,
@@ -56,12 +57,15 @@ export default function AdminSidebar({
     { label: 'الخدمات والتصنيفات', href: '/admin/services', icon: Layers },
     { label: 'المستخدمين والمحافظ', href: '/admin/users', icon: Users },
     { label: 'المزودين (API)', href: '/admin/providers', icon: Server },
+    { label: 'هوامش الأرباح والتسعير', href: '/admin/providers?tab=pricing', icon: DollarSign },
     { label: 'المدفوعات والشحن', href: '/admin/payments', icon: CreditCard },
     { label: 'تذاكر الدعم', href: '/admin/tickets', icon: Headphones },
     { label: 'إعدادات المنصة', href: '/admin/settings', icon: Settings },
     { label: 'سجل التدقيق', href: '/admin/audit-logs', icon: FileText },
     { label: 'الملف الشخصي', href: '/admin/profile', icon: UserCog },
   ];
+
+  const isPricingTab = typeof window !== 'undefined' && window.location.search.includes('tab=pricing');
 
   return (
     <>
@@ -76,7 +80,11 @@ export default function AdminSidebar({
           {/* Navigation Items */}
           <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
             {navItems.map((item) => {
-              const isActive = pathname === item.href;
+              const isActive = item.href.includes('tab=pricing')
+                ? (pathname === '/admin/providers' && isPricingTab)
+                : item.href === '/admin/providers'
+                ? (pathname === '/admin/providers' && !isPricingTab)
+                : pathname === item.href;
               const Icon = item.icon;
 
               return (
@@ -169,7 +177,11 @@ export default function AdminSidebar({
           {/* Scrollable Navigation List (Full Screen) */}
           <nav className="flex-1 px-4 py-3 space-y-1.5 overflow-y-auto">
             {navItems.map((item) => {
-              const isActive = pathname === item.href;
+              const isActive = item.href.includes('tab=pricing')
+                ? (pathname === '/admin/providers' && isPricingTab)
+                : item.href === '/admin/providers'
+                ? (pathname === '/admin/providers' && !isPricingTab)
+                : pathname === item.href;
               const Icon = item.icon;
 
               return (

@@ -201,6 +201,12 @@ export default function AdminProvidersPage() {
   };
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const tabParam = new URLSearchParams(window.location.search).get('tab');
+      if (tabParam === 'pricing' || tabParam === 'providers' || tabParam === 'logs') {
+        setActiveTab(tabParam as any);
+      }
+    }
     loadData();
   }, []);
 
@@ -414,22 +420,30 @@ export default function AdminProvidersPage() {
     e.preventDefault();
     setSavingRule(true);
     try {
+      const method = editingRuleId ? 'PUT' : 'POST';
+      const body = editingRuleId ? { ...ruleForm, id: editingRuleId } : ruleForm;
+
       const res = await fetch('/api/admin/pricing', {
-        method: 'POST',
+        method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(ruleForm),
+        body: JSON.stringify(body),
       });
 
       if (res.ok) {
         setRuleModalOpen(false);
+        setEditingRuleId(null);
         setRuleForm({
           name: '',
           scope: 'GLOBAL',
           targetId: '',
           markupType: 'PERCENTAGE',
-          markupValue: 50,
+          markupValue: 80,
           priority: 0,
           recalculateNow: true,
+        });
+        setActionMessage({
+          type: 'success',
+          text: editingRuleId ? 'تم تحديث قاعدة التسعير وتطبيق هامش الربح فوراً ⚡' : 'تمت إضافة قاعدة التسعير وتحديث الأسعار بنجاح ⚡',
         });
         loadData();
       } else {
@@ -438,6 +452,7 @@ export default function AdminProvidersPage() {
       }
     } catch (e) {
       console.error(e);
+      setActionMessage({ type: 'error', text: 'تعذر الاتصال بالخادم لحفظ قاعدة التسعير' });
     } finally {
       setSavingRule(false);
     }
@@ -979,13 +994,34 @@ export default function AdminProvidersPage() {
                             </span>
                           </td>
                           <td className="p-3.5 text-center">
-                            <button
-                              onClick={() => handleDeleteRule(rule.id)}
-                              className="p-1 rounded text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition"
-                              title="حذف القاعدة"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
+                            <div className="flex items-center justify-center gap-1.5">
+                              <button
+                                onClick={() => {
+                                  setEditingRuleId(rule.id);
+                                  setRuleForm({
+                                    name: rule.name,
+                                    scope: rule.scope as any,
+                                    targetId: rule.targetId || '',
+                                    markupType: rule.markupType as any,
+                                    markupValue: rule.markupValue,
+                                    priority: rule.priority,
+                                    recalculateNow: true,
+                                  });
+                                  setRuleModalOpen(true);
+                                }}
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-sky-50 transition"
+                                title="تعديل نسبة الربح"
+                              >
+                                <Edit2 className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteRule(rule.id)}
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
+                                title="حذف القاعدة"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -1214,7 +1250,9 @@ export default function AdminProvidersPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-150">
           <div className="w-full max-w-md rounded-3xl bg-white p-6 sm:p-8 border border-sky-100 shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
-              <h3 className="text-base font-black text-slate-900">إضافة قاعدة تسعير وهامش ربح</h3>
+              <h3 className="text-base font-black text-slate-900">
+                {editingRuleId ? 'تعديل قاعدة التسعير وهامش الربح' : 'إضافة قاعدة تسعير وهامش ربح'}
+              </h3>
               <button
                 onClick={() => setRuleModalOpen(false)}
                 className="text-slate-400 hover:text-slate-600 p-1"
@@ -1356,7 +1394,7 @@ export default function AdminProvidersPage() {
                   disabled={savingRule}
                   className="flex-1 py-2.5 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition disabled:opacity-50 shadow-md shadow-blue-500/20"
                 >
-                  {savingRule ? 'جاري الحفظ...' : 'حفظ القاعدة'}
+                  {savingRule ? 'جاري الحفظ...' : editingRuleId ? 'تحديث وتطبيق الربح' : 'حفظ وتطبيق القاعدة'}
                 </button>
               </div>
             </form>

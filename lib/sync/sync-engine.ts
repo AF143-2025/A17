@@ -335,7 +335,7 @@ export class SyncEngine {
             providerId: provider.id,
             providerServiceId: extId,
             speed: 'فوري ⚡',
-            avgTime: '15 دقيقة',
+            avgTime: (ext as any).time || (ext as any).avg_time || null,
             status: true,
           };
 

@@ -193,6 +193,7 @@ export async function recalculateServicePrices(serviceId?: string): Promise<numb
   for (const rule of rules) {
     const markup = parseFloat(String(rule.markupValue)) || 0;
     const isFixed = rule.markupType === 'FIXED';
+    const multiplier = Number((1 + markup / 100).toFixed(6));
 
     if (rule.scope === 'GLOBAL') {
       if (isFixed) {
@@ -204,7 +205,7 @@ export async function recalculateServicePrices(serviceId?: string): Promise<numb
       } else {
         await db.$executeRawUnsafe(`
           UPDATE "services"
-          SET "pricePer1000" = ROUND(("providerCostPer1000" * (1 + ${markup} / 100))::numeric, 4)
+          SET "pricePer1000" = GREATEST(ROUND(("providerCostPer1000" * ${multiplier})::numeric, 4), 0.0001)
           WHERE "providerCostPer1000" > 0;
         `);
       }
@@ -219,7 +220,7 @@ export async function recalculateServicePrices(serviceId?: string): Promise<numb
       } else {
         await db.$executeRawUnsafe(`
           UPDATE "services"
-          SET "pricePer1000" = ROUND(("providerCostPer1000" * (1 + ${markup} / 100))::numeric, 4)
+          SET "pricePer1000" = GREATEST(ROUND(("providerCostPer1000" * ${multiplier})::numeric, 4), 0.0001)
           WHERE "providerCostPer1000" > 0
           AND "categoryId" IN (SELECT "id" FROM "categories" WHERE "platformId" = '${rule.targetId}');
         `);
@@ -234,7 +235,7 @@ export async function recalculateServicePrices(serviceId?: string): Promise<numb
       } else {
         await db.$executeRawUnsafe(`
           UPDATE "services"
-          SET "pricePer1000" = ROUND(("providerCostPer1000" * (1 + ${markup} / 100))::numeric, 4)
+          SET "pricePer1000" = GREATEST(ROUND(("providerCostPer1000" * ${multiplier})::numeric, 4), 0.0001)
           WHERE "providerCostPer1000" > 0 AND "categoryId" = '${rule.targetId}';
         `);
       }
@@ -248,7 +249,7 @@ export async function recalculateServicePrices(serviceId?: string): Promise<numb
       } else {
         await db.$executeRawUnsafe(`
           UPDATE "services"
-          SET "pricePer1000" = ROUND(("providerCostPer1000" * (1 + ${markup} / 100))::numeric, 4)
+          SET "pricePer1000" = GREATEST(ROUND(("providerCostPer1000" * ${multiplier})::numeric, 4), 0.0001)
           WHERE "id" = '${rule.targetId}';
         `);
       }
