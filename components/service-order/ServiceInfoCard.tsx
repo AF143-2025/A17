@@ -71,7 +71,7 @@ export default function ServiceInfoCard({
         <div>
           <span className="text-[10px] text-slate-400 font-bold block">السعر</span>
           <span className="text-xs sm:text-sm font-black text-blue-600 font-sans mt-0.5 block">
-            ${service.pricePer1000.toFixed(2)}
+            ${service.pricePer1000 >= 1 ? service.pricePer1000.toFixed(2) : service.pricePer1000.toFixed(4)}
           </span>
         </div>
         <div>

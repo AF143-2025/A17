@@ -8,10 +8,15 @@ declare global {
 export const db =
   global.prisma ||
   new PrismaClient({
+    datasources: {
+      db: {
+        url: process.env.DIRECT_URL || process.env.DATABASE_URL,
+      },
+    },
     log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
   });
 
-if (process.env.NODE_ENV !== 'production') {
+if (!global.prisma) {
   global.prisma = db;
 }
 

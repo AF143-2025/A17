@@ -1,4 +1,5 @@
 import db from './db';
+import { invalidateServicesCache } from './services-cache';
 
 export interface PriceCalculationParams {
   providerCost: number; // Cost per 1000 in USD
@@ -255,6 +256,9 @@ export async function recalculateServicePrices(serviceId?: string): Promise<numb
       }
     }
   }
+
+  // Clear services cache so updated prices are reflected immediately to all users
+  invalidateServicesCache();
 
   return defaultUpdated;
 }

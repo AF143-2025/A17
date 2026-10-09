@@ -190,7 +190,7 @@ export default function ServicesPage() {
                         </div>
                       </td>
                       <td className="py-3.5 px-4 font-sans font-black text-blue-600">
-                        ${service.pricePer1000.toLocaleString('en-US')}
+                        ${service.pricePer1000 >= 1 ? service.pricePer1000.toFixed(2) : service.pricePer1000.toFixed(4)}
                       </td>
                       <td className="py-3.5 px-4 font-sans text-slate-600 whitespace-nowrap">
                         {service.minQuantity.toLocaleString('en-US')} - {service.maxQuantity.toLocaleString('en-US')}
@@ -251,7 +251,7 @@ export default function ServicesPage() {
                     <div>
                       <span className="text-[10px] text-slate-500 block">السعر لكل 1,000</span>
                       <span className="font-sans font-black text-blue-600 text-sm">
-                        ${service.pricePer1000.toLocaleString('en-US')}
+                        ${service.pricePer1000 >= 1 ? service.pricePer1000.toFixed(2) : service.pricePer1000.toFixed(4)}
                       </span>
                     </div>
 
