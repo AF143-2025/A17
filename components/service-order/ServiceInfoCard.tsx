@@ -31,6 +31,10 @@ export default function ServiceInfoCard({
   onToggleDescription,
   formatK,
 }: ServiceInfoCardProps) {
+  const nameLower = (service.name || '').toLowerCase();
+  const isNoRefill = nameLower.includes('no refill') || nameLower.includes('بدون ضمان') || service.name.includes('⚠️');
+  const isRefill = !isNoRefill && (nameLower.includes('refill') || service.name.includes('♻️') || nameLower.includes('ضمان') || nameLower.includes('تعويض'));
+
   return (
     <div className="rounded-3xl bg-white p-4 sm:p-5 border border-sky-100 shadow-xs space-y-3.5">
       {/* Service Title & Category Header */}
@@ -46,7 +50,17 @@ export default function ServiceInfoCard({
             <span>•</span>
             <span className="truncate">{categoryName}</span>
             <span>•</span>
-            <span className="text-slate-400">ضمان وتعويض</span>
+            {isRefill ? (
+              <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 font-bold text-[10px]">
+                بضمان تعويض ♻️
+              </span>
+            ) : isNoRefill ? (
+              <span className="text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 font-bold text-[10px]">
+                بدون ضمان ⚠️
+              </span>
+            ) : (
+              <span className="text-slate-500 font-semibold text-[10px]">خدمة رسمية</span>
+            )}
           </div>
         </div>
 
@@ -73,6 +87,7 @@ export default function ServiceInfoCard({
           <span className="text-xs sm:text-sm font-black text-blue-600 font-sans mt-0.5 block">
             ${service.pricePer1000 >= 1 ? service.pricePer1000.toFixed(2) : service.pricePer1000.toFixed(4)}
           </span>
+          <span className="text-[9px] font-bold text-emerald-600 block mt-0.5">شامل هامش 80%</span>
         </div>
         <div>
           <span className="text-[10px] text-slate-400 font-bold block">التنفيذ</span>
@@ -90,7 +105,7 @@ export default function ServiceInfoCard({
         </span>
         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200">
           <Tag className="w-3 h-3 text-emerald-600" />
-          <span>حقيقي</span>
+          <span>شامل هامش ربح 80%</span>
         </span>
         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-[10px] font-bold border border-amber-200">
           <Flame className="w-3 h-3 text-amber-500 fill-amber-500" />

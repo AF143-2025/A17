@@ -814,9 +814,20 @@ export class SyncEngine {
     let categorySlug = 'general';
     let categoryNameAr = 'الخدمات العامة';
 
-    if (text.includes('follower') || text.includes('متابعين') || text.includes('subscriber') || text.includes('مشترك')) {
-      categorySlug = 'followers';
-      categoryNameAr = 'المتابعين والمشتركين';
+    // Check Live Stream first so live views / live likes don't get misclassified
+    if (text.includes('live') || text.includes('stream') || text.includes('بث')) {
+      categorySlug = 'livestream';
+      categoryNameAr = 'خدمات البث المباشر 🔴';
+    } else if (text.includes('follower') || text.includes('متابعين') || text.includes('subscriber') || text.includes('مشترك')) {
+      // Check if service has guarantee / refill or is without guarantee
+      const isNoRefill = text.includes('no refill') || text.includes('بدون ضمان') || text.includes('⚠️');
+      if (isNoRefill) {
+        categorySlug = 'followers-no-refill';
+        categoryNameAr = 'متابعين بدون ضمان ⚠️';
+      } else {
+        categorySlug = 'followers-refill';
+        categoryNameAr = 'متابعين بضمان تعويض ♻️';
+      }
     } else if (text.includes('like') || text.includes('لايك') || text.includes('إعجاب') || text.includes('heart')) {
       categorySlug = 'likes';
       categoryNameAr = 'الإعجابات واللايكات';
@@ -838,9 +849,6 @@ export class SyncEngine {
     } else if (text.includes('watch') || text.includes('ساعات')) {
       categorySlug = 'watch-time';
       categoryNameAr = 'ساعات المشاهدة';
-    } else if (text.includes('live') || text.includes('stream') || text.includes('بث')) {
-      categorySlug = 'livestream';
-      categoryNameAr = 'مشاهدات البث المباشر';
     } else if (text.includes('save') || text.includes('حفظ') || text.includes('مفضلة')) {
       categorySlug = 'saves';
       categoryNameAr = 'الحفظ والمفضلة';
@@ -872,18 +880,20 @@ export class SyncEngine {
 
   static getCategorySortOrder(categorySlug: string, platformSlug?: string): number {
     switch (categorySlug) {
-      case 'general': return 1;          // 1. الخدمات العامة
-      case 'followers': return 2;        // 2. المتابعين والمشتركين
-      case 'members': return (platformSlug === 'telegram') ? 2 : 8; // أعضاء القنوات (تيليجرام: 2)
-      case 'likes': return 3;            // 3. الإعجابات واللايكات
-      case 'views': return 4;            // 4. المشاهدات والظهور
-      case 'reactions': return 5;        // 5. تفاعلات الإيموجي
-      case 'comments': return 6;         // 6. التعليقات المخصصة
-      case 'shares': return 7;           // 7. المشاركات وإعادة النشر
-      case 'watch-time': return 9;       // 9. ساعات المشاهدة
-      case 'livestream': return 10;      // 10. مشاهدات البث المباشر
-      case 'saves': return 11;           // 11. الحفظ والمفضلة
-      case 'votes': return 12;           // 12. التصويت والاستطلاعات
+      case 'general': return 1;                  // 1. الخدمات العامة
+      case 'followers-no-refill': return 2;      // 2. متابعين بدون ضمان ⚠️
+      case 'followers-refill': return 3;         // 3. متابعين بضمان تعويض ♻️
+      case 'followers': return 3;                // المتابعين والمشتركين
+      case 'members': return (platformSlug === 'telegram') ? 2 : 10; // أعضاء القنوات (تيليجرام: 2)
+      case 'likes': return 4;                    // 4. الإعجابات واللايكات
+      case 'views': return 5;                    // 5. المشاهدات والظهور
+      case 'reactions': return 6;                // 6. تفاعلات الإيموجي
+      case 'comments': return 7;                 // 7. التعليقات المخصصة
+      case 'shares': return 8;                   // 8. المشاركات وإعادة النشر
+      case 'livestream': return 9;               // 9. خدمات البث المباشر 🔴
+      case 'watch-time': return 11;              // 11. ساعات المشاهدة
+      case 'saves': return 12;                   // 12. الحفظ والمفضلة
+      case 'votes': return 13;                   // 13. التصويت والاستطلاعات
       default: return 99;
     }
   }

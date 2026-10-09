@@ -35,6 +35,7 @@ export default function OrderSummary({
           <span className="text-lg sm:text-xl font-black text-rose-600 font-sans">
             ${calculatedPrice.toFixed(4)}
           </span>
+          <span className="text-[10px] text-emerald-600 font-bold block mt-1">شامل هامش ربح 80%</span>
         </div>
 
         <div className="p-3.5 rounded-2xl bg-sky-50/60 border border-sky-100 text-center">
