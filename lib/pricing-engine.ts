@@ -105,10 +105,7 @@ function computePrice(baseCost: number, rule: any, isFollowerCategory: boolean =
   let price = baseCost;
   const markup = parseFloat(String(rule.markupValue)) || 0;
 
-  if (isFollowerCategory) {
-    // Follower services always yield $1.500 fixed profit per 1000
-    price = baseCost + 1.500;
-  } else if (rule.markupType === 'FIXED') {
+  if (rule.markupType === 'FIXED') {
     price = baseCost + markup;
   } else {
     // Default PERCENTAGE
@@ -119,10 +116,10 @@ function computePrice(baseCost: number, rule: any, isFollowerCategory: boolean =
 
   return {
     customerPrice: finalPrice,
-    markupType: (isFollowerCategory ? 'FIXED' : rule.markupType) as 'PERCENTAGE' | 'FIXED',
-    markupValue: isFollowerCategory ? 1.500 : markup,
+    markupType: rule.markupType as 'PERCENTAGE' | 'FIXED',
+    markupValue: markup,
     appliedRuleId: rule.id,
-    appliedRuleName: isFollowerCategory ? 'ربح ثابت للمتابعين ($1.500)' : rule.name,
+    appliedRuleName: rule.name,
   };
 }
 
@@ -251,7 +248,7 @@ export async function recalculateServicePrices(serviceId?: string): Promise<numb
       if (isFixed) {
         await db.$executeRawUnsafe(`
           UPDATE "services"
-          SET "pricePer1000" = ROUND(("providerCostPer1000" + ${markup})::numeric, 4)
+          SET "pricePer1000" = ROUND(("providerCostPer1000" + ${markup})::numeric, 3)
           WHERE "providerCostPer1000" > 0 AND "categoryId" = '${rule.targetId}';
         `);
       } else {
@@ -265,7 +262,7 @@ export async function recalculateServicePrices(serviceId?: string): Promise<numb
       if (isFixed) {
         await db.$executeRawUnsafe(`
           UPDATE "services"
-          SET "pricePer1000" = ROUND(("providerCostPer1000" + ${markup})::numeric, 4)
+          SET "pricePer1000" = ROUND(("providerCostPer1000" + ${markup})::numeric, 3)
           WHERE "id" = '${rule.targetId}';
         `);
       } else {
@@ -277,16 +274,6 @@ export async function recalculateServicePrices(serviceId?: string): Promise<numb
       }
     }
   }
-
-  // 4. Enforce exact profit margin of +$1.500 USD for all follower & subscriber services (Cost + $1.500)
-  await db.$executeRawUnsafe(`
-    UPDATE "services" s
-    SET "pricePer1000" = ROUND(("providerCostPer1000" + 1.500)::numeric, 3)
-    FROM "categories" c
-    WHERE s."categoryId" = c."id"
-      AND (c."slug" LIKE '%follower%' OR c."slug" LIKE '%subscriber%')
-      AND s."providerCostPer1000" > 0;
-  `);
 
   // Clear services cache so updated prices are reflected immediately to all users
   invalidateServicesCache();

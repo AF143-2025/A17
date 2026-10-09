@@ -75,69 +75,14 @@ interface SyncLogRecord {
   createdAt: string;
 }
 
-const REAL_PROVIDER_PRESETS = [
-  {
-    name: 'SMM World',
-    apiUrl: 'https://my.smmworld.org/api/v2',
-    website: 'https://my.smmworld.org',
-    priority: 10,
-    badge: 'المزود المعتمد المباشر',
-    tag: 'SMM World V2',
-    guide: 'سيرفر معتمد لكافة خدمات مواقع التواصل الاجتماعي والتفاعل الفوري.',
-  },
-  {
-    name: 'KD1S - سيرفر دعمكم (العراق والشرق الأوسط)',
-    apiUrl: 'https://kd1s.com/api/v2',
-    website: 'https://kd1s.com',
-    priority: 10,
-    badge: 'الأشهر عراقياً وعربياً',
-    tag: 'العراق والشرق الأوسط',
-    guide: 'سجل دخولك في موقع kd1s.com واذهب إلى إعدادات الحساب وانسخ الـ API Key.',
-  },
-  {
-    name: 'JustAnotherPanel (JAP - المزود العالمي الأكبر)',
-    apiUrl: 'https://justanotherpanel.com/api/v2',
-    website: 'https://justanotherpanel.com',
-    priority: 9,
-    badge: 'المزود الأكبر عالمياً لأسعار الجملة',
-    tag: 'عالمي مباشر',
-    guide: 'سجل دخولك في موقع JustAnotherPanel واذهب لصفحة الحساب (Account) لنسخ مفتاح الـ API.',
-  },
-  {
-    name: 'SMMKings - ملوك السيرفرات (يوتيوب وتيك توك)',
-    apiUrl: 'https://smmkings.com/api/v2',
-    website: 'https://smmkings.com',
-    priority: 8,
-    badge: 'تخصص يوتيوب والمشاهدات',
-    tag: 'يوتيوب وتيك توك',
-    guide: 'سجل دخولك في SMMKings وانسخ مفتاح API من صفحة إعدادات الحساب.',
-  },
-  {
-    name: 'Peakerr - مزود السرعات الفائقة والضمانات',
-    apiUrl: 'https://peakerr.com/api/v2',
-    website: 'https://peakerr.com',
-    priority: 7,
-    badge: 'سرعات فائقة وضمان تعويض',
-    tag: 'إنستغرام وتيك توك',
-    guide: 'انسخ مفتاح API الخاص بك من قسم الـ API في لوحة تحكم Peakerr.',
-  },
-  {
-    name: 'SMMStone - سيرفر إنستغرام وتيليجرام المباشر',
-    apiUrl: 'https://smmstone.com/api/v2',
-    website: 'https://smmstone.com',
-    priority: 6,
-    badge: 'تفاعل إنستغرام وتيليجرام فوري',
-    tag: 'تيليجرام وإنستغرام',
-    guide: 'انسخ مفتاح API من إعدادات حسابك في موقع SMMStone.',
-  },
-];
-
 export default function AdminProvidersPage() {
   const [activeTab, setActiveTab] = useState<'providers' | 'pricing' | 'logs'>('providers');
   const [providers, setProviders] = useState<ProviderRecord[]>([]);
   const [pricingRules, setPricingRules] = useState<PricingRuleRecord[]>([]);
   const [platforms, setPlatforms] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
+  const [pricingPlatformFilter, setPricingPlatformFilter] = useState<string>('ALL');
+  const [pricingSearchQuery, setPricingSearchQuery] = useState<string>('');
   const [syncLogs, setSyncLogs] = useState<SyncLogRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [balanceLoadingId, setBalanceLoadingId] = useState<string | null>(null);
@@ -474,17 +419,6 @@ export default function AdminProvidersPage() {
     }
   };
 
-  const applyPreset = (preset: (typeof REAL_PROVIDER_PRESETS)[0]) => {
-    setProviderForm({
-      name: preset.name,
-      apiUrl: preset.apiUrl,
-      apiKey: '',
-      type: 'STANDARD_SMM_V2',
-      priority: preset.priority,
-      status: true,
-    });
-  };
-
   return (
     <div className="space-y-6 animate-in fade-in duration-200" dir="rtl">
       {/* 1. Header & Global Actions */}
@@ -535,47 +469,6 @@ export default function AdminProvidersPage() {
             <PlusCircle className="w-4 h-4" />
             <span>إضافة مزود جديد</span>
           </button>
-        </div>
-      </div>
-
-      {/* 2. Real Providers Quick Guide & Quick Presets Bar */}
-      <div className="rounded-2xl bg-white border border-sky-200/80 p-5 shadow-xs space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs font-black text-slate-800">
-            <Sparkles className="w-4 h-4 text-amber-500" />
-            <span>المزودون المعتمدون المدعومون بنقرة واحدة (Real SMM Providers)</span>
-          </div>
-          <span className="text-[11px] font-bold text-blue-600 bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded-full">
-            Standard API V2 Ready
-          </span>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 pt-1">
-          {REAL_PROVIDER_PRESETS.map((p, idx) => (
-            <button
-              key={idx}
-              type="button"
-              onClick={() => {
-                setEditingProviderId(null);
-                applyPreset(p);
-                setProviderModalOpen(true);
-              }}
-              className="p-3 rounded-xl bg-slate-50/70 hover:bg-sky-50 border border-slate-200/80 hover:border-blue-300 transition text-right group flex flex-col justify-between"
-            >
-              <div>
-                <div className="text-xs font-black text-slate-900 group-hover:text-blue-600 transition truncate">
-                  {p.name.split(' - ')[0]}
-                </div>
-                <div className="text-[10px] text-slate-500 mt-0.5">{p.badge}</div>
-              </div>
-              <div className="mt-2.5 flex items-center justify-between text-[10px] font-bold text-blue-600">
-                <span>توصيل فوري +</span>
-                <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-white border border-sky-200 text-slate-600">
-                  P:{p.priority}
-                </span>
-              </div>
-            </button>
-          ))}
         </div>
       </div>
 
@@ -909,130 +802,238 @@ export default function AdminProvidersPage() {
       )}
 
       {/* TAB 2: PRICING RULES */}
-      {activeTab === 'pricing' && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between bg-white p-4 rounded-2xl border border-sky-100">
-            <p className="text-xs text-slate-600 font-medium">
-              يتم تطبيق هوامش الأرباح بترتيب الأولوية الذكي: (خدمة محددة ← تصنيف ← منصة ← قاعدة عامة).
-            </p>
+      {activeTab === 'pricing' && (() => {
+        const filteredPricingRules = pricingRules.filter((rule) => {
+          if (pricingPlatformFilter !== 'ALL') {
+            const targetCat = categories.find((c) => c.id === rule.targetId);
+            if (targetCat) {
+              if (targetCat.platformId !== pricingPlatformFilter) return false;
+            } else if (rule.scope === 'PLATFORM') {
+              if (rule.targetId !== pricingPlatformFilter) return false;
+            } else if (rule.scope === 'GLOBAL') {
+              return false;
+            }
+          }
+          if (pricingSearchQuery.trim()) {
+            const q = pricingSearchQuery.toLowerCase();
+            const nameMatch = rule.name.toLowerCase().includes(q);
+            const targetCat = categories.find((c) => c.id === rule.targetId);
+            const catMatch = targetCat && ((targetCat.nameAr && targetCat.nameAr.toLowerCase().includes(q)) || targetCat.name.toLowerCase().includes(q));
+            return nameMatch || catMatch;
+          }
+          return true;
+        });
 
-            <button
-              onClick={() => {
-                setEditingRuleId(null);
-                setRuleForm({
-                  name: '',
-                  scope: 'GLOBAL',
-                  targetId: '',
-                  markupType: 'PERCENTAGE',
-                  markupValue: 50,
-                  priority: 0,
-                  recalculateNow: true,
-                });
-                setRuleModalOpen(true);
-              }}
-              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs font-bold text-white transition shadow-sm"
-            >
-              <PlusCircle className="w-3.5 h-3.5" />
-              <span>إضافة قاعدة تسعير</span>
-            </button>
-          </div>
+        return (
+          <div className="space-y-4">
+            {/* Header & Controls */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-sky-100 shadow-xs">
+              <div>
+                <h2 className="text-sm font-black text-slate-900">التحكم في هوامش أرباح الفئات</h2>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  يمكنك تخصيص وتعديل نسبة أو مبلغ الربح لكل فئة بشكل فردي ومستقل (تطبق فورياً على أسعار الخدمات).
+                </p>
+              </div>
 
-          {pricingRules.length === 0 ? (
-            <div className="p-12 text-center rounded-3xl bg-white border border-sky-100 text-slate-500 shadow-sm">
-              <Sliders className="w-10 h-10 mx-auto mb-3 text-slate-300" />
-              <p className="font-bold text-sm text-slate-800">لا توجد قواعد تسعير مخصصة حالياً</p>
-              <p className="text-xs mt-1 text-slate-500 max-w-md mx-auto">
-                يطبق النظام تلقائياً سعر المزود الحقيقي المباشر (0% زيادة تلقائية) بدون إضافة أي مبالغ عشوائية. يمكنك إضافة قاعدة تسعير لتحديد نسبة ربحك (مثلاً +20% أو +15%).
-              </p>
-            </div>
-          ) : (
-            <div className="rounded-3xl bg-white border border-sky-100 overflow-hidden shadow-sm">
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs text-right">
-                  <thead>
-                    <tr className="bg-sky-50/60 border-b border-sky-100 text-slate-700 font-bold">
-                      <th className="p-3.5">اسم القاعدة</th>
-                      <th className="p-3.5">النطاق (Scope)</th>
-                      <th className="p-3.5">نوع ونسبة الربح</th>
-                      <th className="p-3.5">الأولوية</th>
-                      <th className="p-3.5">الحالة</th>
-                      <th className="p-3.5 text-center">إجراءات</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {pricingRules.map((rule) => {
-                      const targetPlatform = platforms.find((p) => p.id === rule.targetId);
-                      const targetCategory = categories.find((c) => c.id === rule.targetId);
-
-                      return (
-                        <tr key={rule.id} className="hover:bg-sky-50/40 transition">
-                          <td className="p-3.5 font-bold text-slate-900">{rule.name}</td>
-                          <td className="p-3.5">
-                            <span className="px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-200 font-mono text-[10px] font-bold">
-                              {rule.scope}
-                            </span>
-                            {targetPlatform && (
-                              <span className="text-slate-500 mr-2 font-medium">
-                                ({targetPlatform.nameAr})
-                              </span>
-                            )}
-                            {targetCategory && (
-                              <span className="text-slate-500 mr-2 font-medium">
-                                ({targetCategory.nameAr})
-                              </span>
-                            )}
-                          </td>
-                          <td className="p-3.5 font-sans font-bold text-emerald-600">
-                            {rule.markupType === 'PERCENTAGE'
-                              ? `+${rule.markupValue}%`
-                              : `+$${rule.markupValue.toFixed(2)}`}
-                          </td>
-                          <td className="p-3.5 font-mono text-slate-700">{rule.priority}</td>
-                          <td className="p-3.5">
-                            <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">
-                              نشط
-                            </span>
-                          </td>
-                          <td className="p-3.5 text-center">
-                            <div className="flex items-center justify-center gap-1.5">
-                              <button
-                                onClick={() => {
-                                  setEditingRuleId(rule.id);
-                                  setRuleForm({
-                                    name: rule.name,
-                                    scope: rule.scope as any,
-                                    targetId: rule.targetId || '',
-                                    markupType: rule.markupType as any,
-                                    markupValue: rule.markupValue,
-                                    priority: rule.priority,
-                                    recalculateNow: true,
-                                  });
-                                  setRuleModalOpen(true);
-                                }}
-                                className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-sky-50 transition"
-                                title="تعديل نسبة الربح"
-                              >
-                                <Edit2 className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                onClick={() => handleDeleteRule(rule.id)}
-                                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
-                                title="حذف القاعدة"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    setEditingRuleId(null);
+                    setRuleForm({
+                      name: '',
+                      scope: 'CATEGORY',
+                      targetId: '',
+                      markupType: 'PERCENTAGE',
+                      markupValue: 80,
+                      priority: 10,
+                      recalculateNow: true,
+                    });
+                    setRuleModalOpen(true);
+                  }}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs font-bold text-white transition shadow-sm cursor-pointer whitespace-nowrap"
+                >
+                  <PlusCircle className="w-3.5 h-3.5" />
+                  <span>إضافة قاعدة مخصصة</span>
+                </button>
               </div>
             </div>
-          )}
-        </div>
-      )}
+
+            {/* Filter Bar: Platform Pills + Search */}
+            <div className="bg-white p-3.5 rounded-2xl border border-sky-100 shadow-xs space-y-3">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+                {/* Search Input */}
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    value={pricingSearchQuery}
+                    onChange={(e) => setPricingSearchQuery(e.target.value)}
+                    placeholder="ابحث عن اسم فئة أو منصة (مثال: متابعين، لايكات، إنستغرام...)"
+                    className="w-full pl-8 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:bg-white focus:border-blue-500 focus:outline-none"
+                  />
+                  {pricingSearchQuery && (
+                    <button
+                      onClick={() => setPricingSearchQuery('')}
+                      className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+
+                <div className="text-[11px] font-bold text-slate-500 whitespace-nowrap px-1">
+                  عرض {filteredPricingRules.length} من أصل {pricingRules.length} قاعدة
+                </div>
+              </div>
+
+              {/* Platform Filter Buttons */}
+              <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-slate-100">
+                <button
+                  onClick={() => setPricingPlatformFilter('ALL')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+                    pricingPlatformFilter === 'ALL'
+                      ? 'bg-blue-600 text-white shadow-xs'
+                      : 'bg-slate-50 hover:bg-sky-50 text-slate-700 border border-slate-200/80'
+                  }`}
+                >
+                  جميع المنصات ({pricingRules.length})
+                </button>
+                {platforms.map((p) => {
+                  const count = pricingRules.filter((r) => {
+                    const cat = categories.find((c) => c.id === r.targetId);
+                    return cat?.platformId === p.id || (r.scope === 'PLATFORM' && r.targetId === p.id);
+                  }).length;
+                  return (
+                    <button
+                      key={p.id}
+                      onClick={() => setPricingPlatformFilter(p.id)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                        pricingPlatformFilter === p.id
+                          ? 'bg-blue-600 text-white shadow-xs'
+                          : 'bg-slate-50 hover:bg-sky-50 text-slate-700 border border-slate-200/80'
+                      }`}
+                    >
+                      <span>{p.nameAr || p.name}</span>
+                      <span className="text-[10px] px-1.5 py-0.2 rounded-md bg-white/30 font-mono">
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {filteredPricingRules.length === 0 ? (
+              <div className="p-12 text-center rounded-3xl bg-white border border-sky-100 text-slate-500 shadow-sm">
+                <Sliders className="w-10 h-10 mx-auto mb-3 text-slate-300" />
+                <p className="font-bold text-sm text-slate-800">لا توجد قواعد تسعير مطابقة للبحث</p>
+                <p className="text-xs mt-1 text-slate-500 max-w-md mx-auto">
+                  جرب تغيير خيارات التصفية أو مسح عبارة البحث لإظهار فئات المنصات.
+                </p>
+              </div>
+            ) : (
+              <div className="rounded-3xl bg-white border border-sky-100 overflow-hidden shadow-sm">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs text-right">
+                    <thead>
+                      <tr className="bg-sky-50/60 border-b border-sky-100 text-slate-700 font-bold">
+                        <th className="p-3.5">اسم الفئة / القاعدة</th>
+                        <th className="p-3.5">المنصة</th>
+                        <th className="p-3.5">النطاق</th>
+                        <th className="p-3.5">هامش الربح الحالي</th>
+                        <th className="p-3.5">الحالة</th>
+                        <th className="p-3.5 text-center">إجراءات</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {filteredPricingRules.map((rule) => {
+                        const targetCategory = categories.find((c) => c.id === rule.targetId);
+                        const targetPlatform = targetCategory
+                          ? platforms.find((p) => p.id === targetCategory.platformId)
+                          : platforms.find((p) => p.id === rule.targetId);
+
+                        return (
+                          <tr key={rule.id} className="hover:bg-sky-50/40 transition">
+                            <td className="p-3.5">
+                              <div className="font-black text-slate-900">{rule.name}</div>
+                              {targetCategory && (
+                                <div className="text-[11px] text-slate-500 mt-0.5">
+                                  المعرف: {targetCategory.slug}
+                                </div>
+                              )}
+                            </td>
+                            <td className="p-3.5">
+                              {targetPlatform ? (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sky-50 text-blue-700 border border-sky-200 font-bold text-[11px]">
+                                  {targetPlatform.nameAr || targetPlatform.name}
+                                </span>
+                              ) : (
+                                <span className="text-slate-400 font-medium">كل المنصات (عام)</span>
+                              )}
+                            </td>
+                            <td className="p-3.5">
+                              <span className="px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-200 font-mono text-[10px] font-bold">
+                                {rule.scope === 'CATEGORY' ? 'فئة محددة' : rule.scope === 'PLATFORM' ? 'منصة' : 'عام'}
+                              </span>
+                            </td>
+                            <td className="p-3.5">
+                              <div className="font-sans font-black text-sm text-emerald-600">
+                                {rule.markupType === 'PERCENTAGE'
+                                  ? `+${rule.markupValue}%`
+                                  : `+$${rule.markupValue.toFixed(3)}`}
+                              </div>
+                              <span className="text-[10px] text-slate-400">
+                                {rule.markupType === 'PERCENTAGE' ? 'نسبة مئوية من التكلفة' : 'ربح صافي ثابت فوق التكلفة'}
+                              </span>
+                            </td>
+                            <td className="p-3.5">
+                              <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">
+                                مفعل ومطبق ⚡
+                              </span>
+                            </td>
+                            <td className="p-3.5 text-center">
+                              <div className="flex items-center justify-center gap-1.5">
+                                <button
+                                  onClick={() => {
+                                    setEditingRuleId(rule.id);
+                                    setRuleForm({
+                                      name: rule.name,
+                                      scope: rule.scope as any,
+                                      targetId: rule.targetId || '',
+                                      markupType: rule.markupType as any,
+                                      markupValue: rule.markupValue,
+                                      priority: rule.priority,
+                                      recalculateNow: true,
+                                    });
+                                    setRuleModalOpen(true);
+                                  }}
+                                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white border border-blue-200 transition font-bold text-xs cursor-pointer"
+                                  title="تعديل نسبة الربح"
+                                >
+                                  <Edit2 className="w-3.5 h-3.5" />
+                                  <span>تعديل الربح</span>
+                                </button>
+                                {rule.scope !== 'GLOBAL' && (
+                                  <button
+                                    onClick={() => handleDeleteRule(rule.id)}
+                                    className="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition cursor-pointer"
+                                    title="حذف القاعدة"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* TAB 3: SYNC LOGS */}
       {activeTab === 'logs' && (
@@ -1104,27 +1105,6 @@ export default function AdminProvidersPage() {
                 <X className="w-5 h-5" />
               </button>
             </div>
-
-            {/* Presets in Modal */}
-            {!editingProviderId && (
-              <div className="mb-4 p-3 rounded-2xl bg-sky-50/70 border border-sky-200/80">
-                <span className="text-[11px] font-bold text-slate-700 block mb-2">
-                  ⚡ تعبئة سريعة من المزودين المعتمدين:
-                </span>
-                <div className="flex flex-wrap gap-1.5">
-                  {REAL_PROVIDER_PRESETS.map((p, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      onClick={() => applyPreset(p)}
-                      className="px-2.5 py-1 rounded-lg bg-white hover:bg-blue-600 hover:text-white border border-sky-200 text-[11px] font-bold text-slate-700 transition"
-                    >
-                      {p.name.split(' - ')[0]}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
 
             <form onSubmit={handleSaveProvider} className="space-y-4 text-xs">
               <div>
@@ -1320,16 +1300,24 @@ export default function AdminProvidersPage() {
                     </label>
                     <select
                       value={ruleForm.targetId}
-                      onChange={(e) => setRuleForm({ ...ruleForm, targetId: e.target.value })}
+                      onChange={(e) => {
+                        const selectedCat = categories.find((c) => c.id === e.target.value);
+                        const plat = selectedCat ? platforms.find((p) => p.id === selectedCat.platformId) : null;
+                        const autoName = selectedCat && plat ? `[${plat.nameAr || plat.name}] ${selectedCat.nameAr || selectedCat.name}` : (selectedCat?.nameAr || ruleForm.name);
+                        setRuleForm({ ...ruleForm, targetId: e.target.value, name: autoName });
+                      }}
                       required
                       className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-xs text-slate-800 focus:border-blue-500 focus:bg-white focus:outline-none"
                     >
                       <option value="">اختر...</option>
-                      {categories.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.nameAr || c.name}
-                        </option>
-                      ))}
+                      {categories.map((c) => {
+                        const plat = platforms.find((p) => p.id === c.platformId);
+                        return (
+                          <option key={c.id} value={c.id}>
+                            {plat ? `[${plat.nameAr || plat.name}] ` : ''}{c.nameAr || c.name}
+                          </option>
+                        );
+                      })}
                     </select>
                   </div>
                 )}
