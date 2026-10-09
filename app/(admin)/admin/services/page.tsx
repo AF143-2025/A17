@@ -420,23 +420,23 @@ export default function AdminServicesPage() {
       {/* Header with Tabs */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-white font-sans flex items-center gap-2">
-            <Layers className="w-6 h-6 text-purple-400" />
+          <h1 className="text-2xl font-black text-slate-900 font-sans flex items-center gap-2">
+            <Layers className="w-6 h-6 text-blue-600" />
             <span>إدارة الخدمات والتصنيفات والمنصات</span>
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            إضافة وتعديل وحذف الخدمات، المنصات، والتصنيفات والربط مع المزودين
+          <p className="text-xs text-slate-500 mt-1">
+            إضافة وتعديل وحذف الخدمات، المنصات، والتصنيفات والربط المباشر مع المزودين
           </p>
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex items-center gap-1.5 p-1 bg-slate-900 border border-slate-800 rounded-2xl">
+        <div className="flex items-center gap-1.5 p-1 bg-white border border-sky-200 rounded-2xl shadow-xs">
           <button
             onClick={() => setActiveTab('services')}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
               activeTab === 'services'
-                ? 'bg-purple-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-sky-50'
             }`}
           >
             دليل الخدمات ({services.length})
@@ -445,8 +445,8 @@ export default function AdminServicesPage() {
             onClick={() => setActiveTab('categories')}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
               activeTab === 'categories'
-                ? 'bg-purple-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-sky-50'
             }`}
           >
             المنصات والتصنيفات ({platforms.length})
@@ -456,16 +456,16 @@ export default function AdminServicesPage() {
 
       {actionMessage && (
         <div
-          className={`p-4 rounded-2xl text-xs flex items-start gap-3 border ${
+          className={`p-4 rounded-2xl text-xs font-semibold flex items-start gap-3 border shadow-xs ${
             actionMessage.type === 'success'
-              ? 'bg-emerald-950/40 border-emerald-500/30 text-emerald-300'
-              : 'bg-rose-950/40 border-rose-500/30 text-rose-300'
+              ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+              : 'bg-rose-50 border-rose-200 text-rose-800'
           }`}
         >
           {actionMessage.type === 'success' ? (
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
           ) : (
-            <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+            <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
           )}
           <span>{actionMessage.text}</span>
         </div>
@@ -484,7 +484,7 @@ export default function AdminServicesPage() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="ابحث عن اسم الخدمة أو التصنيف..."
-                  className="w-full rounded-2xl bg-slate-900 border border-slate-700/80 px-4 py-2.5 pl-10 text-xs text-white placeholder-slate-500 focus:border-purple-500 focus:outline-none"
+                  className="w-full rounded-2xl bg-white border border-sky-200 px-4 py-2.5 pl-10 text-xs text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none shadow-xs"
                 />
                 <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               </div>
@@ -493,7 +493,7 @@ export default function AdminServicesPage() {
               <select
                 value={filterPlatform}
                 onChange={(e) => setFilterPlatform(e.target.value)}
-                className="rounded-2xl bg-slate-900 border border-slate-700/80 px-3 py-2.5 text-xs text-white focus:border-purple-500 focus:outline-none shrink-0"
+                className="rounded-2xl bg-white border border-sky-200 px-3 py-2.5 text-xs text-slate-800 font-medium focus:border-blue-500 focus:outline-none shrink-0 shadow-xs"
               >
                 <option value="ALL">جميع المنصات</option>
                 {platforms.map((p) => (
@@ -506,7 +506,7 @@ export default function AdminServicesPage() {
 
             <button
               onClick={openCreateServiceModal}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-xs font-bold text-white shadow-glow hover:opacity-90 transition shrink-0"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-xs font-bold text-white shadow-sm hover:opacity-95 transition shrink-0"
             >
               <PlusCircle className="w-4 h-4" />
               <span>إضافة خدمة جديدة</span>
@@ -514,20 +514,20 @@ export default function AdminServicesPage() {
           </div>
 
           {/* Services Table */}
-          <div className="rounded-3xl glass-panel border border-slate-800 overflow-hidden shadow-card-dark">
+          <div className="rounded-3xl bg-white border border-sky-100 overflow-hidden shadow-sm">
             {loading ? (
               <div className="p-16 flex flex-col items-center justify-center text-slate-400">
-                <Loader2 className="w-8 h-8 animate-spin text-purple-400 mb-2" />
-                <span className="text-xs">جاري تحميل الخدمات...</span>
+                <Loader2 className="w-8 h-8 animate-spin text-blue-600 mb-2" />
+                <span className="text-xs text-slate-500 font-medium">جاري تحميل الخدمات...</span>
               </div>
             ) : filteredServices.length === 0 ? (
-              <div className="p-16 text-center text-slate-500 text-xs">
+              <div className="p-16 text-center text-slate-500 text-xs font-medium">
                 لا توجد خدمات مطابقة لخيارات البحث
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-right text-xs">
-                  <thead className="bg-slate-900/90 text-slate-400 font-bold border-b border-slate-800">
+                  <thead className="bg-sky-50/80 text-slate-700 font-bold border-b border-sky-100">
                     <tr>
                       <th className="py-3.5 px-4">اسم الخدمة</th>
                       <th className="py-3.5 px-4">المنصة / التصنيف</th>
@@ -540,37 +540,37 @@ export default function AdminServicesPage() {
                       <th className="py-3.5 px-4 text-center">إجراءات المدير</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                  <tbody className="divide-y divide-sky-100 text-slate-700">
                     {filteredServices.map((s) => {
                       const profit = s.pricePer1000 - s.providerCostPer1000;
                       return (
-                        <tr key={s.id} className="hover:bg-slate-900/40 transition">
-                          <td className="py-3.5 px-4 font-bold text-white max-w-xs">
-                            <div>{s.name}</div>
-                            <div className="text-[10px] text-slate-500 font-mono">ID: {s.id.slice(-8)}</div>
+                        <tr key={s.id} className="hover:bg-sky-50/50 transition">
+                          <td className="py-3.5 px-4 max-w-xs">
+                            <div className="font-bold text-slate-900 text-xs leading-snug">{s.name}</div>
+                            <div className="text-[10px] text-slate-400 font-mono mt-0.5">ID: {s.id.slice(-8)}</div>
                           </td>
-                          <td className="py-3.5 px-4 text-slate-400">
-                            <span className="font-semibold text-slate-300">{s.category.platform.nameAr}</span> › {s.category.nameAr}
+                          <td className="py-3.5 px-4 text-slate-600">
+                            <span className="font-semibold text-slate-800">{s.category.platform.nameAr}</span> › <span className="text-slate-600">{s.category.nameAr}</span>
                           </td>
-                          <td className="py-3.5 px-4 font-sans font-black text-blue-400">
+                          <td className="py-3.5 px-4 font-sans font-black text-blue-600">
                             ${s.pricePer1000.toFixed(2)}
                           </td>
-                          <td className="py-3.5 px-4 font-sans text-slate-400">
+                          <td className="py-3.5 px-4 font-sans text-slate-500 font-medium">
                             ${s.providerCostPer1000.toFixed(2)}
                           </td>
-                          <td className="py-3.5 px-4 font-sans font-bold text-emerald-400">
+                          <td className="py-3.5 px-4 font-sans font-bold text-emerald-600">
                             +${profit.toFixed(2)}
                           </td>
-                          <td className="py-3.5 px-4 font-sans text-slate-400 whitespace-nowrap">
+                          <td className="py-3.5 px-4 font-sans text-slate-600 whitespace-nowrap">
                             {s.minQuantity.toLocaleString('en-US')} - {s.maxQuantity.toLocaleString('en-US')}
                           </td>
-                          <td className="py-3.5 px-4 text-slate-300">
+                          <td className="py-3.5 px-4 text-slate-700">
                             {s.provider?.name ? (
-                              <span className="text-slate-300 font-medium">
-                                {s.provider.name} <span className="text-[10px] font-mono text-purple-400">#{s.providerServiceId || '—'}</span>
+                              <span className="font-medium text-slate-800">
+                                {s.provider.name} <span className="text-[10px] font-mono text-blue-600 bg-sky-50 px-1.5 py-0.5 rounded border border-sky-200">#{s.providerServiceId || '—'}</span>
                               </span>
                             ) : (
-                              <span className="text-slate-500">داخلي / يدوي</span>
+                              <span className="text-slate-400">داخلي / يدوي</span>
                             )}
                           </td>
                           <td className="py-3.5 px-4 whitespace-nowrap">
@@ -578,8 +578,8 @@ export default function AdminServicesPage() {
                               onClick={() => handleToggleServiceStatus(s)}
                               className={`px-2.5 py-1 rounded-full text-[10px] font-bold border transition ${
                                 s.status
-                                  ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25'
-                                  : 'bg-rose-500/15 text-rose-400 border-rose-500/30 hover:bg-rose-500/25'
+                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                                  : 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100'
                               }`}
                             >
                               {s.status ? 'مفعلة' : 'معطلة'}
@@ -589,14 +589,14 @@ export default function AdminServicesPage() {
                             <div className="flex items-center justify-center gap-1.5">
                               <button
                                 onClick={() => openEditServiceModal(s)}
-                                className="p-1.5 rounded-lg bg-slate-800 hover:bg-purple-600/30 text-slate-300 hover:text-purple-300 transition"
+                                className="p-1.5 rounded-lg bg-sky-50 hover:bg-blue-100 text-slate-700 hover:text-blue-700 border border-sky-200 transition"
                                 title="تعديل الخدمة"
                               >
                                 <Edit className="w-4 h-4" />
                               </button>
                               <button
                                 onClick={() => setDeleteServiceId(s.id)}
-                                className="p-1.5 rounded-lg bg-slate-800 hover:bg-rose-600/30 text-slate-300 hover:text-rose-400 transition"
+                                className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-700 border border-rose-200 transition"
                                 title="حذف الخدمة نهائياً"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -619,15 +619,15 @@ export default function AdminServicesPage() {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-base font-bold text-white">المنصات والتصنيفات المفعلة</h2>
-              <p className="text-xs text-slate-400 mt-0.5">
-                يمكنك إضافة منصات جديدة (مثل Threads, Kick) وإنشاء تصنيفات تحتها أو حذفها
+              <h2 className="text-base font-bold text-slate-900">المنصات والتصنيفات المفعلة</h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                يمكنك إضافة منصات جديدة وإنشاء تصنيفات فرعية تحتها أو تعديلها
               </p>
             </div>
 
             <button
               onClick={openCreatePlatformModal}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-xs font-bold text-white shadow-glow hover:opacity-90 transition"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-xs font-bold text-white shadow-sm hover:opacity-95 transition"
             >
               <PlusCircle className="w-4 h-4" />
               <span>إضافة منصة جديدة</span>
@@ -638,27 +638,27 @@ export default function AdminServicesPage() {
             {platforms.map((p) => (
               <div
                 key={p.id}
-                className="rounded-3xl glass-panel p-6 border border-slate-800 space-y-4 hover:border-slate-700 transition"
+                className="rounded-3xl bg-white p-6 border border-sky-100 shadow-sm space-y-4 hover:border-sky-200 transition"
               >
                 {/* Platform Header */}
-                <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                <div className="flex items-center justify-between pb-3 border-b border-sky-100">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-purple-500/15 border border-purple-500/30 text-purple-400 flex items-center justify-center font-bold">
+                    <div className="w-10 h-10 rounded-2xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center font-bold">
                       <Globe className="w-5 h-5" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-white text-sm flex items-center gap-2">
+                      <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
                         <span>{p.nameAr}</span>
                         <span className="text-xs text-slate-400 font-sans">({p.name})</span>
                       </h3>
-                      <span className="text-[10px] text-slate-500 font-mono">slug: {p.slug}</span>
+                      <span className="text-[10px] text-slate-400 font-mono">slug: {p.slug}</span>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-1.5">
                     <button
                       onClick={() => openCreateCategoryModal(p.id)}
-                      className="px-2.5 py-1 rounded-lg bg-blue-600/20 text-blue-400 border border-blue-500/30 text-[11px] font-bold hover:bg-blue-600/30 transition flex items-center gap-1"
+                      className="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 text-[11px] font-bold hover:bg-blue-100 transition flex items-center gap-1"
                       title="إضافة تصنيف فرعي"
                     >
                       <PlusCircle className="w-3.5 h-3.5" />
@@ -666,14 +666,14 @@ export default function AdminServicesPage() {
                     </button>
                     <button
                       onClick={() => openEditPlatformModal(p)}
-                      className="p-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white transition"
+                      className="p-1.5 rounded-lg bg-sky-50 text-slate-700 hover:bg-sky-100 border border-sky-200 transition"
                       title="تعديل المنصة"
                     >
                       <Edit className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => setDeleteItem({ type: 'PLATFORM', id: p.id, name: p.nameAr })}
-                      className="p-1.5 rounded-lg bg-slate-800 text-rose-400 hover:bg-rose-500/20 transition"
+                      className="p-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200 transition"
                       title="حذف المنصة"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -683,7 +683,7 @@ export default function AdminServicesPage() {
 
                 {/* Categories List */}
                 <div className="space-y-2">
-                  <span className="text-[11px] font-bold text-slate-400 block">التصنيفات التابعة:</span>
+                  <span className="text-[11px] font-bold text-slate-600 block">التصنيفات التابعة:</span>
                   {p.categories.length === 0 ? (
                     <div className="text-xs text-slate-500 py-3 text-center">لا توجد تصنيفات تحت هذه المنصة</div>
                   ) : (
@@ -691,13 +691,13 @@ export default function AdminServicesPage() {
                       {p.categories.map((cat) => (
                         <div
                           key={cat.id}
-                          className="flex items-center justify-between p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300"
+                          className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-sky-50/60 border border-slate-200/80 text-xs text-slate-700 transition"
                         >
                           <div className="flex items-center gap-2">
-                            <Folder className="w-3.5 h-3.5 text-purple-400" />
-                            <span className="font-bold text-white">{cat.nameAr}</span>
-                            <span className="text-[10px] text-slate-500 font-sans">({cat.name})</span>
-                            <span className="text-[10px] px-2 py-0.5 rounded-md bg-slate-800 text-slate-400">
+                            <Folder className="w-3.5 h-3.5 text-blue-600" />
+                            <span className="font-bold text-slate-900">{cat.nameAr}</span>
+                            <span className="text-[10px] text-slate-400 font-sans">({cat.name})</span>
+                            <span className="text-[10px] px-2 py-0.5 rounded-md bg-white text-slate-600 border border-slate-200 font-medium">
                               {cat._count?.services || 0} خدمة
                             </span>
                           </div>
@@ -705,14 +705,14 @@ export default function AdminServicesPage() {
                           <div className="flex items-center gap-1">
                             <button
                               onClick={() => openEditCategoryModal(cat, p.id)}
-                              className="p-1 text-slate-400 hover:text-white"
+                              className="p-1 text-slate-500 hover:text-blue-600 transition"
                               title="تعديل التصنيف"
                             >
                               <Edit className="w-3.5 h-3.5" />
                             </button>
                             <button
                               onClick={() => setDeleteItem({ type: 'CATEGORY', id: cat.id, name: cat.nameAr })}
-                              className="p-1 text-rose-400 hover:text-rose-300"
+                              className="p-1 text-rose-500 hover:text-rose-700 transition"
                               title="حذف التصنيف"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -731,27 +731,27 @@ export default function AdminServicesPage() {
 
       {/* ================= MODAL: ADD / EDIT SERVICE ================= */}
       {serviceModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="w-full max-w-2xl rounded-3xl glass-panel p-6 sm:p-8 border border-slate-800 shadow-2xl relative max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <Layers className="w-5 h-5 text-purple-400" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="w-full max-w-2xl rounded-3xl bg-white p-6 sm:p-8 border border-sky-100 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-sky-100 mb-4">
+              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <Layers className="w-5 h-5 text-blue-600" />
                 <span>{editingService ? 'تعديل الخدمة' : 'إضافة خدمة جديدة بالكامل'}</span>
               </h3>
-              <button onClick={() => setServiceModalOpen(false)} className="text-slate-400 hover:text-white">
+              <button onClick={() => setServiceModalOpen(false)} className="text-slate-400 hover:text-slate-700">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleSaveService} className="space-y-4 text-xs">
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">
+                <label className="block text-xs font-bold text-slate-700 mb-1">
                   المنصة والتصنيف (Platform & Category)
                 </label>
                 <select
                   value={serviceForm.categoryId}
                   onChange={(e) => setServiceForm({ ...serviceForm, categoryId: e.target.value })}
-                  className="w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2.5 text-xs text-white focus:border-purple-500 focus:outline-none"
+                  className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-xs text-slate-900 focus:bg-white focus:border-blue-500 focus:outline-none"
                   required
                 >
                   {platforms.map((p) => (
@@ -767,7 +767,7 @@ export default function AdminServicesPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">
+                <label className="block text-xs font-bold text-slate-700 mb-1">
                   اسم الخدمة (الظاهر للعملاء)
                 </label>
                 <input
@@ -776,13 +776,13 @@ export default function AdminServicesPage() {
                   onChange={(e) => setServiceForm({ ...serviceForm, name: e.target.value })}
                   placeholder="مثال: متابعين إنستغرام جودة عالية [ضمان 30 يوم / فوري]"
                   required
-                  className="w-full rounded-xl bg-slate-900 border border-slate-700 px-4 py-2.5 text-xs text-white focus:border-purple-500 focus:outline-none"
+                  className="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-xs text-slate-900 focus:bg-white focus:border-blue-500 focus:outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
                     سعر البيع للمستهلك (لكل 1,000 بالدولار $)
                   </label>
                   <input
@@ -793,12 +793,12 @@ export default function AdminServicesPage() {
                       setServiceForm({ ...serviceForm, pricePer1000: parseFloat(e.target.value || '0') })
                     }
                     required
-                    className="w-full rounded-xl bg-slate-900 border border-slate-700 px-4 py-2.5 text-xs text-blue-400 font-bold focus:border-purple-500 focus:outline-none"
+                    className="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-xs text-blue-600 font-bold focus:bg-white focus:border-blue-500 focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
                     تكلفة المزود (لكل 1,000 بالدولار $)
                   </label>
                   <input
@@ -812,14 +812,14 @@ export default function AdminServicesPage() {
                       })
                     }
                     required
-                    className="w-full rounded-xl bg-slate-900 border border-slate-700 px-4 py-2.5 text-xs text-slate-300 font-bold focus:border-purple-500 focus:outline-none"
+                    className="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-xs text-slate-700 font-bold focus:bg-white focus:border-blue-500 focus:outline-none"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
                     الحد الأدنى للكمية (Min)
                   </label>
                   <input
@@ -829,12 +829,12 @@ export default function AdminServicesPage() {
                       setServiceForm({ ...serviceForm, minQuantity: parseInt(e.target.value || '0', 10) })
                     }
                     required
-                    className="w-full rounded-xl bg-slate-900 border border-slate-700 px-4 py-2.5 text-xs text-white focus:border-purple-500 focus:outline-none"
+                    className="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-xs text-slate-900 focus:bg-white focus:border-blue-500 focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
                     الحد الأقصى للكمية (Max)
                   </label>
                   <input
@@ -844,20 +844,20 @@ export default function AdminServicesPage() {
                       setServiceForm({ ...serviceForm, maxQuantity: parseInt(e.target.value || '0', 10) })
                     }
                     required
-                    className="w-full rounded-xl bg-slate-900 border border-slate-700 px-4 py-2.5 text-xs text-white focus:border-purple-500 focus:outline-none"
+                    className="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-xs text-slate-900 focus:bg-white focus:border-blue-500 focus:outline-none"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
                     المزود المرتبط (Provider)
                   </label>
                   <select
                     value={serviceForm.providerId}
                     onChange={(e) => setServiceForm({ ...serviceForm, providerId: e.target.value })}
-                    className="w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2.5 text-xs text-white focus:border-purple-500 focus:outline-none"
+                    className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-xs text-slate-900 focus:bg-white focus:border-blue-500 focus:outline-none"
                   >
                     <option value="">تنفيذ يدوي / داخلي</option>
                     {providers.map((p) => (
@@ -869,7 +869,7 @@ export default function AdminServicesPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
                     رقم الخدمة لدى المزود (Provider Service ID)
                   </label>
                   <input
@@ -877,14 +877,14 @@ export default function AdminServicesPage() {
                     value={serviceForm.providerServiceId}
                     onChange={(e) => setServiceForm({ ...serviceForm, providerServiceId: e.target.value })}
                     placeholder="مثال: 101 أو 8219"
-                    className="w-full rounded-xl bg-slate-900 border border-slate-700 px-4 py-2.5 text-xs text-white font-mono focus:border-purple-500 focus:outline-none"
+                    className="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-xs text-slate-900 font-mono focus:bg-white focus:border-blue-500 focus:outline-none"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
                     سرعة التنفيذ
                   </label>
                   <input
@@ -892,12 +892,12 @@ export default function AdminServicesPage() {
                     value={serviceForm.speed}
                     onChange={(e) => setServiceForm({ ...serviceForm, speed: e.target.value })}
                     placeholder="10,000 / يوم"
-                    className="w-full rounded-xl bg-slate-900 border border-slate-700 px-4 py-2 text-xs text-white focus:border-purple-500 focus:outline-none"
+                    className="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2 text-xs text-slate-900 focus:bg-white focus:border-blue-500 focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
                     متوسط وقت البدء
                   </label>
                   <input
@@ -905,20 +905,20 @@ export default function AdminServicesPage() {
                     value={serviceForm.avgTime}
                     onChange={(e) => setServiceForm({ ...serviceForm, avgTime: e.target.value })}
                     placeholder="فوري (5 دقائق)"
-                    className="w-full rounded-xl bg-slate-900 border border-slate-700 px-4 py-2 text-xs text-white focus:border-purple-500 focus:outline-none"
+                    className="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2 text-xs text-slate-900 focus:bg-white focus:border-blue-500 focus:outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">
+                <label className="block text-xs font-bold text-slate-700 mb-1">
                   وصف وملاحظات الخدمة
                 </label>
                 <textarea
                   value={serviceForm.description}
                   onChange={(e) => setServiceForm({ ...serviceForm, description: e.target.value })}
                   rows={3}
-                  className="w-full rounded-xl bg-slate-900 border border-slate-700 px-4 py-2 text-xs text-white focus:border-purple-500 focus:outline-none"
+                  className="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2 text-xs text-slate-900 focus:bg-white focus:border-blue-500 focus:outline-none"
                 />
               </div>
 
@@ -926,14 +926,14 @@ export default function AdminServicesPage() {
                 <button
                   type="button"
                   onClick={() => setServiceModalOpen(false)}
-                  className="flex-1 py-2.5 rounded-xl bg-slate-800 font-semibold text-slate-300 hover:text-white"
+                  className="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 font-semibold text-slate-700 transition"
                 >
                   إلغاء
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 py-2.5 rounded-xl bg-purple-600 text-white font-bold hover:bg-purple-500 transition disabled:opacity-50"
+                  className="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition disabled:opacity-50 shadow-sm"
                 >
                   {saving ? 'جاري الحفظ...' : 'حفظ الخدمة'}
                 </button>
@@ -945,14 +945,14 @@ export default function AdminServicesPage() {
 
       {/* ================= MODAL: DELETE SERVICE CONFIRMATION ================= */}
       {deleteServiceId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="w-full max-w-md rounded-3xl glass-panel p-6 border border-rose-500/40 bg-rose-950/20 shadow-2xl space-y-4">
-            <div className="flex items-center gap-3 text-rose-400">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="w-full max-w-md rounded-3xl bg-white p-6 border border-rose-200 shadow-2xl space-y-4">
+            <div className="flex items-center gap-3 text-rose-600">
               <AlertTriangle className="w-6 h-6 shrink-0" />
-              <h3 className="text-base font-bold text-white">تأكيد حذف الخدمة</h3>
+              <h3 className="text-base font-bold text-slate-900">تأكيد حذف الخدمة</h3>
             </div>
 
-            <p className="text-xs text-slate-300 leading-relaxed">
+            <p className="text-xs text-slate-600 leading-relaxed">
               هل أنت متأكد من رغبتك في حذف هذه الخدمة نهائياً من قاعدة البيانات؟
               <br />
               <span className="text-[11px] text-slate-400 mt-1 block">
@@ -964,7 +964,7 @@ export default function AdminServicesPage() {
               <button
                 type="button"
                 onClick={() => setDeleteServiceId(null)}
-                className="flex-1 py-2.5 rounded-xl bg-slate-800 font-semibold text-slate-300 hover:text-white text-xs"
+                className="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 font-semibold text-slate-700 text-xs transition"
               >
                 تراجع
               </button>
@@ -972,7 +972,7 @@ export default function AdminServicesPage() {
                 type="button"
                 onClick={handleConfirmDeleteService}
                 disabled={deletingService}
-                className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs transition disabled:opacity-50"
+                className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs transition disabled:opacity-50 shadow-sm"
               >
                 {deletingService ? 'جاري الحذف...' : 'نعم، احذف الخدمة'}
               </button>
@@ -983,20 +983,20 @@ export default function AdminServicesPage() {
 
       {/* ================= MODAL: ADD / EDIT PLATFORM ================= */}
       {platformModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="w-full max-w-md rounded-3xl glass-panel p-6 border border-slate-800 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-              <h3 className="text-base font-bold text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="w-full max-w-md rounded-3xl bg-white p-6 border border-sky-100 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-sky-100">
+              <h3 className="text-base font-bold text-slate-900">
                 {editingPlatform ? 'تعديل المنصة' : 'إضافة منصة جديدة'}
               </h3>
-              <button onClick={() => setPlatformModalOpen(false)} className="text-slate-400 hover:text-white">
+              <button onClick={() => setPlatformModalOpen(false)} className="text-slate-400 hover:text-slate-700">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleSavePlatform} className="space-y-3.5 text-xs">
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">
+                <label className="block text-xs font-bold text-slate-700 mb-1">
                   الاسم بالعربي (مثال: ثريدز)
                 </label>
                 <input
@@ -1004,12 +1004,12 @@ export default function AdminServicesPage() {
                   value={platformForm.nameAr}
                   onChange={(e) => setPlatformForm({ ...platformForm, nameAr: e.target.value })}
                   required
-                  className="w-full rounded-xl bg-slate-900 border border-slate-700 px-4 py-2.5 text-xs text-white focus:border-purple-500 focus:outline-none"
+                  className="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-xs text-slate-900 focus:bg-white focus:border-blue-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">
+                <label className="block text-xs font-bold text-slate-700 mb-1">
                   الاسم بالإنجليزي (مثال: Threads)
                 </label>
                 <input
@@ -1017,12 +1017,12 @@ export default function AdminServicesPage() {
                   value={platformForm.name}
                   onChange={(e) => setPlatformForm({ ...platformForm, name: e.target.value })}
                   required
-                  className="w-full rounded-xl bg-slate-900 border border-slate-700 px-4 py-2.5 text-xs text-white focus:border-purple-500 focus:outline-none"
+                  className="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-xs text-slate-900 focus:bg-white focus:border-blue-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">
+                <label className="block text-xs font-bold text-slate-700 mb-1">
                   معرف الرابط (Slug فريد، مثال: threads)
                 </label>
                 <input
@@ -1030,7 +1030,7 @@ export default function AdminServicesPage() {
                   value={platformForm.slug}
                   onChange={(e) => setPlatformForm({ ...platformForm, slug: e.target.value })}
                   required
-                  className="w-full rounded-xl bg-slate-900 border border-slate-700 px-4 py-2.5 text-xs text-white font-mono focus:border-purple-500 focus:outline-none"
+                  className="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-xs text-slate-900 font-mono focus:bg-white focus:border-blue-500 focus:outline-none"
                 />
               </div>
 
@@ -1038,14 +1038,14 @@ export default function AdminServicesPage() {
                 <button
                   type="button"
                   onClick={() => setPlatformModalOpen(false)}
-                  className="flex-1 py-2.5 rounded-xl bg-slate-800 font-semibold text-slate-300 hover:text-white"
+                  className="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 font-semibold text-slate-700 transition"
                 >
                   إلغاء
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 py-2.5 rounded-xl bg-purple-600 text-white font-bold hover:bg-purple-500 transition disabled:opacity-50"
+                  className="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition disabled:opacity-50 shadow-sm"
                 >
                   {saving ? 'جاري الحفظ...' : 'حفظ المنصة'}
                 </button>
@@ -1057,27 +1057,27 @@ export default function AdminServicesPage() {
 
       {/* ================= MODAL: ADD / EDIT CATEGORY ================= */}
       {categoryModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="w-full max-w-md rounded-3xl glass-panel p-6 border border-slate-800 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-              <h3 className="text-base font-bold text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="w-full max-w-md rounded-3xl bg-white p-6 border border-sky-100 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-sky-100">
+              <h3 className="text-base font-bold text-slate-900">
                 {editingCategory ? 'تعديل التصنيف' : 'إضافة تصنيف فرعي جديد'}
               </h3>
-              <button onClick={() => setCategoryModalOpen(false)} className="text-slate-400 hover:text-white">
+              <button onClick={() => setCategoryModalOpen(false)} className="text-slate-400 hover:text-slate-700">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleSaveCategory} className="space-y-3.5 text-xs">
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">
+                <label className="block text-xs font-bold text-slate-700 mb-1">
                   المنصة التابع لها
                 </label>
                 <select
                   value={categoryForm.platformId}
                   onChange={(e) => setCategoryForm({ ...categoryForm, platformId: e.target.value })}
                   required
-                  className="w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2.5 text-xs text-white focus:border-purple-500 focus:outline-none"
+                  className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-xs text-slate-900 focus:bg-white focus:border-blue-500 focus:outline-none"
                 >
                   {platforms.map((p) => (
                     <option key={p.id} value={p.id}>
@@ -1088,7 +1088,7 @@ export default function AdminServicesPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">
+                <label className="block text-xs font-bold text-slate-700 mb-1">
                   اسم التصنيف بالعربي (مثال: متابعين ثريدز)
                 </label>
                 <input
@@ -1096,12 +1096,12 @@ export default function AdminServicesPage() {
                   value={categoryForm.nameAr}
                   onChange={(e) => setCategoryForm({ ...categoryForm, nameAr: e.target.value })}
                   required
-                  className="w-full rounded-xl bg-slate-900 border border-slate-700 px-4 py-2.5 text-xs text-white focus:border-purple-500 focus:outline-none"
+                  className="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-xs text-slate-900 focus:bg-white focus:border-blue-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">
+                <label className="block text-xs font-bold text-slate-700 mb-1">
                   اسم التصنيف بالإنجليزي (مثال: Followers)
                 </label>
                 <input
@@ -1109,7 +1109,7 @@ export default function AdminServicesPage() {
                   value={categoryForm.name}
                   onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value })}
                   required
-                  className="w-full rounded-xl bg-slate-900 border border-slate-700 px-4 py-2.5 text-xs text-white focus:border-purple-500 focus:outline-none"
+                  className="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-xs text-slate-900 focus:bg-white focus:border-blue-500 focus:outline-none"
                 />
               </div>
 
@@ -1117,14 +1117,14 @@ export default function AdminServicesPage() {
                 <button
                   type="button"
                   onClick={() => setCategoryModalOpen(false)}
-                  className="flex-1 py-2.5 rounded-xl bg-slate-800 font-semibold text-slate-300 hover:text-white"
+                  className="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 font-semibold text-slate-700 transition"
                 >
                   إلغاء
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 py-2.5 rounded-xl bg-purple-600 text-white font-bold hover:bg-purple-500 transition disabled:opacity-50"
+                  className="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition disabled:opacity-50 shadow-sm"
                 >
                   {saving ? 'جاري الحفظ...' : 'حفظ التصنيف'}
                 </button>
@@ -1136,16 +1136,16 @@ export default function AdminServicesPage() {
 
       {/* ================= MODAL: DELETE PLATFORM / CATEGORY ================= */}
       {deleteItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="w-full max-w-md rounded-3xl glass-panel p-6 border border-rose-500/40 bg-rose-950/20 shadow-2xl space-y-4">
-            <div className="flex items-center gap-3 text-rose-400">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="w-full max-w-md rounded-3xl bg-white p-6 border border-rose-200 shadow-2xl space-y-4">
+            <div className="flex items-center gap-3 text-rose-600">
               <AlertTriangle className="w-6 h-6 shrink-0" />
-              <h3 className="text-base font-bold text-white">
+              <h3 className="text-base font-bold text-slate-900">
                 تأكيد حذف {deleteItem.type === 'PLATFORM' ? 'المنصة' : 'التصنيف'}
               </h3>
             </div>
 
-            <p className="text-xs text-slate-300 leading-relaxed">
+            <p className="text-xs text-slate-600 leading-relaxed">
               هل أنت متأكد من حذف ({deleteItem.name}) نهائياً؟
               <br />
               <span className="text-[11px] text-slate-400 mt-1 block">
@@ -1157,7 +1157,7 @@ export default function AdminServicesPage() {
               <button
                 type="button"
                 onClick={() => setDeleteItem(null)}
-                className="flex-1 py-2.5 rounded-xl bg-slate-800 font-semibold text-slate-300 hover:text-white text-xs"
+                className="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 font-semibold text-slate-700 text-xs transition"
               >
                 إلغاء
               </button>
@@ -1165,7 +1165,7 @@ export default function AdminServicesPage() {
                 type="button"
                 onClick={handleConfirmDeleteItem}
                 disabled={deletingItem}
-                className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs transition disabled:opacity-50"
+                className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs transition disabled:opacity-50 shadow-sm"
               >
                 {deletingItem ? 'جاري الحذف...' : 'تأكيد الحذف'}
               </button>
