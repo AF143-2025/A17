@@ -20,7 +20,7 @@ async function handleSync(req: NextRequest) {
   const authHeader = req.headers.get('authorization');
   const secretParam = searchParams.get('secret');
   const syncServices = searchParams.get('syncServices') === 'true';
-  const syncPrices = searchParams.get('syncPrices') === 'true';
+  const syncPrices = searchParams.get('syncPrices') !== 'false'; // Automatically true by default to ensure real-time price updates
 
   // Check auth: Bearer token, query secret, or Admin session
   const cronSecret = process.env.CRON_SECRET || 'esaad-cron-secret-2026';
