@@ -2,6 +2,7 @@ import db from '../db';
 import { ProviderFactory } from '../providers/provider-factory';
 import { calculateCustomerPrice, recalculateServicePrices } from '../pricing-engine';
 import { creditWalletBalance } from '../wallet';
+import { invalidateServicesCache } from '../services-cache';
 
 export interface SyncResult {
   providerId: string;
@@ -280,6 +281,7 @@ export class SyncEngine {
         pricePer1000: number;
         minQuantity: number;
         maxQuantity: number;
+        avgTime?: string | null;
       }[] = [];
       const serviceProvidersToCreate: any[] = [];
       const serviceProvidersToUpdate: any[] = [];
@@ -352,6 +354,7 @@ export class SyncEngine {
             pricePer1000: customerPrice,
             minQuantity: min,
             maxQuantity: max,
+            avgTime: (ext as any).time || (ext as any).avg_time || null,
           });
           updatedCount++;
         }
@@ -421,6 +424,7 @@ export class SyncEngine {
                   pricePer1000: item.pricePer1000,
                   minQuantity: item.minQuantity,
                   maxQuantity: item.maxQuantity,
+                  ...(item.avgTime !== undefined ? { avgTime: item.avgTime } : {}),
                   status: true,
                 },
               })
@@ -459,6 +463,18 @@ export class SyncEngine {
         },
         data: { status: false },
       });
+
+      // Also mark internal services linked to this provider as inactive if removed from provider
+      await db.service.updateMany({
+        where: {
+          providerId: provider.id,
+          providerServiceId: { notIn: Array.from(activeExternalIds) },
+        },
+        data: { status: false },
+      });
+
+      // Clear cache so updated services and prices are immediately reflected to all users
+      invalidateServicesCache();
 
       // 8. Update provider last sync
       await db.provider.update({

@@ -20,6 +20,7 @@ async function handleSync(req: NextRequest) {
   const authHeader = req.headers.get('authorization');
   const secretParam = searchParams.get('secret');
   const syncServices = searchParams.get('syncServices') === 'true';
+  const syncPrices = searchParams.get('syncPrices') === 'true';
 
   // Check auth: Bearer token, query secret, or Admin session
   const cronSecret = process.env.CRON_SECRET || 'esaad-cron-secret-2026';
@@ -83,6 +84,13 @@ async function handleSync(req: NextRequest) {
     if (syncServices) {
       const servicesSyncResult = await SyncEngine.syncAllActiveProviders();
       summary.servicesSync = servicesSyncResult;
+    }
+
+    // 4. Optional: Recalculate & Normalize All Prices
+    if (syncPrices) {
+      const { recalculateServicePrices } = await import('@/lib/pricing-engine');
+      const count = await recalculateServicePrices();
+      summary.recalculatedPricesCount = count;
     }
 
     summary.durationMs = Date.now() - startTime;

@@ -5,6 +5,7 @@ import { ProviderFactory } from '@/lib/providers/provider-factory';
 import { SyncEngine } from '@/lib/sync/sync-engine';
 import { logAdminAction } from '@/lib/audit';
 import { encryptText } from '@/lib/crypto';
+import { invalidateServicesCache } from '@/lib/services-cache';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -153,6 +154,8 @@ export async function POST(req: NextRequest) {
         }),
       ]);
 
+      invalidateServicesCache();
+
       await logAdminAction({
         adminId: admin.id,
         action: 'PROVIDER_UPDATE',
@@ -237,6 +240,7 @@ export async function PUT(req: NextRequest) {
         db.serviceProvider.updateMany({ where: { providerId: id }, data: { status: boolStatus } }),
         db.providerService.updateMany({ where: { providerId: id }, data: { status: boolStatus } }),
       ]);
+      invalidateServicesCache();
     }
 
     await logAdminAction({
@@ -296,6 +300,8 @@ export async function PATCH(req: NextRequest) {
       }),
     ]);
 
+    invalidateServicesCache();
+
     await logAdminAction({
       adminId: admin.id,
       action: 'PROVIDER_UPDATE',
@@ -340,6 +346,7 @@ export async function DELETE(req: NextRequest) {
         where: { id },
         data: { status: false },
       });
+      invalidateServicesCache();
 
       return NextResponse.json({
         success: true,
@@ -351,6 +358,7 @@ export async function DELETE(req: NextRequest) {
     await db.serviceProvider.deleteMany({ where: { providerId: id } });
     await db.providerService.deleteMany({ where: { providerId: id } });
     await db.provider.delete({ where: { id } });
+    invalidateServicesCache();
 
     await logAdminAction({
       adminId: admin.id,
