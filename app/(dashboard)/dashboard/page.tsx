@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 import DashboardSearch from '@/components/DashboardSearch';
 import PlatformServicesView from '@/components/PlatformServicesView';
 import { ShoppingBag, Zap } from 'lucide-react';
+import { formatSmmBalance } from '@/lib/currency';
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();
@@ -76,7 +77,7 @@ export default async function DashboardPage() {
         <div className="flex items-baseline gap-2">
           <span className="text-xs font-bold text-slate-500">الرصيد</span>
           <span className="text-2xl sm:text-3xl font-black text-slate-900 font-sans tracking-tight">
-            ${balance.toFixed(2)}
+            ${formatSmmBalance(balance)}
           </span>
           <span className="text-xs font-bold text-slate-400 font-mono">USD</span>
         </div>

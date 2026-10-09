@@ -14,6 +14,7 @@ import {
   User as UserIcon,
   LogOut,
 } from 'lucide-react';
+import { formatSmmBalance } from '@/lib/currency';
 
 interface UserDropdownMenuProps {
   user: {
@@ -116,7 +117,7 @@ export default function UserDropdownMenu({ user, balance }: UserDropdownMenuProp
                   {user.username}
                 </div>
                 <div className="text-[11px] font-black text-emerald-600 font-sans tracking-tight">
-                  ${balance.toFixed(2)}{' '}
+                  ${formatSmmBalance(balance)}{' '}
                   <span className="text-[9px] font-bold text-slate-400">USD</span>
                 </div>
               </div>

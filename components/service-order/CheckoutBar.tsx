@@ -4,6 +4,8 @@ import React from 'react';
 import Link from 'next/link';
 import { Wallet, Zap, Loader2 } from 'lucide-react';
 
+import { formatSmmPrice } from '@/lib/currency';
+
 interface CheckoutBarProps {
   calculatedPrice: number;
   isBalanceSufficient: boolean;
@@ -21,7 +23,7 @@ export default function CheckoutBar({
         <div className="flex items-center justify-between px-1">
           <span className="text-xs font-bold text-slate-500">التكلفة الإجمالية</span>
           <span className="text-lg font-black text-rose-600 font-sans">
-            ${calculatedPrice.toFixed(4)}
+            ${formatSmmPrice(calculatedPrice)}
           </span>
         </div>
 

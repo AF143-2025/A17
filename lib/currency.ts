@@ -52,3 +52,29 @@ export function formatCurrency(amount: number, currency: 'USD' | 'IQD' = 'USD'):
   }
   return `${amount.toLocaleString('en-US')} د.ع`;
 }
+
+/**
+ * Formats SMM service prices cleanly matching provider standard (e.g. 1.750, 1.500, 0.250):
+ * - Rates >= 1: 3 decimal places (e.g. 1.750, 1.500)
+ * - Rates >= 0.01: 3 decimal places (e.g. 0.250, 0.084)
+ * - Micro rates < 0.01: 4 decimal places (e.g. 0.0050, 0.0005)
+ */
+export function formatSmmPrice(price: number): string {
+  if (price === 0 || isNaN(price)) return '0.000';
+  if (price >= 1) {
+    return price.toFixed(3);
+  }
+  if (price >= 0.01) {
+    return price.toFixed(3);
+  }
+  return price.toFixed(4);
+}
+
+/**
+ * Formats user and provider balance like SMM panels: 3 decimal places (e.g. 10.500, 0.000, 1.750)
+ */
+export function formatSmmBalance(balance: number): string {
+  if (isNaN(balance)) return '0.000';
+  return balance.toFixed(3);
+}
+

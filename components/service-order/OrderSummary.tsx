@@ -4,6 +4,8 @@ import React from 'react';
 import Link from 'next/link';
 import { Wallet, ArrowUpRight, CheckCircle2 } from 'lucide-react';
 
+import { formatSmmPrice, formatSmmBalance } from '@/lib/currency';
+
 interface OrderSummaryProps {
   calculatedPrice: number;
   balance: number;
@@ -33,14 +35,14 @@ export default function OrderSummary({
         <div className="p-3.5 rounded-2xl bg-rose-50/50 border border-rose-100 text-center">
           <span className="text-xs text-slate-500 font-bold block mb-1">التكلفة</span>
           <span className="text-lg sm:text-xl font-black text-rose-600 font-sans">
-            ${calculatedPrice >= 1 ? calculatedPrice.toFixed(2) : calculatedPrice.toFixed(4)}
+            ${formatSmmPrice(calculatedPrice)}
           </span>
         </div>
 
         <div className="p-3.5 rounded-2xl bg-sky-50/60 border border-sky-100 text-center">
           <span className="text-xs text-slate-500 font-bold block mb-1">رصيدك</span>
           <span className="text-lg sm:text-xl font-black text-blue-600 font-sans">
-            ${balance.toFixed(2)}
+            ${formatSmmBalance(balance)}
           </span>
         </div>
       </div>
@@ -60,7 +62,7 @@ export default function OrderSummary({
             <div>
               <div className="text-xs font-bold text-rose-900">رصيد غير كافٍ</div>
               <div className="text-[11px] text-rose-600 font-semibold font-sans mt-0.5">
-                تحتاج ${balanceDifference >= 1 ? balanceDifference.toFixed(2) : balanceDifference.toFixed(4)} إضافية
+                تحتاج ${formatSmmPrice(balanceDifference)} إضافية
               </div>
             </div>
           </div>

@@ -83,9 +83,18 @@ export async function calculateCustomerPrice(
     return computePrice(baseCost, globalRule, isFollowerCategory);
   }
 
-  // 5. Default fallback: EXACT PROVIDER COST (0% markup, or minimum $1.50 for followers)
+  // 5. Default fallback:
+  if (isFollowerCategory) {
+    return {
+      customerPrice: roundPrice(baseCost + 1.500),
+      markupType: 'FIXED',
+      markupValue: 1.500,
+      appliedRuleName: 'ربح ثابت للمتابعين ($1.500)',
+    };
+  }
+
   return {
-    customerPrice: isFollowerCategory ? Math.max(1.50, roundPrice(baseCost)) : roundPrice(baseCost),
+    customerPrice: roundPrice(baseCost),
     markupType: 'PERCENTAGE',
     markupValue: 0,
     appliedRuleName: 'سعر المزود المباشر (بدون زيادة تلقائية)',
@@ -96,24 +105,24 @@ function computePrice(baseCost: number, rule: any, isFollowerCategory: boolean =
   let price = baseCost;
   const markup = parseFloat(String(rule.markupValue)) || 0;
 
-  if (rule.markupType === 'FIXED') {
+  if (isFollowerCategory) {
+    // Follower services always yield $1.500 fixed profit per 1000
+    price = baseCost + 1.500;
+  } else if (rule.markupType === 'FIXED') {
     price = baseCost + markup;
   } else {
     // Default PERCENTAGE
     price = baseCost * (1 + markup / 100);
   }
 
-  let finalPrice = roundPrice(price);
-  if (isFollowerCategory) {
-    finalPrice = Math.max(1.50, finalPrice);
-  }
+  const finalPrice = roundPrice(price);
 
   return {
     customerPrice: finalPrice,
-    markupType: rule.markupType as 'PERCENTAGE' | 'FIXED',
-    markupValue: markup,
+    markupType: (isFollowerCategory ? 'FIXED' : rule.markupType) as 'PERCENTAGE' | 'FIXED',
+    markupValue: isFollowerCategory ? 1.500 : markup,
     appliedRuleId: rule.id,
-    appliedRuleName: rule.name,
+    appliedRuleName: isFollowerCategory ? 'ربح ثابت للمتابعين ($1.500)' : rule.name,
   };
 }
 
@@ -269,13 +278,14 @@ export async function recalculateServicePrices(serviceId?: string): Promise<numb
     }
   }
 
-  // 4. Enforce minimum price of $1.50 for all follower & subscriber services to guarantee high profit margin
+  // 4. Enforce exact profit margin of +$1.500 USD for all follower & subscriber services (Cost + $1.500)
   await db.$executeRawUnsafe(`
     UPDATE "services" s
-    SET "pricePer1000" = GREATEST("pricePer1000", 1.50)
+    SET "pricePer1000" = ROUND(("providerCostPer1000" + 1.500)::numeric, 3)
     FROM "categories" c
     WHERE s."categoryId" = c."id"
-      AND (c."slug" LIKE '%follower%' OR c."slug" LIKE '%subscriber%');
+      AND (c."slug" LIKE '%follower%' OR c."slug" LIKE '%subscriber%')
+      AND s."providerCostPer1000" > 0;
   `);
 
   // Clear services cache so updated prices are reflected immediately to all users

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Search, Layers, Zap, Clock, Coins, ArrowLeft, Loader2 } from 'lucide-react';
+import { formatSmmPrice } from '@/lib/currency';
 
 interface Platform {
   id: string;
@@ -190,7 +191,7 @@ export default function ServicesPage() {
                         </div>
                       </td>
                       <td className="py-3.5 px-4 font-sans font-black text-blue-600">
-                        ${service.pricePer1000 >= 1 ? service.pricePer1000.toFixed(2) : service.pricePer1000.toFixed(4)}
+                        ${formatSmmPrice(service.pricePer1000)}
                       </td>
                       <td className="py-3.5 px-4 font-sans text-slate-600 whitespace-nowrap">
                         {service.minQuantity.toLocaleString('en-US')} - {service.maxQuantity.toLocaleString('en-US')}
@@ -251,7 +252,7 @@ export default function ServicesPage() {
                     <div>
                       <span className="text-[10px] text-slate-500 block">السعر لكل 1,000</span>
                       <span className="font-sans font-black text-blue-600 text-sm">
-                        ${service.pricePer1000 >= 1 ? service.pricePer1000.toFixed(2) : service.pricePer1000.toFixed(4)}
+                        ${formatSmmPrice(service.pricePer1000)}
                       </span>
                     </div>
 

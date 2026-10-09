@@ -11,6 +11,7 @@ import {
   Check,
   ShieldCheck,
 } from 'lucide-react';
+import { formatSmmBalance } from '@/lib/currency';
 
 interface Transaction {
   id: string;
@@ -82,7 +83,7 @@ export default function WalletPage() {
             <span>الرصيد الكلي في محفظتك</span>
           </div>
           <div className="mt-2 text-4xl sm:text-5xl font-black text-slate-900 font-sans tracking-tight">
-            ${balance.toFixed(2)}{' '}
+            ${formatSmmBalance(balance)}{' '}
             <span className="text-base sm:text-lg font-bold text-blue-600">USD ($)</span>
           </div>
           <p className="text-xs text-slate-500 mt-1">

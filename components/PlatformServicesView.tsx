@@ -8,6 +8,7 @@ import {
   Zap,
 } from 'lucide-react';
 import PlatformBrandIcon from './PlatformBrandIcon';
+import { formatSmmPrice } from '@/lib/currency';
 
 interface ServiceItem {
   id: string;
@@ -241,7 +242,7 @@ export default function PlatformServicesView({ platforms }: PlatformServicesView
 
                             <div className="flex flex-col items-end gap-1.5 shrink-0">
                               <span className="text-xs font-black text-blue-600 font-sans">
-                                ${s.pricePer1000 >= 1 ? s.pricePer1000.toFixed(2) : s.pricePer1000.toFixed(4)}
+                                ${formatSmmPrice(s.pricePer1000)}
                               </span>
                               <Link
                                 href={`/new-order?serviceId=${s.id}`}
