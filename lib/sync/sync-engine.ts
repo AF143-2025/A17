@@ -118,7 +118,9 @@ export class SyncEngine {
       // 2. Discover and Bulk Create Missing Platforms
       const missingPlatforms = new Map<string, { name: string; nameAr: string; slug: string; icon: string; status: boolean }>();
       for (const ext of extServices) {
-        const { platformSlug, platformNameAr } = SyncEngine.classifyService(ext.category || '', ext.name || '');
+        const classification = SyncEngine.classifyService(ext.category || '', ext.name || '');
+        if (!classification) continue;
+        const { platformSlug, platformNameAr } = classification;
         if (!platformCache.has(platformSlug) && !missingPlatforms.has(platformSlug)) {
           missingPlatforms.set(platformSlug, {
             name: SyncEngine.formatPlatformName(platformSlug),
@@ -144,7 +146,9 @@ export class SyncEngine {
       // 3. Discover and Bulk Create Missing Categories
       const missingCategories = new Map<string, { platformId: string; name: string; nameAr: string; slug: string; sortOrder: number; status: boolean }>();
       for (const ext of extServices) {
-        const { platformSlug, categorySlug, categoryNameAr } = SyncEngine.classifyService(ext.category || '', ext.name || '');
+        const classification = SyncEngine.classifyService(ext.category || '', ext.name || '');
+        if (!classification) continue;
+        const { platformSlug, categorySlug, categoryNameAr } = classification;
         const platform = platformCache.get(platformSlug);
         if (!platform) continue;
         const catKey = `${platform.id}:${categorySlug}`;
@@ -294,7 +298,9 @@ export class SyncEngine {
         const name = String(ext.name || 'Service');
         const categoryName = String(ext.category || 'General');
 
-        const { platformSlug, categorySlug, categoryNameAr } = SyncEngine.classifyService(categoryName, name);
+        const classification = SyncEngine.classifyService(categoryName, name);
+        if (!classification) continue;
+        const { platformSlug, categorySlug, categoryNameAr } = classification;
         const platform = platformCache.get(platformSlug);
         if (!platform) continue;
         const category = categoryCache.get(`${platform.id}:${categorySlug}`);
@@ -425,7 +431,6 @@ export class SyncEngine {
                   minQuantity: item.minQuantity,
                   maxQuantity: item.maxQuantity,
                   ...(item.avgTime !== undefined ? { avgTime: item.avgTime } : {}),
-                  status: true,
                 },
               })
             )
@@ -751,8 +756,23 @@ export class SyncEngine {
     platformNameAr: string;
     categorySlug: string;
     categoryNameAr: string;
-  } {
+  } | null {
     const text = `${rawCategory} ${rawName}`.toLowerCase();
+
+    // 0. Exclude WhatsApp, LinkedIn, and broken/junk services
+    if (
+      text.includes('whatsapp') ||
+      text.includes('واتساب') ||
+      text.includes('linkedin') ||
+      text.includes('لينكد') ||
+      text.includes('not working') ||
+      text.includes('closed') ||
+      text.includes('dont order') ||
+      text.includes('down') ||
+      text.includes('please read before order')
+    ) {
+      return null;
+    }
 
     // 1. Identify Platform
     let platformSlug = 'other';
@@ -788,12 +808,6 @@ export class SyncEngine {
     } else if (text.includes('discord') || text.includes('ديسكورد')) {
       platformSlug = 'discord';
       platformNameAr = 'ديسكورد';
-    } else if (text.includes('whatsapp') || text.includes('واتساب')) {
-      platformSlug = 'whatsapp';
-      platformNameAr = 'واتساب';
-    } else if (text.includes('linkedin') || text.includes('لينكد')) {
-      platformSlug = 'linkedin';
-      platformNameAr = 'لينكد إن';
     }
 
     // 2. Identify Category
