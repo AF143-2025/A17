@@ -332,7 +332,7 @@ export default function ServiceDetailsOrder() {
                 تم استلام طلبك بنجاح! (#{successOrder.id.slice(-6)})
               </h3>
               <p className="text-[11px] text-emerald-700 mt-0.5">
-                الخدمة: {currentService?.nameAr || currentService?.name} | الكمية: {quantity} | التكلفة: ${calculatedPrice.toFixed(4)}
+                الخدمة: {currentService?.nameAr || currentService?.name} | الكمية: {quantity} | التكلفة: ${calculatedPrice >= 1 ? calculatedPrice.toFixed(2) : calculatedPrice.toFixed(4)}
               </p>
             </div>
           </div>
