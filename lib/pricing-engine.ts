@@ -97,7 +97,7 @@ export async function calculateCustomerPrice(
     customerPrice: roundPrice(baseCost),
     markupType: 'PERCENTAGE',
     markupValue: 0,
-    appliedRuleName: 'سعر المزود المباشر (بدون زيادة تلقائية)',
+    appliedRuleName: 'السعر المباشر (بدون زيادة تلقائية)',
   };
 }
 

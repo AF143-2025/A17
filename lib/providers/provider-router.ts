@@ -160,7 +160,7 @@ export class ProviderRouter {
     const candidates = await this.getRankedCandidates(serviceId, quantity);
 
     if (candidates.length === 0) {
-      const errMsg = 'لا يوجد مزود متاح حالياً لهذه الخدمة بالكمية المطلوبة';
+      const errMsg = 'الخدمة غير متاحة حالياً بالكمية المطلوبة، يرجى مراجعة حدود الكمية أو المحاولة لاحقاً';
       await this.recordOrderFailureAndRefund(orderId, userId, errMsg);
       return { success: false, error: errMsg };
     }
@@ -291,7 +291,10 @@ export class ProviderRouter {
     }
 
     // If all candidates failed, cancel & refund
-    const finalErr = lastError || 'تعذر تنفيذ الطلب عبر جميع المزودين المتاحين حالياً';
+    const sanitizedError = (lastError || '')
+      .replace(/المزود/g, 'سيرفر التنفيذ')
+      .replace(/ReliableSMM/gi, 'سيرفر التنفيذ المباشر');
+    const finalErr = sanitizedError || 'تعذر استكمال معالجة الطلب حالياً، وتم استرجاع المبلغ إلى محفظتك تلقائياً';
     await this.recordOrderFailureAndRefund(orderId, userId, finalErr);
     return { success: false, error: finalErr };
   }

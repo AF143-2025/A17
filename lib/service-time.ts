@@ -1,5 +1,5 @@
 /**
- * Helper to extract the actual time and speed mentioned by the provider.
+ * Helper to extract the actual time and speed mentioned in service details.
  * Does not hardcode or invent any fake numbers.
  */
 export function getProviderMentionedTime(service?: {
@@ -15,9 +15,9 @@ export function getProviderMentionedTime(service?: {
 } {
   if (!service) {
     return {
-      timeText: 'حسب سيرفر المزود',
+      timeText: 'تلقائي حسب سرعة النظام',
       source: 'unspecified',
-      badge: 'حسب المزود',
+      badge: 'تلقائي ⚡',
     };
   }
 
@@ -26,43 +26,43 @@ export function getProviderMentionedTime(service?: {
   // 1. Check for specific Arabic phrases
   if (/(?:نصف\s*ساعة)/i.test(combined)) {
     return {
-      timeText: 'نصف ساعة (حسب المزود)',
+      timeText: 'نصف ساعة (بدء فوري)',
       source: 'provider_explicit',
-      badge: 'وقت المزود ⏱️',
+      badge: 'وقت البدء ⏱️',
     };
   }
   if (/(?:ساعتان|ساعتين)/i.test(combined)) {
     return {
-      timeText: 'ساعتان (حسب المزود)',
+      timeText: 'ساعتان (بدء فوري)',
       source: 'provider_explicit',
-      badge: 'وقت المزود ⏱️',
+      badge: 'وقت البدء ⏱️',
     };
   }
   if (/(?:يومان|يومين)/i.test(combined)) {
     return {
-      timeText: 'يومان (حسب المزود)',
+      timeText: 'يومان (معدل قياسي)',
       source: 'provider_explicit',
-      badge: 'وقت المزود ⏱️',
+      badge: 'وقت البدء ⏱️',
     };
   }
 
-  // 2. Check for explicit minutes in provider text (e.g. 10-30 min, 15 minutes, 15 دقيقة)
+  // 2. Check for explicit minutes in text (e.g. 10-30 min, 15 minutes, 15 دقيقة)
   const minMatch = combined.match(/(\d+\s*-\s*\d+|\d+)\s*(?:min|mins|minutes|دقيقة|دقائق)/i);
   if (minMatch) {
     return {
-      timeText: `${minMatch[1]} دقيقة (حسب المزود)`,
+      timeText: `${minMatch[1]} دقيقة (بدء فوري)`,
       source: 'provider_explicit',
-      badge: 'وقت المزود ⏱️',
+      badge: 'وقت البدء ⏱️',
     };
   }
 
-  // 3. Check for explicit hours in provider text (e.g. 0-1 hour, 1-6 hours, 2 hours, ساعة)
+  // 3. Check for explicit hours in text (e.g. 0-1 hour, 1-6 hours, 2 hours, ساعة)
   const hourMatch = combined.match(/(\d+\s*-\s*\d+|\d+)\s*(?:hour|hours|hr|hrs|ساعة|ساعات)/i);
   if (hourMatch) {
     return {
-      timeText: `${hourMatch[1]} ساعة (حسب المزود)`,
+      timeText: `${hourMatch[1]} ساعة (بدء فوري)`,
       source: 'provider_explicit',
-      badge: 'وقت المزود ⏱️',
+      badge: 'وقت البدء ⏱️',
     };
   }
 
@@ -70,13 +70,13 @@ export function getProviderMentionedTime(service?: {
   const dayMatch = combined.match(/(\d+\s*-\s*\d+|\d+)\s*(?:day|days|يوم|أيام)/i);
   if (dayMatch && !combined.match(/day\s*\d+/i) && !combined.match(/\d+[km]?\/day/i)) {
     return {
-      timeText: `${dayMatch[1]} يوم (حسب المزود)`,
+      timeText: `${dayMatch[1]} يوم (معدل قياسي)`,
       source: 'provider_explicit',
-      badge: 'وقت المزود ⏱️',
+      badge: 'وقت البدء ⏱️',
     };
   }
 
-  // 5. Check for Instant Start from provider
+  // 5. Check for Instant Start
   if (/instant\s*start|instant|بدء\s*فوري|فوري/i.test(combined)) {
     const speedMatch = combined.match(/day\s*(\d+[km]?|\d+)/i) || combined.match(/(\d+[km]?)\s*\/\s*(?:day|days|يوم)/i);
     if (speedMatch) {
@@ -87,44 +87,44 @@ export function getProviderMentionedTime(service?: {
       };
     }
     return {
-      timeText: 'بدء فوري ⚡ (مذكور من المزود)',
+      timeText: 'بدء فوري ⚡ (مباشر ومضمون)',
       source: 'provider_instant',
       badge: 'فوري ⚡',
     };
   }
 
-  // 6. Check for Provider Daily Speed (e.g. Day 100K, 10M, 50K/Day)
+  // 6. Check for Daily Speed (e.g. Day 100K, 10M, 50K/Day)
   const speedMatch = combined.match(/day\s*(\d+[km]?|\d+)/i) || combined.match(/(\d+[km]?)\s*\/\s*(?:day|days|يوم)/i);
   if (speedMatch) {
     return {
-      timeText: `سرعة التسليم: ${speedMatch[1].toUpperCase()} / يوم (وفق المزود)`,
+      timeText: `سرعة التسليم: ${speedMatch[1].toUpperCase()} / يوم`,
       source: 'provider_speed',
-      badge: 'سرعة المزود',
+      badge: 'سرعة التسليم ⚡',
     };
   }
 
   // 7. Check if explicit avgTime exists in DB and is NOT the old default '15 دقيقة'
   if (service.avgTime && service.avgTime !== '15 دقيقة') {
     return {
-      timeText: `${service.avgTime} (حسب المزود)`,
+      timeText: `${service.avgTime} (معدل دقيق)`,
       source: 'provider_explicit',
-      badge: 'وقت المزود ⏱️',
+      badge: 'وقت البدء ⏱️',
     };
   }
 
-  // 8. If service has a specific non-default speed from provider
+  // 8. If service has a specific non-default speed
   if (service.speed && service.speed !== 'فوري ⚡' && service.speed !== 'فوري') {
     return {
-      timeText: `السرعة: ${service.speed} (وفق المزود)`,
+      timeText: `السرعة: ${service.speed}`,
       source: 'provider_speed',
-      badge: 'وفق المزود',
+      badge: 'سرعة قياسية',
     };
   }
 
-  // 9. If provider did not mention any time or speed
+  // 9. If no specific time or speed is mentioned
   return {
-    timeText: 'حسب سرعة واستجابة سيرفر المزود (بدء فوري تلقائي)',
+    timeText: 'فوري وتلقائي حسب سرعة النظام',
     source: 'unspecified',
-    badge: 'حسب المزود',
+    badge: 'تلقائي ⚡',
   };
 }

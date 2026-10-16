@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import db from '@/lib/db';
 import { placeOrder } from '@/lib/order-engine';
+import { sanitizeOrdersForCustomer, sanitizeOrderForCustomer } from '@/lib/order-sanitizer';
 
 export async function GET(req: NextRequest) {
   const user = await getCurrentUser();
@@ -113,19 +114,8 @@ export async function GET(req: NextRequest) {
   }
   statusCounts.ALL = totalAll;
 
-  // Sanitize orders for regular users (do not leak internal costs, provider IDs or profit)
-  const safeOrders = user.role === 'ADMIN' ? orders : orders.map((o) => {
-    const { cost, profit, providerId, providerOrderId, idempotencyKey, ...restOrder } = o as any;
-    let safeService = restOrder.service;
-    if (safeService) {
-      const { providerCostPer1000, providerId: sProviderId, providerServiceId, ...restService } = safeService;
-      safeService = restService;
-    }
-    return {
-      ...restOrder,
-      service: safeService,
-    };
-  });
+  // Sanitize orders for regular users (do not leak internal costs, provider IDs, profit or provider events)
+  const safeOrders = user.role === 'ADMIN' ? orders : sanitizeOrdersForCustomer(orders);
 
   return NextResponse.json({
     orders: safeOrders,
@@ -169,10 +159,12 @@ export async function POST(req: NextRequest) {
       idempotencyKey,
     });
 
+    const safeOrder = user.role === 'ADMIN' ? order : sanitizeOrderForCustomer(order);
+
     return NextResponse.json({
       success: true,
       message: 'تم إرسال الطلب بنجاح',
-      order,
+      order: safeOrder,
     });
   } catch (error: any) {
     console.error('Order creation error:', error);

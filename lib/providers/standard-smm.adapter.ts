@@ -25,7 +25,7 @@ export class StandardSmmAdapter implements ProviderInterface {
   }
 
   private formatError(errorPayload: any): string {
-    if (!errorPayload) return 'خطأ غير محدد من المزود';
+    if (!errorPayload) return 'خطأ غير محدد أثناء المعالجة';
     if (typeof errorPayload === 'string') return errorPayload;
     if (typeof errorPayload === 'object') {
       return errorPayload.message || errorPayload.error || errorPayload.code || JSON.stringify(errorPayload);
@@ -80,17 +80,17 @@ export class StandardSmmAdapter implements ProviderInterface {
         data = JSON.parse(text);
       } catch {
         if (!response.ok) {
-          throw new Error(`خطأ من خادم المزود (${this.isV3 ? 'v3' : 'v2'}): HTTP ${response.status} ${response.statusText}`);
+          throw new Error(`خطأ في استجابة الخادم (${this.isV3 ? 'v3' : 'v2'}): HTTP ${response.status} ${response.statusText}`);
         }
-        throw new Error(`استجابة المزود غير صالحة (ليست JSON): ${text.slice(0, 100)}`);
+        throw new Error(`استجابة الخادم غير صالحة (ليست JSON): ${text.slice(0, 100)}`);
       }
 
       if (data && data.error) {
-        throw new Error(`خطأ من المزود: ${this.formatError(data.error)}`);
+        throw new Error(`تعذر التنفيذ: ${this.formatError(data.error)}`);
       }
 
       if (!response.ok) {
-        throw new Error(`خطأ من خادم المزود: HTTP ${response.status} ${response.statusText}`);
+        throw new Error(`خطأ في الاتصال بالخادم: HTTP ${response.status} ${response.statusText}`);
       }
 
       return data;
@@ -260,7 +260,7 @@ export class StandardSmmAdapter implements ProviderInterface {
             providerOrderId: String(restData.id ?? restData.order ?? restData.order_id),
           };
         } else if (restData?.error) {
-          throw new Error(`خطأ من المزود: ${this.formatError(restData.error)}`);
+          throw new Error(`تعذر إتمام الطلب: ${this.formatError(restData.error)}`);
         }
       } catch (err: any) {
         if (!err.message?.includes('404') && !err.message?.includes('405')) {
@@ -283,7 +283,7 @@ export class StandardSmmAdapter implements ProviderInterface {
     const res = await this.request(payload);
     const orderId = res.order ?? res.data?.order ?? res.order_id ?? res.orderId ?? res.id;
     if (!orderId) {
-      throw new Error(this.formatError(res.error || res.message) || 'فشل في استلام رقم الطلب من المزود');
+      throw new Error(this.formatError(res.error || res.message) || 'فشل في استلام تأكيد الطلب');
     }
 
     return {

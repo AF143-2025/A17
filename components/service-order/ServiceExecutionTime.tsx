@@ -46,7 +46,7 @@ export default function ServiceExecutionTime({ service }: ServiceExecutionTimePr
           </div>
           <div className="min-w-0">
             <span className="text-[11px] text-slate-500 font-bold block">
-              الوقت المذكور من المزود:
+              متوسط سرعة وبدء الخدمة:
             </span>
             <span className="text-xs sm:text-sm font-black text-slate-900 font-sans block mt-0.5 truncate">
               {info.timeText}
@@ -58,7 +58,7 @@ export default function ServiceExecutionTime({ service }: ServiceExecutionTimePr
       {/* Reassurance Footer */}
       <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-medium px-1">
         <Server className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-        <span>يتم الاعتماد بدقة على سرعة وتوقيت سيرفر المزود الحقيقي بدون أوقات تقديرية غير مؤكدة.</span>
+        <span>يتم التحديث المباشر بناءً على سرعة سيرفرات التنفيذ الفعلي لضمان أعلى درجات الدقة.</span>
       </div>
     </div>
   );

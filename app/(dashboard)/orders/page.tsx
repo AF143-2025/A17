@@ -174,8 +174,8 @@ export default function OrdersPage() {
         done: true,
       },
       {
-        title: 'إرسال للمزود',
-        desc: 'تم التوجيه لشبكة التنفيذ',
+        title: 'الربط بشبكة التنفيذ',
+        desc: 'تم توجيه الطلب للتنفيذ المباشر',
         done: isProcessing || isCompleted || isPartial,
       },
       {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import db from '@/lib/db';
 import { syncOrderStatus } from '@/lib/order-engine';
+import { sanitizeOrderForCustomer } from '@/lib/order-sanitizer';
 
 export async function GET(
   req: NextRequest,
@@ -51,5 +52,7 @@ export async function GET(
     }
   }
 
-  return NextResponse.json({ order });
+  const safeOrder = user.role === 'ADMIN' ? order : sanitizeOrderForCustomer(order);
+
+  return NextResponse.json({ order: safeOrder });
 }

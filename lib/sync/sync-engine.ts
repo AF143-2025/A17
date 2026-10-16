@@ -618,7 +618,7 @@ export class SyncEngine {
 
             let refundAmount = 0;
             let eventType = 'STATUS_SYNCED';
-            let eventMsg = `تم تحديث حالة الطلب تلقائياً من المزود: ${this.translateStatus(mappedStatus)}`;
+            let eventMsg = `تم تحديث حالة الطلب تلقائياً: ${this.translateStatus(mappedStatus)}`;
 
             if (mappedStatus === 'PARTIAL' && statusRes.remains && statusRes.remains > 0) {
               const refundRatio = statusRes.remains / current.quantity;
@@ -628,7 +628,7 @@ export class SyncEngine {
             } else if (mappedStatus === 'CANCELED' || mappedStatus === 'REFUNDED') {
               refundAmount = current.price;
               eventType = 'CANCELED_REFUND';
-              eventMsg = `تم إلغاء الطلب من قبل المزود واسترجاع كامل المبلغ ($${refundAmount.toFixed(2)}) إلى المحفظة تلقائياً.`;
+              eventMsg = `تم إلغاء الطلب واسترجاع كامل المبلغ ($${refundAmount.toFixed(2)}) إلى المحفظة تلقائياً.`;
             }
 
             // If a refund is due, credit wallet inside the SAME transaction

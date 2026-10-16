@@ -72,7 +72,7 @@ export async function placeOrder({
   );
 
   if (!hasActiveProvider) {
-    throw new Error('الخدمة المطلوبة غير متوفرة حالياً نظراً لإيقاف المزود الخاص بها مؤقتاً');
+    throw new Error('الخدمة المطلوبة غير متوفرة حالياً نظراً لأعمال الصيانة والتحديث');
   }
 
   // 2. Validate quantity
@@ -242,7 +242,7 @@ export async function placeOrder({
     });
 
     if (routeRes && !routeRes.success) {
-      throw new Error(routeRes.error || 'تعذر إرسال الطلب إلى المزود، وتم استرجاع المبلغ إلى محفظتك تلقائياً.');
+      throw new Error(routeRes.error || 'تعذر بدء تنفيذ الطلب، وتم استرجاع المبلغ إلى محفظتك تلقائياً.');
     }
   } catch (routerError: any) {
     console.error('[OrderEngine] Error in ProviderRouter.dispatchOrder:', routerError);
@@ -271,7 +271,7 @@ export async function placeOrder({
                   type: 'REFUND',
                   status: 'COMPLETED',
                   referenceId: ord.id,
-                  description: `استرجاع تلقائي لفشل إرسال الطلب #${ord.id.slice(-6)} للمزود`,
+                  description: `استرجاع تلقائي لتعذر تنفيذ الطلب #${ord.id.slice(-6)}`,
                 },
               });
             }
@@ -281,7 +281,7 @@ export async function placeOrder({
             data: {
               orderId: ord.id,
               eventType: 'DISPATCH_FAILED_REFUND',
-              message: `تعذر إرسال الطلب للمزود، تم استرجاع $${ord.price.toFixed(2)} إلى المحفظة تلقائياً.`,
+              message: `تعذر تنفيذ الطلب، تم استرجاع $${ord.price.toFixed(2)} إلى المحفظة تلقائياً.`,
             },
           });
         }
@@ -376,7 +376,7 @@ export async function syncOrderStatus(orderId: string) {
         } else if (newStatus === 'CANCELED' || newStatus === 'REFUNDED') {
           refundAmount = current.price;
           eventType = 'CANCELED_REFUND';
-          eventMsg = `تم إلغاء الطلب من قبل المزود وإعادة المبلغ الكامل ($${current.price.toFixed(2)}) إلى المحفظة تلقائياً.`;
+          eventMsg = `تم إلغاء الطلب واسترجاع المبلغ الكامل ($${current.price.toFixed(2)}) إلى المحفظة تلقائياً.`;
         }
 
         if (refundAmount > 0) {
