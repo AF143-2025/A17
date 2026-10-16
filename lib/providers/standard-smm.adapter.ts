@@ -227,6 +227,10 @@ export class StandardSmmAdapter implements ProviderInterface {
       dripfeed: Boolean(item.dripfeed ?? item.features?.dripfeed),
       refill: Boolean(item.refill ?? item.features?.refill),
       cancel: Boolean(item.cancel ?? item.features?.cancel),
+      description: item.description ?? item.desc ?? undefined,
+      time: item.time ?? item.average_time ?? item.avg_time ?? undefined,
+      avg_time: item.avg_time ?? item.average_time ?? undefined,
+      speed: item.speed ?? undefined,
     }));
   }
 

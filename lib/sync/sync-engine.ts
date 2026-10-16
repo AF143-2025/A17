@@ -328,6 +328,9 @@ export class SyncEngine {
           pricingRules
         );
 
+        const providerDesc = (ext as any).desc || (ext as any).description || null;
+        const providerTime = (ext as any).time || (ext as any).avg_time || null;
+
         if (!service) {
           const newId = generateCuid();
           const newService = {
@@ -335,15 +338,15 @@ export class SyncEngine {
             categoryId: category.id,
             name,
             nameAr: name,
-            description: `خدمة ${categoryNameAr} عالية الجودة مع سرعة تسليم فورية واستقرار تام.`,
+            description: providerDesc || `${name}\n- السرعة والتنفيذ: ${providerTime || 'فوري ⚡'}\n- جودة الخدمة: حسابات عالية الجودة ومضمونة بنسبة 100%`,
             minQuantity: min,
             maxQuantity: max,
             pricePer1000: customerPrice,
             providerCostPer1000: rate,
             providerId: provider.id,
             providerServiceId: extId,
-            speed: 'فوري ⚡',
-            avgTime: (ext as any).time || (ext as any).avg_time || null,
+            speed: (ext as any).speed || 'فوري ⚡',
+            avgTime: providerTime,
             status: true,
           };
 
@@ -354,14 +357,16 @@ export class SyncEngine {
           newCount++;
         } else {
           // Update existing service price, cost, and min/max limits
-          servicesToUpdate.push({
+          const updateData: any = {
             id: service.id,
             providerCostPer1000: rate,
             pricePer1000: customerPrice,
             minQuantity: min,
             maxQuantity: max,
-            avgTime: (ext as any).time || (ext as any).avg_time || null,
-          });
+          };
+          if (providerDesc) updateData.description = providerDesc;
+          if (providerTime) updateData.avgTime = providerTime;
+          servicesToUpdate.push(updateData);
           updatedCount++;
         }
 

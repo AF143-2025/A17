@@ -9,6 +9,11 @@ export interface ProviderServiceDto {
   dripfeed?: boolean;
   refill?: boolean;
   cancel?: boolean;
+  description?: string;
+  desc?: string;
+  time?: string;
+  avg_time?: string;
+  speed?: string;
 }
 
 export interface CreateOrderParams {

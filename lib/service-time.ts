@@ -23,7 +23,34 @@ export function getProviderMentionedTime(service?: {
 
   const combined = `${service.name || ''} ${service.description || ''} ${service.nameAr || ''}`;
 
-  // 1. Check for specific Arabic phrases
+  // 1. Check if explicit avgTime exists in DB and prioritize it
+  if (service.avgTime && service.avgTime.trim() && service.avgTime !== '15 دقيقة') {
+    const speedTxt = service.speed && service.speed !== 'فوري ⚡' && service.speed !== 'فوري' ? ` • ${service.speed}` : '';
+    return {
+      timeText: `${service.avgTime}${speedTxt}`,
+      source: 'provider_explicit',
+      badge: 'متوسط الإنجاز ⏱️',
+    };
+  }
+
+  // 2. Check for Start Time in provider description (e.g. Start Time: 0-5 Minutes)
+  const startTimeMatch = combined.match(/Start\s*Time:\s*([^\n\r]+)/i);
+  if (startTimeMatch) {
+    const rawStart = startTimeMatch[1].trim()
+      .replace(/minutes?/gi, 'دقيقة')
+      .replace(/hours?/gi, 'ساعة')
+      .replace(/days?/gi, 'يوم')
+      .replace(/and/gi, 'و');
+    const speedMatch = combined.match(/Speed:\s*([^\n\r]+)/i);
+    const speedTxt = speedMatch ? ` • ${speedMatch[1].trim()}` : '';
+    return {
+      timeText: `البدء: ${rawStart}${speedTxt}`,
+      source: 'provider_explicit',
+      badge: 'وقت البدء ⏱️',
+    };
+  }
+
+  // 3. Check for specific Arabic phrases
   if (/(?:نصف\s*ساعة)/i.test(combined)) {
     return {
       timeText: 'نصف ساعة (بدء فوري)',

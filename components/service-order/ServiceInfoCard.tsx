@@ -117,7 +117,7 @@ export default function ServiceInfoCard({
       <div className="p-3 rounded-2xl bg-sky-50/40 border border-sky-100/70 text-xs text-slate-600 space-y-1.5">
         <div className="flex items-start gap-2">
           <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-          <p className={`text-[11px] sm:text-xs leading-relaxed ${descriptionExpanded ? '' : 'line-clamp-2'}`}>
+          <p className={`text-[11px] sm:text-xs leading-relaxed whitespace-pre-line font-sans ${descriptionExpanded ? '' : 'line-clamp-3'}`}>
             {service.description || 'خدمة سريعة وآمنة ومضمونة بنسبة 100% لتنمية حسابك.'}
           </p>
         </div>
