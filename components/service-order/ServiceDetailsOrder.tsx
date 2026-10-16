@@ -285,6 +285,7 @@ export default function ServiceDetailsOrder() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           serviceId: currentService.id,
+          service: currentService.id,
           targetUrl: targetUrl.trim(),
           link: targetUrl.trim(),
           quantity: Number(quantity),

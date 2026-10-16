@@ -136,16 +136,48 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const body = await req.json();
-    const serviceId = body.serviceId;
-    const targetUrl = (body.targetUrl || body.link)?.trim();
-    const quantity = body.quantity;
-    const couponCode = body.couponCode;
+    let body: any = {};
+    const contentType = req.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+      body = await req.json().catch(() => ({}));
+    } else if (contentType.includes('application/x-www-form-urlencoded') || contentType.includes('multipart/form-data')) {
+      const formData = await req.formData().catch(() => null);
+      if (formData) {
+        body = Object.fromEntries(formData.entries());
+      }
+    } else {
+      body = await req.json().catch(() => ({}));
+    }
+
+    // Fallback to URL searchParams if not in body
+    req.nextUrl.searchParams.forEach((val, key) => {
+      if (!body[key]) body[key] = val;
+    });
+
+    const serviceId = String(body.serviceId || body.service || body.service_id || body.id || '').trim();
+    const targetUrl = String(body.targetUrl || body.link || body.target || body.url || '').trim();
+    const quantityRaw = body.quantity ?? body.qty ?? body.amount ?? body.count;
+    const quantity = parseInt(String(quantityRaw || 0), 10);
+    const couponCode = body.couponCode || body.coupon;
     const idempotencyKey = body.idempotencyKey;
 
-    if (!serviceId || !targetUrl || !quantity) {
+    if (!serviceId) {
       return NextResponse.json(
-        { error: 'يرجى تحديد الخدمة، الرابط المستهدف، والكمية المطلوبة' },
+        { error: 'يرجى اختيار الخدمة المطلوبة أولاً' },
+        { status: 400 }
+      );
+    }
+
+    if (!targetUrl) {
+      return NextResponse.json(
+        { error: 'يرجى إدخال الرابط المستهدف أو اسم المستخدم' },
+        { status: 400 }
+      );
+    }
+
+    if (!quantity || isNaN(quantity) || quantity <= 0) {
+      return NextResponse.json(
+        { error: 'يرجى تحديد الكمية المطلوبة بشكل صحيح' },
         { status: 400 }
       );
     }
@@ -154,7 +186,7 @@ export async function POST(req: NextRequest) {
       userId: user.id,
       serviceId,
       targetUrl,
-      quantity: parseInt(String(quantity), 10),
+      quantity,
       couponCode,
       idempotencyKey,
     });

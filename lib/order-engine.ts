@@ -228,6 +228,9 @@ export async function placeOrder({
     });
 
     return newOrder;
+  }, {
+    maxWait: 15000,
+    timeout: 35000,
   });
 
   // 6. Send order to Provider via Smart Provider Router with automatic failover
@@ -285,6 +288,9 @@ export async function placeOrder({
             },
           });
         }
+      }, {
+        maxWait: 15000,
+        timeout: 35000,
       });
     } catch (refundError) {
       console.error('[OrderEngine] Failed to auto-refund stuck order:', refundError);
@@ -442,6 +448,9 @@ export async function syncOrderStatus(orderId: string) {
             remarks: `Synced via syncOrderStatus from ${order.provider?.name || 'Provider'}`,
           },
         });
+      }, {
+        maxWait: 15000,
+        timeout: 35000,
       });
     }
 
