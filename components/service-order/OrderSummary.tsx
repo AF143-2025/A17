@@ -8,6 +8,7 @@ import { formatSmmPrice, formatSmmBalance } from '@/lib/currency';
 
 interface OrderSummaryProps {
   calculatedPrice: number;
+  pricePer1000?: number;
   balance: number;
   isBalanceSufficient: boolean;
   balanceDifference: number;
@@ -17,6 +18,7 @@ interface OrderSummaryProps {
 
 export default function OrderSummary({
   calculatedPrice,
+  pricePer1000,
   balance,
   isBalanceSufficient,
   balanceDifference,
@@ -34,9 +36,14 @@ export default function OrderSummary({
       <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
         <div className="p-3.5 rounded-2xl bg-rose-50/50 border border-rose-100 text-center">
           <span className="text-xs text-slate-500 font-bold block mb-1">التكلفة</span>
-          <span className="text-lg sm:text-xl font-black text-rose-600 font-sans">
+          <span className="text-lg sm:text-xl font-black text-rose-600 font-sans block">
             ${formatSmmPrice(calculatedPrice)}
           </span>
+          {pricePer1000 !== undefined && (
+            <span className="text-[10px] text-slate-400 font-medium block mt-0.5 whitespace-nowrap">
+              السعر: ${formatSmmPrice(pricePer1000)} لكل 1000
+            </span>
+          )}
         </div>
 
         <div className="p-3.5 rounded-2xl bg-sky-50/60 border border-sky-100 text-center">

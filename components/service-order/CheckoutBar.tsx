@@ -8,12 +8,14 @@ import { formatSmmPrice } from '@/lib/currency';
 
 interface CheckoutBarProps {
   calculatedPrice: number;
+  pricePer1000?: number;
   isBalanceSufficient: boolean;
   submitting: boolean;
 }
 
 export default function CheckoutBar({
   calculatedPrice,
+  pricePer1000,
   isBalanceSufficient,
   submitting,
 }: CheckoutBarProps) {
@@ -21,7 +23,14 @@ export default function CheckoutBar({
     <div className="fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-sky-100 shadow-xl p-3 sm:p-4">
       <div className="max-w-xl mx-auto space-y-2">
         <div className="flex items-center justify-between px-1">
-          <span className="text-xs font-bold text-slate-500">التكلفة الإجمالية</span>
+          <div>
+            <span className="text-xs font-bold text-slate-500 block">التكلفة الإجمالية</span>
+            {pricePer1000 !== undefined && (
+              <span className="text-[10px] text-slate-400 font-medium block">
+                السعر: ${formatSmmPrice(pricePer1000)} لكل 1000
+              </span>
+            )}
+          </div>
           <span className="text-lg font-black text-rose-600 font-sans">
             ${formatSmmPrice(calculatedPrice)}
           </span>

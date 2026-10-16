@@ -88,6 +88,9 @@ export default function ServiceInfoCard({
           <span className="text-xs sm:text-sm font-black text-blue-600 font-sans mt-0.5 block">
             ${formatSmmPrice(service.pricePer1000)}
           </span>
+          <span className="text-[9px] text-slate-400 font-medium block mt-0.5 whitespace-nowrap">
+            لكل 1000
+          </span>
         </div>
         <div>
           <span className="text-[10px] text-slate-400 font-bold block">التنفيذ</span>

@@ -381,7 +381,14 @@ export default function ServiceDetailsOrder() {
               </div>
 
               <div className="flex items-center justify-between">
-                <span className="text-slate-500">التكلفة الإجمالية:</span>
+                <div>
+                  <span className="text-slate-500 block">التكلفة الإجمالية:</span>
+                  {currentService && (
+                    <span className="text-[10px] text-slate-400 font-medium block">
+                      السعر: ${formatSmmPrice(currentService.pricePer1000)} لكل 1000
+                    </span>
+                  )}
+                </div>
                 <span className="font-sans font-black text-emerald-600 text-sm">
                   ${formatSmmPrice(successOrder.price || calculatedPrice)}
                 </span>
@@ -466,6 +473,7 @@ export default function ServiceDetailsOrder() {
         {/* 5. ORDER SUMMARY */}
         <OrderSummary
           calculatedPrice={calculatedPrice}
+          pricePer1000={currentService?.pricePer1000}
           balance={balance}
           isBalanceSufficient={isBalanceSufficient}
           balanceDifference={balanceDifference}
@@ -476,6 +484,7 @@ export default function ServiceDetailsOrder() {
         {/* 5. FIXED BOTTOM CHECKOUT BAR */}
         <CheckoutBar
           calculatedPrice={calculatedPrice}
+          pricePer1000={currentService?.pricePer1000}
           isBalanceSufficient={isBalanceSufficient}
           submitting={submitting}
         />

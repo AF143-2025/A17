@@ -240,9 +240,12 @@ export default function PlatformServicesView({ platforms }: PlatformServicesView
                               </div>
                             </div>
 
-                            <div className="flex flex-col items-end gap-1.5 shrink-0">
+                            <div className="flex flex-col items-end gap-1 shrink-0">
                               <span className="text-xs font-black text-blue-600 font-sans">
                                 ${formatSmmPrice(s.pricePer1000)}
+                              </span>
+                              <span className="text-[9px] text-slate-400 font-medium">
+                                لكل 1000
                               </span>
                               <Link
                                 href={`/new-order?serviceId=${s.id}`}

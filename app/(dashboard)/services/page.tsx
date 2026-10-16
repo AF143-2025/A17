@@ -190,8 +190,13 @@ export default function ServicesPage() {
                           {service.description}
                         </div>
                       </td>
-                      <td className="py-3.5 px-4 font-sans font-black text-blue-600">
-                        ${formatSmmPrice(service.pricePer1000)}
+                      <td className="py-3.5 px-4 font-sans whitespace-nowrap">
+                        <span className="font-black text-blue-600 block">
+                          ${formatSmmPrice(service.pricePer1000)}
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-medium block">
+                          لكل 1000
+                        </span>
                       </td>
                       <td className="py-3.5 px-4 font-sans text-slate-600 whitespace-nowrap">
                         {service.minQuantity.toLocaleString('en-US')} - {service.maxQuantity.toLocaleString('en-US')}
@@ -250,9 +255,12 @@ export default function ServicesPage() {
 
                   <div className="flex items-center justify-between text-xs pt-1">
                     <div>
-                      <span className="text-[10px] text-slate-500 block">السعر لكل 1,000</span>
-                      <span className="font-sans font-black text-blue-600 text-sm">
+                      <span className="text-[10px] text-slate-500 block">السعر</span>
+                      <span className="font-sans font-black text-blue-600 text-sm block">
                         ${formatSmmPrice(service.pricePer1000)}
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-medium block">
+                        لكل 1000
                       </span>
                     </div>
 
