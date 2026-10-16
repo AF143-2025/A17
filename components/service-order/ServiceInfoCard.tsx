@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Clock, Tag, Flame, Info, Zap } from 'lucide-react';
+import { Clock, Flame, Info, Zap } from 'lucide-react';
 import PlatformBrandIcon from '@/components/PlatformBrandIcon';
 import { formatSmmPrice } from '@/lib/currency';
 
@@ -97,15 +97,11 @@ export default function ServiceInfoCard({
         </div>
       </div>
 
-      {/* Badges Row (بدء فوري, حقيقي, الأكثر طلباً) */}
+      {/* Badges Row (بدء فوري, الأكثر طلباً) */}
       <div className="flex flex-wrap items-center gap-2">
         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-sky-50 text-blue-700 text-[10px] font-bold border border-sky-200">
           <Zap className="w-3 h-3 text-amber-500" />
           <span>بدء فوري ⚡</span>
-        </span>
-        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200">
-          <Tag className="w-3 h-3 text-emerald-600" />
-          <span>حقيقي ومعتمد</span>
         </span>
         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-[10px] font-bold border border-amber-200">
           <Flame className="w-3 h-3 text-amber-500 fill-amber-500" />

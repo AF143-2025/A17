@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Clock, Zap, Server } from 'lucide-react';
+import { Clock, Zap } from 'lucide-react';
 import { getProviderMentionedTime } from '@/lib/service-time';
 
 interface ServiceExecutionTimeProps {
@@ -53,12 +53,6 @@ export default function ServiceExecutionTime({ service }: ServiceExecutionTimePr
             </span>
           </div>
         </div>
-      </div>
-
-      {/* Reassurance Footer */}
-      <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-medium px-1">
-        <Server className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-        <span>يتم التحديث المباشر بناءً على سرعة سيرفرات التنفيذ الفعلي لضمان أعلى درجات الدقة.</span>
       </div>
     </div>
   );
