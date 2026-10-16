@@ -320,8 +320,7 @@ export default function OrdersPage() {
                   {orders.map((order) => (
                     <tr
                       key={order.id}
-                      className="hover:bg-sky-50/50 transition cursor-pointer"
-                      onClick={() => setSelectedOrder(order)}
+                      className="hover:bg-sky-50/50 transition"
                     >
                       <td className="py-3.5 px-4 font-mono font-bold text-slate-500 whitespace-nowrap">
                         #{order.id.slice(-6)}
@@ -363,10 +362,8 @@ export default function OrdersPage() {
                       </td>
                       <td className="py-3.5 px-4 text-center whitespace-nowrap">
                         <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedOrder(order);
-                          }}
+                          type="button"
+                          onClick={() => setSelectedOrder(order)}
                           className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold transition border border-blue-200"
                           title="عرض تفاصيل الطلب"
                         >
@@ -385,8 +382,7 @@ export default function OrdersPage() {
               {orders.map((order) => (
                 <div
                   key={order.id}
-                  onClick={() => setSelectedOrder(order)}
-                  className="p-4 hover:bg-sky-50/50 transition cursor-pointer space-y-2.5 active:bg-sky-50"
+                  className="p-4 hover:bg-sky-50/50 transition space-y-2.5"
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-mono text-xs font-bold text-slate-500">
@@ -419,10 +415,15 @@ export default function OrdersPage() {
                       </span>
                     </div>
 
-                    <span className="text-[11px] font-bold text-blue-600 flex items-center gap-1">
-                      <span>التفاصيل</span>
-                      <ArrowLeft className="w-3 h-3" />
-                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedOrder(order)}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold transition border border-blue-200"
+                      title="عرض تفاصيل الطلب"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>عرض</span>
+                    </button>
                   </div>
                 </div>
               ))}
