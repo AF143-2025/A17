@@ -232,7 +232,7 @@ export async function placeOrder({
 
   // 6. Send order to Provider via Smart Provider Router with automatic failover
   try {
-    await ProviderRouter.dispatchOrder({
+    const routeRes = await ProviderRouter.dispatchOrder({
       orderId: order.id,
       serviceId: service.id,
       targetUrl: cleanedTarget,
@@ -240,6 +240,10 @@ export async function placeOrder({
       userId,
       idempotencyKey,
     });
+
+    if (routeRes && !routeRes.success) {
+      throw new Error(routeRes.error || 'تعذر إرسال الطلب إلى المزود، وتم استرجاع المبلغ إلى محفظتك تلقائياً.');
+    }
   } catch (routerError: any) {
     console.error('[OrderEngine] Error in ProviderRouter.dispatchOrder:', routerError);
     // Safety net: ensure order is not left in PENDING without provider order ID
@@ -285,6 +289,7 @@ export async function placeOrder({
     } catch (refundError) {
       console.error('[OrderEngine] Failed to auto-refund stuck order:', refundError);
     }
+    throw routerError;
   }
 
   return await db.order.findUnique({

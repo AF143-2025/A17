@@ -37,7 +37,10 @@ export async function GET() {
               where: {
                 status: true,
                 pricePer1000: { gt: 0 },
-                providerId: { in: activeProviderIds },
+                OR: [
+                  { providerId: { in: activeProviderIds } },
+                  { serviceProviders: { some: { status: true, providerId: { in: activeProviderIds } } } },
+                ],
               },
               select: {
                 id: true,

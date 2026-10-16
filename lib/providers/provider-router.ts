@@ -166,6 +166,7 @@ export class ProviderRouter {
     }
 
     // Iterate through candidates with failover
+    let lastError = '';
     for (let i = 0; i < candidates.length; i++) {
       const candidate = candidates[i];
       const adapter = ProviderFactory.getAdapter(candidate.provider);
@@ -253,6 +254,7 @@ export class ProviderRouter {
         }
       } catch (err: any) {
         const errorDetails = err.message || 'Unknown provider error';
+        lastError = errorDetails;
         console.warn(
           `[ProviderRouter] Provider ${candidate.providerName} failed for Order ${orderId}: ${errorDetails}`
         );
@@ -289,7 +291,7 @@ export class ProviderRouter {
     }
 
     // If all candidates failed, cancel & refund
-    const finalErr = 'تعذر تنفيذ الطلب عبر جميع المزودين المتاحين حالياً';
+    const finalErr = lastError || 'تعذر تنفيذ الطلب عبر جميع المزودين المتاحين حالياً';
     await this.recordOrderFailureAndRefund(orderId, userId, finalErr);
     return { success: false, error: finalErr };
   }
