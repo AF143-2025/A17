@@ -146,7 +146,12 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { serviceId, targetUrl, quantity, couponCode, idempotencyKey } = await req.json();
+    const body = await req.json();
+    const serviceId = body.serviceId;
+    const targetUrl = (body.targetUrl || body.link)?.trim();
+    const quantity = body.quantity;
+    const couponCode = body.couponCode;
+    const idempotencyKey = body.idempotencyKey;
 
     if (!serviceId || !targetUrl || !quantity) {
       return NextResponse.json(
@@ -159,7 +164,7 @@ export async function POST(req: NextRequest) {
       userId: user.id,
       serviceId,
       targetUrl,
-      quantity: parseInt(quantity, 10),
+      quantity: parseInt(String(quantity), 10),
       couponCode,
       idempotencyKey,
     });
