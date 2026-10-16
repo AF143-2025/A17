@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Loader2, X, ArrowLeft } from 'lucide-react';
 import ServiceInfoCard from './ServiceInfoCard';
 import ServiceInput from './ServiceInput';
 import QuantityInput from './QuantityInput';
@@ -323,37 +323,88 @@ export default function ServiceDetailsOrder() {
 
   return (
     <div className="max-w-xl mx-auto space-y-3.5 pb-36 animate-in fade-in duration-200 font-sans">
-      {/* Success Notification Banner */}
+      {/* Centered Success Modal Popup right in front of user */}
       {successOrder && (
-        <div className="p-4 sm:p-5 rounded-3xl bg-emerald-50 border border-emerald-200 shadow-xs flex flex-col gap-3 animate-in zoom-in-95">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
-              <CheckCircle2 className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="text-xs sm:text-sm font-bold text-slate-900">
-                تم استلام طلبك بنجاح! (#{successOrder.id.slice(-6)})
-              </h3>
-              <p className="text-[11px] text-emerald-700 mt-0.5">
-                الخدمة: {currentService?.nameAr || currentService?.name} | الكمية: {quantity} | التكلفة: ${formatSmmPrice(calculatedPrice)}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 pt-1">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="w-full max-w-md rounded-3xl bg-white p-6 sm:p-7 border border-emerald-100 shadow-2xl relative animate-in zoom-in-95 duration-200">
+            {/* Close Button "X" */}
             <button
               type="button"
               onClick={() => setSuccessOrder(null)}
-              className="flex-1 py-2 rounded-xl bg-white text-xs font-bold text-slate-700 hover:bg-slate-50 border border-emerald-200 transition"
+              className="absolute left-4 top-4 p-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition"
+              aria-label="إغلاق"
             >
-              طلب خدمة أخرى
+              <X className="w-5 h-5" />
             </button>
-            <Link
-              href="/orders"
-              className="flex-1 py-2 rounded-xl bg-emerald-600 text-xs font-bold text-white hover:bg-emerald-700 text-center transition shadow-xs"
-            >
-              عرض الطلب في طلباتي →
-            </Link>
+
+            {/* Header with Green Checkmark Icon */}
+            <div className="text-center pt-2 pb-3">
+              <div className="w-14 h-14 rounded-2xl bg-emerald-100/80 text-emerald-600 flex items-center justify-center mx-auto mb-3 shadow-inner">
+                <CheckCircle2 className="w-7 h-7" />
+              </div>
+              <h3 className="text-base sm:text-lg font-black text-slate-900 font-sans">
+                تم إنشاء طلبك بنجاح!
+              </h3>
+              <p className="text-xs text-slate-500 mt-1">
+                رقم الطلب: <span className="font-mono font-bold text-slate-800">#{successOrder.id.slice(-6)}</span>
+              </p>
+            </div>
+
+            {/* Order Details Grid */}
+            <div className="p-4 rounded-2xl bg-sky-50/50 border border-sky-100/80 space-y-2.5 text-xs text-slate-700 my-2">
+              <div className="flex items-center justify-between pb-2 border-b border-sky-100/60">
+                <span className="text-slate-500">الخدمة:</span>
+                <span
+                  className="font-bold text-slate-900 text-right max-w-[210px] truncate"
+                  title={currentService?.nameAr || currentService?.name}
+                >
+                  {currentService?.nameAr || currentService?.name}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between pb-2 border-b border-sky-100/60">
+                <span className="text-slate-500">الرابط / الحساب:</span>
+                <span
+                  className="font-mono font-bold text-blue-600 max-w-[210px] truncate"
+                  dir="ltr"
+                  title={successOrder.targetUrl || targetUrl}
+                >
+                  {successOrder.targetUrl || targetUrl}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between pb-2 border-b border-sky-100/60">
+                <span className="text-slate-500">الكمية المطلوبة:</span>
+                <span className="font-sans font-bold text-slate-900">
+                  {Number(successOrder.quantity || quantity).toLocaleString('en-US')} وحدة
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">التكلفة الإجمالية:</span>
+                <span className="font-sans font-black text-emerald-600 text-sm">
+                  ${formatSmmPrice(successOrder.price || calculatedPrice)}
+                </span>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row items-center gap-2.5 mt-5">
+              <Link
+                href="/orders"
+                className="w-full py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-xs font-bold text-white text-center transition shadow-md shadow-blue-500/20 flex items-center justify-center gap-1.5"
+              >
+                <span>عرض الطلب في طلباتي</span>
+                <ArrowLeft className="w-4 h-4" />
+              </Link>
+              <button
+                type="button"
+                onClick={() => setSuccessOrder(null)}
+                className="w-full py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700 transition text-center"
+              >
+                طلب خدمة أخرى
+              </button>
+            </div>
           </div>
         </div>
       )}
