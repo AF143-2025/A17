@@ -37,12 +37,28 @@ export default function BottomNav() {
               key={item.href}
               href={item.href}
               prefetch={true}
-              className={`flex flex-col items-center py-1 px-3 rounded-xl transition-all active:scale-90 active:opacity-70 ${
-                isActive ? 'text-blue-600 font-bold' : 'text-slate-500 hover:text-slate-800'
-              }`}
+              className="flex flex-col items-center py-0.5 px-3 rounded-xl transition-all active:scale-95 group"
             >
-              <Icon className={`w-5 h-5 ${isActive ? 'text-blue-600' : 'text-slate-500'}`} />
-              <span className={`text-[11px] mt-1 ${isActive ? 'font-bold text-blue-600' : 'font-medium'}`}>
+              <div
+                className={`relative w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300 overflow-hidden ${
+                  isActive
+                    ? 'bg-gradient-to-tr from-blue-600 via-indigo-600 to-sky-500 text-white shadow-md shadow-blue-500/30 border-t border-white/50'
+                    : 'text-slate-500 group-hover:text-slate-900 group-hover:bg-sky-50/60'
+                }`}
+              >
+                {isActive && (
+                  <>
+                    <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/40 to-transparent pointer-events-none" />
+                    <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-white/40 blur-[1px] pointer-events-none" />
+                  </>
+                )}
+                <Icon className={`w-4 h-4 relative z-10 ${isActive ? 'drop-shadow-xs' : ''}`} />
+              </div>
+              <span
+                className={`text-[10px] mt-0.5 transition-colors ${
+                  isActive ? 'font-bold text-blue-600' : 'font-medium text-slate-500 group-hover:text-slate-700'
+                }`}
+              >
                 {item.label}
               </span>
             </Link>

@@ -339,8 +339,11 @@ export default function ServiceDetailsOrder() {
 
             {/* Header with Green Checkmark Icon */}
             <div className="text-center pt-2 pb-3">
-              <div className="w-14 h-14 rounded-2xl bg-emerald-100/80 text-emerald-600 flex items-center justify-center mx-auto mb-3 shadow-inner">
-                <CheckCircle2 className="w-7 h-7" />
+              <div className="relative w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 via-emerald-500 to-teal-400 text-white flex items-center justify-center mx-auto mb-3 shadow-lg shadow-emerald-500/30 overflow-hidden border-t border-l border-white/50 shadow-[inset_0_1.5px_2px_rgba(255,255,255,0.7)]">
+                {/* Specular gloss shine */}
+                <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/45 via-white/15 to-transparent pointer-events-none" />
+                <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-white/40 blur-[1px] pointer-events-none" />
+                <CheckCircle2 className="w-7 h-7 relative z-10 drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]" />
               </div>
               <h3 className="text-base sm:text-lg font-black text-slate-900 font-sans">
                 تم إنشاء طلبك بنجاح!
