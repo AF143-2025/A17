@@ -74,6 +74,18 @@ export class StandardSmmAdapter implements ProviderInterface {
         });
       }
 
+      // If provider rejects POST with 405 Method Not Allowed, fallback to GET query params
+      if (response.status === 405) {
+        response = await fetch(`${this.apiUrl}?${bodyUrlEncoded.toString()}`, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'User-Agent': 'ESAAD-SMM-Engine/3.0',
+          },
+          signal: AbortSignal.timeout(15000),
+        });
+      }
+
       const text = await response.text();
       let data: any;
       try {

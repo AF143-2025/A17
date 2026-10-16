@@ -181,26 +181,68 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const cleanApiUrl = apiUrl.trim();
+    const cleanApiKey = apiKey.trim();
+
+    // 1. Verify connection and balance with the provider first
+    let initialBalance = 0;
+    let initialCurrency = 'USD';
+    try {
+      const tempProvider = {
+        name,
+        apiUrl: cleanApiUrl,
+        apiKey: cleanApiKey,
+        type: type || 'STANDARD_SMM_V2',
+      } as any;
+      const adapter = ProviderFactory.getAdapter(tempProvider);
+      const balanceData = await adapter.getBalance();
+      initialBalance = balanceData.balance;
+      initialCurrency = balanceData.currency;
+    } catch (connErr: any) {
+      return NextResponse.json(
+        { error: `تعذر الاتصال بالمزود: ${connErr.message || 'يرجى التحقق من صحة رابط API ومفتاح API'}` },
+        { status: 400 }
+      );
+    }
+
     const newProvider = await db.provider.create({
       data: {
         name,
-        apiUrl: apiUrl.trim(),
-        apiKey: encryptText(apiKey.trim()),
+        apiUrl: cleanApiUrl,
+        apiKey: encryptText(cleanApiKey),
         type: type || 'STANDARD_SMM_V2',
         priority: priority ? parseInt(priority, 10) : 0,
         status: true,
+        balance: initialBalance,
+        balanceCurrency: initialCurrency,
+        lastSyncAt: new Date(),
       },
     });
+
+    // 2. Automatically sync available services from the new provider
+    let syncResult: any = null;
+    try {
+      syncResult = await SyncEngine.syncProviderServices(newProvider.id);
+    } catch (syncErr: any) {
+      console.warn('[Provider Create] Initial sync warning:', syncErr);
+    }
 
     await logAdminAction({
       adminId: admin.id,
       action: 'PROVIDER_CREATE',
       targetType: 'PROVIDER',
       targetId: newProvider.id,
-      details: { name, apiUrl, type, priority },
+      details: { name, apiUrl: cleanApiUrl, type, priority, initialBalance, initialCurrency, syncResult },
     });
 
-    return NextResponse.json({ success: true, provider: newProvider });
+    return NextResponse.json({
+      success: true,
+      provider: newProvider,
+      syncResult,
+      message: syncResult?.success
+        ? `تم ربط المزود بنجاح (الرصيد: $${initialBalance.toFixed(2)}) وتم جلب ومزامنة ${syncResult.totalSynced} خدمة تلقائياً 🚀`
+        : `تم ربط المزود والتحقق من الرصيد ($${initialBalance.toFixed(2)}) بنجاح.`,
+    });
   } catch (error: any) {
     console.error('Admin Provider API Error:', error);
     return NextResponse.json(
