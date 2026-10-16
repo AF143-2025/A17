@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import db from '@/lib/db';
-import { placeOrder } from '@/lib/order-engine';
+import { placeOrder, syncOrderStatus } from '@/lib/order-engine';
 import { sanitizeOrdersForCustomer, sanitizeOrderForCustomer } from '@/lib/order-sanitizer';
 
 export async function GET(req: NextRequest) {
@@ -18,6 +18,28 @@ export async function GET(req: NextRequest) {
   const search = searchParams.get('search')?.trim();
 
   const skip = (page - 1) * limit;
+
+  // Proactively sync active orders if they haven't been checked in the last 10 seconds
+  try {
+    const activeOrdersToSync = await db.order.findMany({
+      where: {
+        userId: user.id,
+        status: { in: ['PENDING', 'PROCESSING', 'IN_PROGRESS'] },
+        providerOrderId: { not: null },
+        updatedAt: { lt: new Date(Date.now() - 10 * 1000) },
+      },
+      take: 6,
+      select: { id: true },
+    });
+
+    if (activeOrdersToSync.length > 0) {
+      await Promise.allSettled(
+        activeOrdersToSync.map((o) => syncOrderStatus(o.id))
+      );
+    }
+  } catch (syncErr) {
+    console.warn('[OrdersAPI] Auto-sync active orders warning:', syncErr);
+  }
 
   const whereClause: any = {
     userId: user.id,

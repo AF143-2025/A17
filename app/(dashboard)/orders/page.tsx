@@ -54,6 +54,37 @@ interface OrderItem {
   events: OrderEvent[];
 }
 
+function SmoothCounter({ target }: { target: number }) {
+  const [displayCount, setDisplayCount] = useState(target);
+
+  useEffect(() => {
+    if (displayCount === target) return;
+    const start = displayCount;
+    const diff = target - start;
+    const duration = 700;
+    const startTime = performance.now();
+
+    let animationFrameId: number;
+
+    const updateCounter = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const easedProgress = 1 - Math.pow(1 - progress, 2);
+      const current = Math.round(start + diff * easedProgress);
+      setDisplayCount(current);
+
+      if (progress < 1) {
+        animationFrameId = requestAnimationFrame(updateCounter);
+      }
+    };
+
+    animationFrameId = requestAnimationFrame(updateCounter);
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [target]);
+
+  return <>{displayCount.toLocaleString('en-US')}</>;
+}
+
 export default function OrdersPage() {
   const [orders, setOrders] = useState<OrderItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -90,8 +121,8 @@ export default function OrdersPage() {
     { id: 'REFUNDED', label: 'الاسترداد', key: 'REFUNDED' },
   ];
 
-  const fetchOrders = async () => {
-    setLoading(true);
+  const fetchOrders = async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const params = new URLSearchParams({
         page: page.toString(),
@@ -109,17 +140,34 @@ export default function OrdersPage() {
         if (data.statusCounts) {
           setStatusCounts(data.statusCounts);
         }
+        if (selectedOrder) {
+          const freshSelected = (data.orders || []).find((o: OrderItem) => o.id === selectedOrder.id);
+          if (freshSelected) setSelectedOrder(freshSelected);
+        }
       }
     } catch (e) {
       console.error(e);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchOrders();
   }, [page, statusFilter]);
+
+  // Live auto-polling: when there are active orders, silently update every 6 seconds
+  const hasActiveOrders = orders.some((o) =>
+    ['PENDING', 'PROCESSING', 'IN_PROGRESS'].includes(o.status)
+  );
+
+  useEffect(() => {
+    if (!hasActiveOrders) return;
+    const interval = setInterval(() => {
+      fetchOrders(true);
+    }, 6000);
+    return () => clearInterval(interval);
+  }, [hasActiveOrders, page, statusFilter, search, selectedOrder?.id]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -349,12 +397,63 @@ export default function OrdersPage() {
                       <td className="py-3.5 px-4 font-sans font-black text-blue-600 whitespace-nowrap">
                         ${order.price.toFixed(2)}
                       </td>
-                      <td className="py-3.5 px-4 font-sans font-bold text-slate-800 whitespace-nowrap">
-                        {order.quantity.toLocaleString('en-US')}
-                        {order.remains > 0 && (
-                          <span className="block text-[10px] text-amber-600 font-normal">
-                            متبقي: {order.remains}
-                          </span>
+                      <td className="py-3.5 px-4 font-sans whitespace-nowrap">
+                        {order.status === 'COMPLETED' ? (
+                          <div className="space-y-0.5">
+                            <div className="font-bold text-slate-800 flex items-center gap-1.5">
+                              <span className="text-emerald-600 font-mono font-black">{order.quantity.toLocaleString('en-US')}</span>
+                              <span className="text-slate-400 font-normal text-[11px]">من</span>
+                              <span className="font-mono text-slate-700">{order.quantity.toLocaleString('en-US')}</span>
+                            </div>
+                            <span className="inline-flex items-center gap-1 text-[10px] text-emerald-600 font-bold">
+                              <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                              <span>مكتمل بالكامل (100%)</span>
+                            </span>
+                          </div>
+                        ) : ['PROCESSING', 'IN_PROGRESS'].includes(order.status) ? (
+                          <div className="space-y-1 min-w-[130px]">
+                            <div className="flex items-center justify-between text-xs font-bold">
+                              <div className="flex items-center gap-1">
+                                <span className="text-blue-600 font-mono font-black">
+                                  <SmoothCounter target={Math.max(0, Math.min(order.quantity, order.quantity - order.remains))} />
+                                </span>
+                                <span className="text-slate-400 font-normal text-[10px]">من</span>
+                                <span className="font-mono text-slate-700">{order.quantity.toLocaleString('en-US')}</span>
+                              </div>
+                              <span className="text-[10px] font-mono text-blue-600 font-bold bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">
+                                {Math.min(100, Math.max(0, Math.round(((order.quantity - order.remains) / order.quantity) * 100)))}%
+                              </span>
+                            </div>
+                            <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                              <div
+                                className="bg-gradient-to-r from-blue-500 to-indigo-600 h-full rounded-full transition-all duration-700 ease-out"
+                                style={{ width: `${Math.max(4, Math.min(100, Math.round(((order.quantity - order.remains) / order.quantity) * 100)))}%` }}
+                              />
+                            </div>
+                            <div className="flex items-center gap-1 text-[10px] text-blue-600 font-bold">
+                              <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
+                              </span>
+                              <span>جاري الرشق...</span>
+                            </div>
+                          </div>
+                        ) : order.status === 'PENDING' ? (
+                          <div className="space-y-0.5 font-bold text-slate-800">
+                            <div>{order.quantity.toLocaleString('en-US')}</div>
+                            <span className="block text-[10px] text-amber-600 font-normal">
+                              قيد بدء الرشق
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="space-y-0.5 font-bold text-slate-800">
+                            <div>{order.quantity.toLocaleString('en-US')}</div>
+                            {order.remains > 0 && (
+                              <span className="block text-[10px] text-slate-500 font-normal">
+                                متبقي: {order.remains.toLocaleString('en-US')}
+                              </span>
+                            )}
+                          </div>
                         )}
                       </td>
                       <td className="py-3.5 px-4 whitespace-nowrap">
@@ -403,6 +502,49 @@ export default function OrdersPage() {
                   <div className="text-[11px] font-mono text-slate-500 truncate" dir="ltr">
                     {order.targetUrl}
                   </div>
+
+                  {/* Active delivery counter & progress bar in mobile */}
+                  {['PROCESSING', 'IN_PROGRESS'].includes(order.status) && (
+                    <div className="p-2.5 rounded-2xl bg-blue-50/70 border border-blue-100/80 space-y-1.5">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-bold text-blue-700 flex items-center gap-1.5">
+                          <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
+                          </span>
+                          <span>جاري الرشق...</span>
+                        </span>
+                        <div className="flex items-center gap-1 font-mono text-xs">
+                          <span className="font-black text-blue-700">
+                            <SmoothCounter target={Math.max(0, Math.min(order.quantity, order.quantity - order.remains))} />
+                          </span>
+                          <span className="text-slate-400">/</span>
+                          <span className="font-bold text-slate-700">{order.quantity.toLocaleString('en-US')}</span>
+                          <span className="text-[10px] text-blue-600 font-bold mr-1">
+                            ({Math.min(100, Math.max(0, Math.round(((order.quantity - order.remains) / order.quantity) * 100)))}%)
+                          </span>
+                        </div>
+                      </div>
+                      <div className="w-full bg-white rounded-full h-1.5 overflow-hidden">
+                        <div
+                          className="bg-gradient-to-r from-blue-500 to-indigo-600 h-full rounded-full transition-all duration-700 ease-out"
+                          style={{ width: `${Math.max(5, Math.min(100, Math.round(((order.quantity - order.remains) / order.quantity) * 100)))}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {order.status === 'COMPLETED' && (
+                    <div className="p-2 rounded-xl bg-emerald-50/60 border border-emerald-100 flex items-center justify-between text-xs text-emerald-800">
+                      <span className="font-bold flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>اكتمل الرشق بالكامل</span>
+                      </span>
+                      <span className="font-mono font-bold">
+                        {order.quantity.toLocaleString('en-US')} / {order.quantity.toLocaleString('en-US')} (100%)
+                      </span>
+                    </div>
+                  )}
 
                   <div className="flex items-center justify-between pt-1 border-t border-slate-100 text-xs">
                     <div className="flex items-center gap-2">
@@ -544,9 +686,21 @@ export default function OrdersPage() {
               </div>
 
               <div className="p-3.5 rounded-xl bg-sky-50/60 border border-sky-100 space-y-1">
-                <span className="text-slate-500">الكمية:</span>
+                <span className="text-slate-500">الكمية المطلوبة:</span>
                 <p className="font-bold text-slate-900 font-sans">
                   {selectedOrder.quantity.toLocaleString('en-US')}
+                </p>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-sky-50/60 border border-sky-100 space-y-1">
+                <span className="text-slate-500">المنجز حتى الآن:</span>
+                <p className="font-bold text-blue-600 font-sans">
+                  {Math.max(0, Math.min(selectedOrder.quantity, selectedOrder.quantity - selectedOrder.remains)).toLocaleString('en-US')}
+                  {selectedOrder.quantity > 0 && (
+                    <span className="text-xs font-normal text-slate-500 mr-1.5">
+                      ({Math.min(100, Math.round((Math.max(0, selectedOrder.quantity - selectedOrder.remains) / selectedOrder.quantity) * 100))}%)
+                    </span>
+                  )}
                 </p>
               </div>
 
@@ -558,13 +712,13 @@ export default function OrdersPage() {
               </div>
 
               <div className="p-3.5 rounded-xl bg-sky-50/60 border border-sky-100 space-y-1">
-                <span className="text-slate-500">العداد الأولي:</span>
-                <p className="font-mono text-slate-800">{selectedOrder.startCount}</p>
+                <span className="text-slate-500">الكمية المتبقية:</span>
+                <p className="font-mono text-slate-800">{selectedOrder.remains.toLocaleString('en-US')}</p>
               </div>
 
               <div className="p-3.5 rounded-xl bg-sky-50/60 border border-sky-100 space-y-1">
-                <span className="text-slate-500">المتبقي:</span>
-                <p className="font-mono text-slate-800">{selectedOrder.remains}</p>
+                <span className="text-slate-500">العداد الأولي:</span>
+                <p className="font-mono text-slate-800">{selectedOrder.startCount}</p>
               </div>
             </div>
 

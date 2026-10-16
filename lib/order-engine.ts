@@ -452,6 +452,18 @@ export async function syncOrderStatus(orderId: string) {
         maxWait: 15000,
         timeout: 35000,
       });
+    } else if (
+      (statusResult.remains !== undefined && statusResult.remains !== order.remains) ||
+      (statusResult.startCount !== undefined && statusResult.startCount !== order.startCount)
+    ) {
+      // Progress update: count/remains changed while order is still executing
+      await db.order.update({
+        where: { id: order.id },
+        data: {
+          startCount: statusResult.startCount ?? order.startCount,
+          remains: statusResult.remains !== undefined ? statusResult.remains : order.remains,
+        },
+      });
     }
 
     return await db.order.findUnique({

@@ -29,10 +29,10 @@ export default function StatusBadge({ status, type = 'order' }: StatusBadgeProps
       dot: 'bg-indigo-400',
     },
     COMPLETED: {
-      label: 'مكتمل بنجاح',
+      label: 'مكتمل',
       bg: 'bg-emerald-500/10 border-emerald-500/30',
-      text: 'text-emerald-400',
-      dot: 'bg-emerald-400',
+      text: 'text-emerald-500',
+      dot: 'bg-emerald-500',
     },
     PARTIAL: {
       label: 'مكتمل جزئياً',

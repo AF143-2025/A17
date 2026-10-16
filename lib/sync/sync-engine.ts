@@ -706,6 +706,18 @@ export class SyncEngine {
           });
 
           updatedCount++;
+        } else if (
+          (statusRes.remains !== undefined && statusRes.remains !== order.remains) ||
+          (statusRes.startCount !== undefined && statusRes.startCount !== order.startCount)
+        ) {
+          await db.order.update({
+            where: { id: order.id },
+            data: {
+              startCount: statusRes.startCount || order.startCount,
+              remains: statusRes.remains !== undefined ? statusRes.remains : order.remains,
+            },
+          });
+          updatedCount++;
         }
       } catch (err: any) {
         console.warn(
