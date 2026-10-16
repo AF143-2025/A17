@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import StatusBadge from '@/components/StatusBadge';
+import { formatSmmPrice } from '@/lib/currency';
 import {
   ShoppingBag,
   Search,
@@ -395,7 +396,7 @@ export default function OrdersPage() {
                         </a>
                       </td>
                       <td className="py-3.5 px-4 font-sans font-black text-blue-600 whitespace-nowrap">
-                        ${order.price.toFixed(2)}
+                        ${formatSmmPrice(order.price)}
                       </td>
                       <td className="py-3.5 px-4 font-sans whitespace-nowrap">
                         {order.status === 'COMPLETED' ? (
@@ -553,7 +554,7 @@ export default function OrdersPage() {
                       </span>
                       <span className="text-slate-300">•</span>
                       <span className="font-sans font-black text-blue-600">
-                        ${order.price.toFixed(2)}
+                        ${formatSmmPrice(order.price)}
                       </span>
                     </div>
 
@@ -705,9 +706,9 @@ export default function OrdersPage() {
               </div>
 
               <div className="p-3.5 rounded-xl bg-sky-50/60 border border-sky-100 space-y-1">
-                <span className="text-slate-500">التكلفة:</span>
+                <span className="text-slate-500">المبلغ المخصوم:</span>
                 <p className="font-black text-blue-600 font-sans">
-                  ${selectedOrder.price.toFixed(2)}
+                  ${formatSmmPrice(selectedOrder.price)}
                 </p>
               </div>
 

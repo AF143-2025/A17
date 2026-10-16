@@ -2,6 +2,7 @@ import db from './db';
 import { creditWalletBalance } from './wallet';
 import { ProviderFactory } from './providers/provider-factory';
 import { ProviderRouter } from './providers/provider-router';
+import { formatSmmPrice, formatSmmBalance } from './currency';
 
 export interface PlaceOrderParams {
   userId: string;
@@ -88,10 +89,10 @@ export async function placeOrder({
     throw new Error('يرجى إدخال رابط الحساب أو اسم المستخدم بشكل صحيح');
   }
 
-  // 4. Calculate pricing (USD)
+  // 4. Calculate pricing (USD) - Preserve exact SMM fractional precision (e.g. $0.103)
   const basePrice = (quantity / 1000) * service.pricePer1000;
-  const cost = (quantity / 1000) * service.providerCostPer1000;
-  let finalPrice = Math.round(basePrice * 100) / 100;
+  const cost = Math.round(((quantity / 1000) * service.providerCostPer1000) * 100000) / 100000;
+  let finalPrice = Math.round(basePrice * 100000) / 100000;
   let discountAmount = 0;
   let couponRecord = null;
 
@@ -109,19 +110,19 @@ export async function placeOrder({
       basePrice >= coupon.minOrderAmount
     ) {
       if (coupon.discountType === 'PERCENTAGE') {
-        discountAmount = Math.round(((basePrice * coupon.discountValue) / 100) * 100) / 100;
+        discountAmount = Math.round(((basePrice * coupon.discountValue) / 100) * 100000) / 100000;
         if (coupon.maxDiscount && discountAmount > coupon.maxDiscount) {
           discountAmount = coupon.maxDiscount;
         }
       } else {
         discountAmount = Math.min(coupon.discountValue, basePrice);
       }
-      finalPrice = Math.max(0, Math.round((basePrice - discountAmount) * 100) / 100);
+      finalPrice = Math.max(0, Math.round((basePrice - discountAmount) * 100000) / 100000);
       couponRecord = coupon;
     }
   }
 
-  const profit = Math.max(0, Math.round((finalPrice - cost) * 100) / 100);
+  const profit = Math.max(0, Math.round((finalPrice - cost) * 100000) / 100000);
 
   // 5. Transactional internal order creation and wallet deduction
   const order = await db.$transaction(async (tx) => {
@@ -130,9 +131,9 @@ export async function placeOrder({
     });
 
     if (!wallet || wallet.balance < finalPrice) {
-      const currentBalance = wallet ? wallet.balance.toFixed(2) : '0.00';
+      const currentBalance = wallet ? formatSmmBalance(wallet.balance) : '0.000';
       throw new Error(
-        `رصيدك الحالي ($${currentBalance}) غير كافٍ. المطلوب: $${finalPrice.toFixed(2)}`
+        `رصيدك الحالي ($${currentBalance}) غير كافٍ. المطلوب: $${formatSmmPrice(finalPrice)}`
       );
     }
 
@@ -194,7 +195,7 @@ export async function placeOrder({
       data: {
         orderId: newOrder.id,
         eventType: 'PAYMENT_CONFIRMED',
-        message: `تم خصم قيمة الطلب ($${finalPrice.toFixed(2)}) من المحفظة بنجاح`,
+        message: `تم خصم قيمة الطلب ($${formatSmmPrice(finalPrice)}) من المحفظة بنجاح`,
       },
     });
 
@@ -376,13 +377,13 @@ export async function syncOrderStatus(orderId: string) {
         if (newStatus === 'PARTIAL') {
           const remains = statusResult.remains ?? 0;
           const refundRatio = remains / current.quantity;
-          refundAmount = Math.round(current.price * refundRatio * 100) / 100;
+          refundAmount = Math.round(current.price * refundRatio * 100000) / 100000;
           eventType = 'PARTIAL';
-          eventMsg = `اكتمل الطلب جزئياً. تم استرجاع $${refundAmount.toFixed(2)} إلى المحفظة عن الكمية المتبقية (${remains}).`;
+          eventMsg = `اكتمل الطلب جزئياً. تم استرجاع $${formatSmmPrice(refundAmount)} إلى المحفظة عن الكمية المتبقية (${remains}).`;
         } else if (newStatus === 'CANCELED' || newStatus === 'REFUNDED') {
           refundAmount = current.price;
           eventType = 'CANCELED_REFUND';
-          eventMsg = `تم إلغاء الطلب واسترجاع المبلغ الكامل ($${current.price.toFixed(2)}) إلى المحفظة تلقائياً.`;
+          eventMsg = `تم إلغاء الطلب واسترجاع المبلغ الكامل ($${formatSmmPrice(current.price)}) إلى المحفظة تلقائياً.`;
         }
 
         if (refundAmount > 0) {

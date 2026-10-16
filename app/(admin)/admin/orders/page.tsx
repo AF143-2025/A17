@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import StatusBadge from '@/components/StatusBadge';
+import { formatSmmPrice } from '@/lib/currency';
 import {
   ShoppingBag,
   Search,
@@ -433,7 +434,7 @@ export default function AdminOrdersPage() {
                       )}
                     </td>
                     <td className="py-3.5 px-4 font-sans font-black text-blue-600 whitespace-nowrap">
-                      ${o.price.toFixed(2)}
+                      ${formatSmmPrice(o.price)}
                     </td>
                     <td className="py-3.5 px-4 font-sans text-slate-500 whitespace-nowrap">
                       ${o.cost.toFixed(2)}
@@ -640,7 +641,7 @@ export default function AdminOrdersPage() {
                 </div>
                 <div className="flex justify-between text-slate-600">
                   <span>سعر الطلب الأصلي:</span>
-                  <span className="font-bold text-blue-600 font-sans">${refundOrder.price.toFixed(2)}</span>
+                  <span className="font-bold text-blue-600 font-sans">${formatSmmPrice(refundOrder.price)}</span>
                 </div>
               </div>
 

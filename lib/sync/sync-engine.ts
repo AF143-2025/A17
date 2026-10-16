@@ -3,6 +3,7 @@ import { ProviderFactory } from '../providers/provider-factory';
 import { calculateCustomerPrice, recalculateServicePrices } from '../pricing-engine';
 import { creditWalletBalance } from '../wallet';
 import { invalidateServicesCache } from '../services-cache';
+import { formatSmmPrice } from '../currency';
 
 export interface SyncResult {
   providerId: string;
@@ -627,13 +628,13 @@ export class SyncEngine {
 
             if (mappedStatus === 'PARTIAL' && statusRes.remains && statusRes.remains > 0) {
               const refundRatio = statusRes.remains / current.quantity;
-              refundAmount = Math.round(current.price * refundRatio * 100) / 100;
+              refundAmount = Math.round(current.price * refundRatio * 100000) / 100000;
               eventType = 'PARTIAL_REFUND';
-              eventMsg = `اكتمل الطلب جزئياً. تم استرجاع $${refundAmount.toFixed(2)} إلى المحفظة تلقائياً عن المتبقي (${statusRes.remains}).`;
+              eventMsg = `اكتمل الطلب جزئياً. تم استرجاع $${formatSmmPrice(refundAmount)} إلى المحفظة تلقائياً عن المتبقي (${statusRes.remains}).`;
             } else if (mappedStatus === 'CANCELED' || mappedStatus === 'REFUNDED') {
               refundAmount = current.price;
               eventType = 'CANCELED_REFUND';
-              eventMsg = `تم إلغاء الطلب واسترجاع كامل المبلغ ($${refundAmount.toFixed(2)}) إلى المحفظة تلقائياً.`;
+              eventMsg = `تم إلغاء الطلب واسترجاع كامل المبلغ ($${formatSmmPrice(current.price)}) إلى المحفظة تلقائياً.`;
             }
 
             // If a refund is due, credit wallet inside the SAME transaction
