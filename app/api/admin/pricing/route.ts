@@ -8,7 +8,7 @@ export async function GET() {
   try {
     await requireAdmin();
 
-    const [rules, platforms, categories] = await Promise.all([
+    const [rules, platforms, categories, categoriesWithPlatform] = await Promise.all([
       db.pricingRule.findMany({
         orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
       }),
@@ -20,12 +20,65 @@ export async function GET() {
         where: { status: true },
         select: { id: true, name: true, nameAr: true, slug: true, platformId: true },
       }),
+      db.category.findMany({
+        where: { status: true },
+        select: {
+          id: true,
+          name: true,
+          nameAr: true,
+          slug: true,
+          platformId: true,
+          platform: { select: { id: true, name: true, nameAr: true, slug: true } },
+          _count: { select: { services: true } },
+        },
+      }),
     ]);
+
+    const mainSectionDefinitions = [
+      { key: 'likes', name: 'الإعجابات واللايكات', match: 'لايك' },
+      { key: 'followers', name: 'المتابعين والمشتركين', match: 'متابع' },
+      { key: 'views', name: 'المشاهدات والظهور', match: 'مشاهد' },
+      { key: 'reactions', name: 'تفاعلات الإيموجي', match: 'تفاعل' },
+      { key: 'members', name: 'أعضاء القنوات والمجموعات', match: 'أعضاء' },
+      { key: 'comments', name: 'التعليقات المخصصة', match: 'تعليق' },
+      { key: 'shares', name: 'المشاركات وإعادة النشر', match: 'مشارك' },
+      { key: 'livestream', name: 'خدمات البث المباشر 🔴', match: 'بث' },
+      { key: 'general', name: 'الخدمات العامة', match: 'عام' },
+    ];
+
+    const mainSections = mainSectionDefinitions.map((def) => {
+      const matchingCats = categoriesWithPlatform.filter(
+        (c) =>
+          (c.nameAr && c.nameAr.includes(def.match)) ||
+          (c.name && c.name.toLowerCase().includes(def.key)) ||
+          (def.key === 'followers' && c.nameAr && (c.nameAr.includes('متابع') || c.nameAr.includes('مشترك')))
+      );
+      const servicesCount = matchingCats.reduce((sum, c) => sum + c._count.services, 0);
+      const coveredPlatforms = Array.from(
+        new Set(matchingCats.map((c) => c.platform?.nameAr || c.platform?.name).filter(Boolean))
+      );
+      const rule = rules.find(
+        (r) => r.scope === 'MAIN_CATEGORY' && (r.targetId === def.name || r.name === def.name)
+      );
+
+      return {
+        key: def.key,
+        name: def.name,
+        ruleId: rule?.id || null,
+        markupType: rule?.markupType || 'PERCENTAGE',
+        markupValue: rule?.markupValue ?? 80,
+        servicesCount,
+        platforms: coveredPlatforms,
+        categoriesCount: matchingCats.length,
+        status: rule?.status ?? true,
+      };
+    });
 
     return NextResponse.json({
       rules,
       platforms,
       categories,
+      mainSections,
     });
   } catch (error: any) {
     return NextResponse.json(
@@ -48,17 +101,51 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const rule = await db.pricingRule.create({
-      data: {
-        name,
-        scope: scope || 'GLOBAL',
-        targetId: targetId || null,
-        markupType: markupType || 'PERCENTAGE',
-        markupValue: parseFloat(markupValue),
-        priority: priority ? parseInt(priority, 10) : 0,
-        status: true,
-      },
-    });
+    let rule = null;
+    if (scope === 'MAIN_CATEGORY' && targetId) {
+      const existing = await db.pricingRule.findFirst({
+        where: { scope: 'MAIN_CATEGORY', targetId },
+      });
+      if (existing) {
+        rule = await db.pricingRule.update({
+          where: { id: existing.id },
+          data: {
+            name: name || existing.name,
+            markupType: markupType || 'PERCENTAGE',
+            markupValue: parseFloat(markupValue),
+            status: true,
+          },
+        });
+      }
+    }
+
+    if (!rule) {
+      rule = await db.pricingRule.create({
+        data: {
+          name,
+          scope: scope || 'GLOBAL',
+          targetId: targetId || null,
+          markupType: markupType || 'PERCENTAGE',
+          markupValue: parseFloat(markupValue),
+          priority: priority ? parseInt(priority, 10) : 15,
+          status: true,
+        },
+      });
+    }
+
+    if (rule.scope === 'MAIN_CATEGORY' && rule.targetId) {
+      await db.pricingRule.updateMany({
+        where: {
+          scope: 'CATEGORY',
+          name: { contains: rule.targetId },
+        },
+        data: {
+          markupType: rule.markupType,
+          markupValue: rule.markupValue,
+          status: rule.status,
+        },
+      });
+    }
 
     const recalculatedCount = await recalculateServicePrices();
 
@@ -107,6 +194,20 @@ export async function PUT(req: NextRequest) {
       where: { id },
       data: updateData,
     });
+
+    if (rule.scope === 'MAIN_CATEGORY' && rule.targetId) {
+      await db.pricingRule.updateMany({
+        where: {
+          scope: 'CATEGORY',
+          name: { contains: rule.targetId },
+        },
+        data: {
+          markupType: rule.markupType,
+          markupValue: rule.markupValue,
+          status: rule.status,
+        },
+      });
+    }
 
     const recalculatedCount = await recalculateServicePrices();
 

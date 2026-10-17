@@ -65,6 +65,32 @@ export async function calculateCustomerPrice(
     if (categoryRule) {
       return computePrice(baseCost, categoryRule, isFollowerCategory);
     }
+
+    // 2.5 Check MAIN_CATEGORY level rule (matches category nameAr)
+    const cat = await db.category.findUnique({
+      where: { id: categoryId },
+      select: { nameAr: true, name: true },
+    });
+    if (cat?.nameAr) {
+      const mainCatRule = rules.find(
+        (r) =>
+          r.scope === 'MAIN_CATEGORY' &&
+          (r.targetId === cat.nameAr ||
+            r.name === cat.nameAr ||
+            (r.targetId?.includes('لايك') && cat.nameAr.includes('لايك')) ||
+            (r.targetId?.includes('متابع') && (cat.nameAr.includes('متابع') || cat.nameAr.includes('مشترك'))) ||
+            (r.targetId?.includes('مشاهد') && cat.nameAr.includes('مشاهد')) ||
+            (r.targetId?.includes('تعليق') && cat.nameAr.includes('تعليق')) ||
+            (r.targetId?.includes('تفاعل') && cat.nameAr.includes('تفاعل')) ||
+            (r.targetId?.includes('أعضاء') && cat.nameAr.includes('أعضاء')) ||
+            (r.targetId?.includes('مشارك') && cat.nameAr.includes('مشارك')) ||
+            (r.targetId?.includes('بث') && cat.nameAr.includes('بث')) ||
+            (r.targetId?.includes('عام') && cat.nameAr.includes('عام')))
+      );
+      if (mainCatRule) {
+        return computePrice(baseCost, mainCatRule, isFollowerCategory);
+      }
+    }
   }
 
   // 3. Check PLATFORM level rule
@@ -256,6 +282,43 @@ export async function recalculateServicePrices(serviceId?: string): Promise<numb
           UPDATE "services"
           SET "pricePer1000" = GREATEST(ROUND(("providerCostPer1000" * ${multiplier})::numeric, 4), 0.0001)
           WHERE "providerCostPer1000" > 0 AND "categoryId" = '${rule.targetId}';
+        `);
+      }
+    } else if (rule.scope === 'MAIN_CATEGORY' && rule.targetId) {
+      let cond = `"nameAr" = '${rule.targetId}'`;
+      if (rule.targetId.includes('لايك') || rule.targetId === 'likes') {
+        cond = `("nameAr" LIKE '%لايك%' OR "nameAr" LIKE '%إعجاب%')`;
+      } else if (rule.targetId.includes('متابع') || rule.targetId === 'followers') {
+        cond = `("nameAr" LIKE '%متابع%' OR "nameAr" LIKE '%مشترك%')`;
+      } else if (rule.targetId.includes('مشاهد') || rule.targetId === 'views') {
+        cond = `("nameAr" LIKE '%مشاهد%' OR "nameAr" LIKE '%ظهور%')`;
+      } else if (rule.targetId.includes('تعليق') || rule.targetId === 'comments') {
+        cond = `("nameAr" LIKE '%تعليق%')`;
+      } else if (rule.targetId.includes('تفاعل') || rule.targetId === 'reactions') {
+        cond = `("nameAr" LIKE '%تفاعل%' OR "nameAr" LIKE '%إيموجي%')`;
+      } else if (rule.targetId.includes('أعضاء') || rule.targetId === 'members') {
+        cond = `("nameAr" LIKE '%أعضاء%' OR "nameAr" LIKE '%مجموعات%' OR "nameAr" LIKE '%قنوات%')`;
+      } else if (rule.targetId.includes('مشارك') || rule.targetId === 'shares') {
+        cond = `("nameAr" LIKE '%مشارك%' OR "nameAr" LIKE '%نشر%')`;
+      } else if (rule.targetId.includes('بث') || rule.targetId === 'livestream') {
+        cond = `("nameAr" LIKE '%بث%' OR "nameAr" LIKE '%مباشر%')`;
+      } else if (rule.targetId.includes('عام') || rule.targetId === 'general') {
+        cond = `("nameAr" LIKE '%عام%')`;
+      }
+
+      if (isFixed) {
+        await db.$executeRawUnsafe(`
+          UPDATE "services"
+          SET "pricePer1000" = ROUND(("providerCostPer1000" + ${markup})::numeric, 4)
+          WHERE "providerCostPer1000" > 0
+          AND "categoryId" IN (SELECT "id" FROM "categories" WHERE ${cond});
+        `);
+      } else {
+        await db.$executeRawUnsafe(`
+          UPDATE "services"
+          SET "pricePer1000" = GREATEST(ROUND(("providerCostPer1000" * ${multiplier})::numeric, 4), 0.0001)
+          WHERE "providerCostPer1000" > 0
+          AND "categoryId" IN (SELECT "id" FROM "categories" WHERE ${cond});
         `);
       }
     } else if (rule.scope === 'SERVICE' && rule.targetId) {

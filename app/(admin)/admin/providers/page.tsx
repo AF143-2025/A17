@@ -64,6 +64,19 @@ interface PricingRuleRecord {
   createdAt: string;
 }
 
+interface MainSectionRecord {
+  key: string;
+  name: string;
+  ruleId: string | null;
+  markupType: string;
+  markupValue: number;
+  priority: number;
+  isActive: boolean;
+  servicesCount: number;
+  categoriesCount: number;
+  platforms: string[];
+}
+
 interface SyncLogRecord {
   id: string;
   providerId: string | null;
@@ -80,6 +93,7 @@ export default function AdminProvidersPage() {
   const [activeTab, setActiveTab] = useState<'providers' | 'pricing' | 'logs'>('providers');
   const [providers, setProviders] = useState<ProviderRecord[]>([]);
   const [pricingRules, setPricingRules] = useState<PricingRuleRecord[]>([]);
+  const [mainSections, setMainSections] = useState<MainSectionRecord[]>([]);
   const [platforms, setPlatforms] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [pricingPlatformFilter, setPricingPlatformFilter] = useState<string>('ALL');
@@ -136,6 +150,7 @@ export default function AdminProvidersPage() {
       if (pricingRes.ok) {
         const prData = await pricingRes.json();
         setPricingRules(prData.rules || []);
+        setMainSections(prData.mainSections || []);
         setPlatforms(prData.platforms || []);
         setCategories(prData.categories || []);
       }
@@ -804,6 +819,16 @@ export default function AdminProvidersPage() {
 
       {/* TAB 2: PRICING RULES */}
       {activeTab === 'pricing' && (() => {
+        const isMainSectionsView = pricingPlatformFilter === 'ALL';
+
+        const filteredMainSections = mainSections.filter((sec) => {
+          if (!pricingSearchQuery.trim()) return true;
+          const q = pricingSearchQuery.toLowerCase();
+          const nameMatch = sec.name.toLowerCase().includes(q) || sec.key.toLowerCase().includes(q);
+          const platformMatch = sec.platforms.some((p) => p.toLowerCase().includes(q));
+          return nameMatch || platformMatch;
+        });
+
         const filteredPricingRules = pricingRules.filter((rule) => {
           if (pricingPlatformFilter !== 'ALL') {
             const targetCat = categories.find((c) => c.id === rule.targetId);
@@ -830,9 +855,9 @@ export default function AdminProvidersPage() {
             {/* Header & Controls */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-sky-100 shadow-xs">
               <div>
-                <h2 className="text-sm font-black text-slate-900">التحكم في هوامش أرباح الفئات</h2>
+                <h2 className="text-sm font-black text-slate-900">التحكم في هوامش أرباح الأقسام الرئيسية</h2>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  يمكنك تخصيص وتعديل نسبة أو مبلغ الربح لكل فئة بشكل فردي ومستقل (تطبق فورياً على أسعار الخدمات).
+                  حدد نسبة أو مبلغ الربح لكل قسم رئيسي (مثل: الإعجابات، المتابعين، المشاهدات...) مرة واحدة وسيطبق فورياً على كافة الخدمات والمنصات التابعة له بنقرة واحدة.
                 </p>
               </div>
 
@@ -842,11 +867,11 @@ export default function AdminProvidersPage() {
                     setEditingRuleId(null);
                     setRuleForm({
                       name: '',
-                      scope: 'CATEGORY',
+                      scope: 'MAIN_CATEGORY',
                       targetId: '',
                       markupType: 'PERCENTAGE',
                       markupValue: 80,
-                      priority: 10,
+                      priority: 15,
                       recalculateNow: true,
                     });
                     setRuleModalOpen(true);
@@ -854,7 +879,7 @@ export default function AdminProvidersPage() {
                   className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs font-bold text-white transition shadow-sm cursor-pointer whitespace-nowrap"
                 >
                   <PlusCircle className="w-3.5 h-3.5" />
-                  <span>إضافة قاعدة مخصصة</span>
+                  <span>إضافة / تخصيص قاعدة</span>
                 </button>
               </div>
             </div>
@@ -868,7 +893,7 @@ export default function AdminProvidersPage() {
                     type="text"
                     value={pricingSearchQuery}
                     onChange={(e) => setPricingSearchQuery(e.target.value)}
-                    placeholder="ابحث عن اسم فئة أو منصة (مثال: متابعين، لايكات، إنستغرام...)"
+                    placeholder="ابحث عن قسم رئيسي أو منصة (مثال: لايكات، متابعين، إنستغرام، تيك توك...)"
                     className="w-full pl-8 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:bg-white focus:border-blue-500 focus:outline-none"
                   />
                   {pricingSearchQuery && (
@@ -882,7 +907,9 @@ export default function AdminProvidersPage() {
                 </div>
 
                 <div className="text-[11px] font-bold text-slate-500 whitespace-nowrap px-1">
-                  عرض {filteredPricingRules.length} من أصل {pricingRules.length} قاعدة
+                  {isMainSectionsView
+                    ? `عرض ${filteredMainSections.length} من أصل ${mainSections.length} قسم رئيسي`
+                    : `عرض ${filteredPricingRules.length} من أصل ${pricingRules.length} قاعدة`}
                 </div>
               </div>
 
@@ -896,7 +923,7 @@ export default function AdminProvidersPage() {
                       : 'bg-slate-50 hover:bg-sky-50 text-slate-700 border border-slate-200/80'
                   }`}
                 >
-                  جميع المنصات ({pricingRules.length})
+                  الأقسام الرئيسية ({mainSections.length || 9})
                 </button>
                 {platforms.map((p) => {
                   const count = pricingRules.filter((r) => {
@@ -923,114 +950,222 @@ export default function AdminProvidersPage() {
               </div>
             </div>
 
-            {filteredPricingRules.length === 0 ? (
-              <div className="p-12 text-center rounded-3xl bg-white border border-sky-100 text-slate-500 shadow-sm">
-                <Sliders className="w-10 h-10 mx-auto mb-3 text-slate-300" />
-                <p className="font-bold text-sm text-slate-800">لا توجد قواعد تسعير مطابقة للبحث</p>
-                <p className="text-xs mt-1 text-slate-500 max-w-md mx-auto">
-                  جرب تغيير خيارات التصفية أو مسح عبارة البحث لإظهار فئات المنصات.
-                </p>
-              </div>
-            ) : (
-              <div className="rounded-3xl bg-white border border-sky-100 overflow-hidden shadow-sm">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs text-right">
-                    <thead>
-                      <tr className="bg-sky-50/60 border-b border-sky-100 text-slate-700 font-bold">
-                        <th className="p-3.5">اسم الفئة / القاعدة</th>
-                        <th className="p-3.5">المنصة</th>
-                        <th className="p-3.5">النطاق</th>
-                        <th className="p-3.5">هامش الربح الحالي</th>
-                        <th className="p-3.5">الحالة</th>
-                        <th className="p-3.5 text-center">إجراءات</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {filteredPricingRules.map((rule) => {
-                        const targetCategory = categories.find((c) => c.id === rule.targetId);
-                        const targetPlatform = targetCategory
-                          ? platforms.find((p) => p.id === targetCategory.platformId)
-                          : platforms.find((p) => p.id === rule.targetId);
-
-                        return (
-                          <tr key={rule.id} className="hover:bg-sky-50/40 transition">
+            {/* MAIN SECTIONS TABLE (DEFAULT VIEW) */}
+            {isMainSectionsView ? (
+              filteredMainSections.length === 0 ? (
+                <div className="p-12 text-center rounded-3xl bg-white border border-sky-100 text-slate-500 shadow-sm">
+                  <Sliders className="w-10 h-10 mx-auto mb-3 text-slate-300" />
+                  <p className="font-bold text-sm text-slate-800">لا توجد أقسام رئيسية مطابقة للبحث</p>
+                  <p className="text-xs mt-1 text-slate-500 max-w-md mx-auto">
+                    جرب مسح عبارة البحث لإظهار كافة الأقسام الرئيسية.
+                  </p>
+                </div>
+              ) : (
+                <div className="rounded-3xl bg-white border border-sky-100 overflow-hidden shadow-sm">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs text-right">
+                      <thead>
+                        <tr className="bg-sky-50/60 border-b border-sky-100 text-slate-700 font-bold">
+                          <th className="p-3.5">اسم القسم الرئيسي</th>
+                          <th className="p-3.5">المنصات المشمولة</th>
+                          <th className="p-3.5">إجمالي الخدمات</th>
+                          <th className="p-3.5">هامش الربح الحالي</th>
+                          <th className="p-3.5">الحالة</th>
+                          <th className="p-3.5 text-center">إجراءات</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {filteredMainSections.map((sec) => (
+                          <tr key={sec.key} className="hover:bg-sky-50/40 transition">
                             <td className="p-3.5">
-                              <div className="font-black text-slate-900">{rule.name}</div>
-                              {targetCategory && (
-                                <div className="text-[11px] text-slate-500 mt-0.5">
-                                  المعرف: {targetCategory.slug}
-                                </div>
-                              )}
+                              <div className="font-black text-slate-900 text-sm flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                                {sec.name}
+                              </div>
+                              <div className="text-[11px] text-slate-500 mt-0.5">
+                                يشمل {sec.categoriesCount} فئة فرعية بالمنصات
+                              </div>
                             </td>
                             <td className="p-3.5">
-                              {targetPlatform ? (
-                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sky-50 text-blue-700 border border-sky-200 font-bold text-[11px]">
-                                  {targetPlatform.nameAr || targetPlatform.name}
-                                </span>
-                              ) : (
-                                <span className="text-slate-400 font-medium">كل المنصات (عام)</span>
-                              )}
+                              <div className="flex flex-wrap gap-1 max-w-xs">
+                                {sec.platforms.slice(0, 4).map((pName) => (
+                                  <span
+                                    key={pName}
+                                    className="px-2 py-0.5 rounded-lg bg-sky-50 text-blue-700 border border-sky-200 font-bold text-[10px]"
+                                  >
+                                    {pName}
+                                  </span>
+                                ))}
+                                {sec.platforms.length > 4 && (
+                                  <span className="px-1.5 py-0.5 rounded-lg bg-slate-100 text-slate-600 text-[10px] font-mono font-bold">
+                                    +{sec.platforms.length - 4} أخرى
+                                  </span>
+                                )}
+                              </div>
                             </td>
                             <td className="p-3.5">
-                              <span className="px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-200 font-mono text-[10px] font-bold">
-                                {rule.scope === 'CATEGORY' ? 'فئة محددة' : rule.scope === 'PLATFORM' ? 'منصة' : 'عام'}
+                              <span className="font-mono font-bold text-slate-800 bg-slate-100 px-2.5 py-1 rounded-xl text-xs inline-block">
+                                {sec.servicesCount.toLocaleString('en-US')} خدمة
                               </span>
                             </td>
                             <td className="p-3.5">
                               <div className="font-sans font-black text-sm text-emerald-600">
-                                {rule.markupType === 'PERCENTAGE'
-                                  ? `+${rule.markupValue}%`
-                                  : `+$${rule.markupValue.toFixed(3)}`}
+                                {sec.markupType === 'PERCENTAGE'
+                                  ? `+${sec.markupValue}%`
+                                  : `+$${sec.markupValue.toFixed(3)}`}
                               </div>
                               <span className="text-[10px] text-slate-400">
-                                {rule.markupType === 'PERCENTAGE' ? 'نسبة مئوية من التكلفة' : 'ربح صافي ثابت فوق التكلفة'}
+                                {sec.markupType === 'PERCENTAGE'
+                                  ? 'نسبة مئوية موحدة فوق التكلفة'
+                                  : 'مبلغ ربح موحد فوق التكلفة'}
                               </span>
                             </td>
                             <td className="p-3.5">
-                              <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">
-                                مفعل ومطبق ⚡
+                              <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold inline-flex items-center gap-1">
+                                <Sparkles className="w-3 h-3 text-emerald-500" />
+                                مطبق وشامل ⚡
                               </span>
                             </td>
                             <td className="p-3.5 text-center">
-                              <div className="flex items-center justify-center gap-1.5">
-                                <button
-                                  onClick={() => {
-                                    setEditingRuleId(rule.id);
-                                    setRuleForm({
-                                      name: rule.name,
-                                      scope: rule.scope as any,
-                                      targetId: rule.targetId || '',
-                                      markupType: rule.markupType as any,
-                                      markupValue: rule.markupValue,
-                                      priority: rule.priority,
-                                      recalculateNow: true,
-                                    });
-                                    setRuleModalOpen(true);
-                                  }}
-                                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white border border-blue-200 transition font-bold text-xs cursor-pointer"
-                                  title="تعديل نسبة الربح"
-                                >
-                                  <Edit2 className="w-3.5 h-3.5" />
-                                  <span>تعديل الربح</span>
-                                </button>
-                                {rule.scope !== 'GLOBAL' && (
-                                  <button
-                                    onClick={() => handleDeleteRule(rule.id)}
-                                    className="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition cursor-pointer"
-                                    title="حذف القاعدة"
-                                  >
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                  </button>
-                                )}
-                              </div>
+                              <button
+                                onClick={() => {
+                                  setEditingRuleId(sec.ruleId);
+                                  setRuleForm({
+                                    name: sec.name,
+                                    scope: 'MAIN_CATEGORY',
+                                    targetId: sec.name,
+                                    markupType: sec.markupType as any,
+                                    markupValue: sec.markupValue,
+                                    priority: sec.priority || 15,
+                                    recalculateNow: true,
+                                  });
+                                  setRuleModalOpen(true);
+                                }}
+                                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white border border-blue-200 transition font-bold text-xs cursor-pointer shadow-xs"
+                                title="تعديل نسبة الربح لهذا القسم بالكامل"
+                              >
+                                <Edit2 className="w-3.5 h-3.5" />
+                                <span>تعديل الربح</span>
+                              </button>
                             </td>
                           </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              </div>
+              )
+            ) : (
+              /* PLATFORM SPECIFIC RULES TABLE */
+              filteredPricingRules.length === 0 ? (
+                <div className="p-12 text-center rounded-3xl bg-white border border-sky-100 text-slate-500 shadow-sm">
+                  <Sliders className="w-10 h-10 mx-auto mb-3 text-slate-300" />
+                  <p className="font-bold text-sm text-slate-800">لا توجد قواعد تسعير مطابقة للبحث</p>
+                  <p className="text-xs mt-1 text-slate-500 max-w-md mx-auto">
+                    جرب تغيير خيارات التصفية أو مسح عبارة البحث لإظهار فئات المنصات.
+                  </p>
+                </div>
+              ) : (
+                <div className="rounded-3xl bg-white border border-sky-100 overflow-hidden shadow-sm">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs text-right">
+                      <thead>
+                        <tr className="bg-sky-50/60 border-b border-sky-100 text-slate-700 font-bold">
+                          <th className="p-3.5">اسم الفئة / القاعدة</th>
+                          <th className="p-3.5">المنصة</th>
+                          <th className="p-3.5">النطاق</th>
+                          <th className="p-3.5">هامش الربح الحالي</th>
+                          <th className="p-3.5">الحالة</th>
+                          <th className="p-3.5 text-center">إجراءات</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {filteredPricingRules.map((rule) => {
+                          const targetCategory = categories.find((c) => c.id === rule.targetId);
+                          const targetPlatform = targetCategory
+                            ? platforms.find((p) => p.id === targetCategory.platformId)
+                            : platforms.find((p) => p.id === rule.targetId);
+
+                          return (
+                            <tr key={rule.id} className="hover:bg-sky-50/40 transition">
+                              <td className="p-3.5">
+                                <div className="font-black text-slate-900">{rule.name}</div>
+                                {targetCategory && (
+                                  <div className="text-[11px] text-slate-500 mt-0.5">
+                                    المعرف: {targetCategory.slug}
+                                  </div>
+                                )}
+                              </td>
+                              <td className="p-3.5">
+                                {targetPlatform ? (
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sky-50 text-blue-700 border border-sky-200 font-bold text-[11px]">
+                                    {targetPlatform.nameAr || targetPlatform.name}
+                                  </span>
+                                ) : (
+                                  <span className="text-slate-400 font-medium">كل المنصات (عام)</span>
+                                )}
+                              </td>
+                              <td className="p-3.5">
+                                <span className="px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-200 font-mono text-[10px] font-bold">
+                                  {rule.scope === 'CATEGORY' ? 'فئة محددة' : rule.scope === 'PLATFORM' ? 'منصة' : 'عام'}
+                                </span>
+                              </td>
+                              <td className="p-3.5">
+                                <div className="font-sans font-black text-sm text-emerald-600">
+                                  {rule.markupType === 'PERCENTAGE'
+                                    ? `+${rule.markupValue}%`
+                                    : `+$${rule.markupValue.toFixed(3)}`}
+                                </div>
+                                <span className="text-[10px] text-slate-400">
+                                  {rule.markupType === 'PERCENTAGE' ? 'نسبة مئوية من التكلفة' : 'ربح صافي ثابت فوق التكلفة'}
+                                </span>
+                              </td>
+                              <td className="p-3.5">
+                                <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">
+                                  مفعل ومطبق ⚡
+                                </span>
+                              </td>
+                              <td className="p-3.5 text-center">
+                                <div className="flex items-center justify-center gap-1.5">
+                                  <button
+                                    onClick={() => {
+                                      setEditingRuleId(rule.id);
+                                      setRuleForm({
+                                        name: rule.name,
+                                        scope: rule.scope as any,
+                                        targetId: rule.targetId || '',
+                                        markupType: rule.markupType as any,
+                                        markupValue: rule.markupValue,
+                                        priority: rule.priority,
+                                        recalculateNow: true,
+                                      });
+                                      setRuleModalOpen(true);
+                                    }}
+                                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white border border-blue-200 transition font-bold text-xs cursor-pointer"
+                                    title="تعديل نسبة الربح"
+                                  >
+                                    <Edit2 className="w-3.5 h-3.5" />
+                                    <span>تعديل الربح</span>
+                                  </button>
+                                  {rule.scope !== 'GLOBAL' && (
+                                    <button
+                                      onClick={() => handleDeleteRule(rule.id)}
+                                      className="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition cursor-pointer"
+                                      title="حذف القاعدة"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )
             )}
           </div>
         );
@@ -1232,7 +1367,11 @@ export default function AdminProvidersPage() {
           <div className="w-full max-w-md rounded-3xl bg-white p-6 sm:p-8 border border-sky-100 shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
               <h3 className="text-base font-black text-slate-900">
-                {editingRuleId ? 'تعديل قاعدة التسعير وهامش الربح' : 'إضافة قاعدة تسعير وهامش ربح'}
+                {ruleForm.scope === 'MAIN_CATEGORY'
+                  ? `تعديل هامش ربح [${ruleForm.name || 'قسم رئيسي'}]`
+                  : editingRuleId
+                  ? 'تعديل قاعدة التسعير وهامش الربح'
+                  : 'إضافة قاعدة تسعير وهامش ربح'}
               </h3>
               <button
                 onClick={() => setRuleModalOpen(false)}
@@ -1243,86 +1382,122 @@ export default function AdminProvidersPage() {
             </div>
 
             <form onSubmit={handleSaveRule} className="space-y-4 text-xs">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  اسم القاعدة
-                </label>
-                <input
-                  type="text"
-                  value={ruleForm.name}
-                  onChange={(e) => setRuleForm({ ...ruleForm, name: e.target.value })}
-                  placeholder="مثال: هامش إنستغرام 40%"
-                  required
-                  className="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-xs text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-none"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    النطاق (Scope)
-                  </label>
-                  <select
-                    value={ruleForm.scope}
-                    onChange={(e) => setRuleForm({ ...ruleForm, scope: e.target.value, targetId: '' })}
-                    className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-xs text-slate-800 focus:border-blue-500 focus:bg-white focus:outline-none"
-                  >
-                    <option value="GLOBAL">عام (جميع الخدمات)</option>
-                    <option value="PLATFORM">منصة محددة</option>
-                    <option value="CATEGORY">تصنيف محدد</option>
-                  </select>
+              {ruleForm.scope === 'MAIN_CATEGORY' ? (
+                <div className="p-3.5 bg-blue-50/80 border border-blue-200 rounded-2xl text-blue-900 text-xs flex items-start gap-2.5">
+                  <Sparkles className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                  <div>
+                    <div className="font-bold text-blue-950">تطبيق موحد وفوري على القسم الرئيسي:</div>
+                    <div className="text-[11px] text-blue-800 mt-1 leading-relaxed">
+                      سيتم تطبيق هذا الهامش على كافة خدمات <strong>({ruleForm.name})</strong> عبر جميع المنصات (إنستغرام، تيك توك، فيسبوك، إلخ) بضغطة واحدة وتحديث الأسعار للعملاء فوراً.
+                    </div>
+                  </div>
                 </div>
-
-                {ruleForm.scope === 'PLATFORM' && (
+              ) : (
+                <>
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1">
-                      اختر المنصة
+                      اسم القاعدة
                     </label>
-                    <select
-                      value={ruleForm.targetId}
-                      onChange={(e) => setRuleForm({ ...ruleForm, targetId: e.target.value })}
+                    <input
+                      type="text"
+                      value={ruleForm.name}
+                      onChange={(e) => setRuleForm({ ...ruleForm, name: e.target.value })}
+                      placeholder="مثال: هامش إنستغرام 40%"
                       required
-                      className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-xs text-slate-800 focus:border-blue-500 focus:bg-white focus:outline-none"
-                    >
-                      <option value="">اختر...</option>
-                      {platforms.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.nameAr || p.name}
-                        </option>
-                      ))}
-                    </select>
+                      className="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-xs text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+                    />
                   </div>
-                )}
 
-                {ruleForm.scope === 'CATEGORY' && (
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      اختر التصنيف
-                    </label>
-                    <select
-                      value={ruleForm.targetId}
-                      onChange={(e) => {
-                        const selectedCat = categories.find((c) => c.id === e.target.value);
-                        const plat = selectedCat ? platforms.find((p) => p.id === selectedCat.platformId) : null;
-                        const autoName = selectedCat && plat ? `[${plat.nameAr || plat.name}] ${selectedCat.nameAr || selectedCat.name}` : (selectedCat?.nameAr || ruleForm.name);
-                        setRuleForm({ ...ruleForm, targetId: e.target.value, name: autoName });
-                      }}
-                      required
-                      className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-xs text-slate-800 focus:border-blue-500 focus:bg-white focus:outline-none"
-                    >
-                      <option value="">اختر...</option>
-                      {categories.map((c) => {
-                        const plat = platforms.find((p) => p.id === c.platformId);
-                        return (
-                          <option key={c.id} value={c.id}>
-                            {plat ? `[${plat.nameAr || plat.name}] ` : ''}{c.nameAr || c.name}
-                          </option>
-                        );
-                      })}
-                    </select>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        النطاق (Scope)
+                      </label>
+                      <select
+                        value={ruleForm.scope}
+                        onChange={(e) => setRuleForm({ ...ruleForm, scope: e.target.value, targetId: '' })}
+                        className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-xs text-slate-800 focus:border-blue-500 focus:bg-white focus:outline-none"
+                      >
+                        <option value="MAIN_CATEGORY">قسم رئيسي (شامل كل المنصات)</option>
+                        <option value="PLATFORM">منصة محددة</option>
+                        <option value="CATEGORY">تصنيف محدد</option>
+                        <option value="GLOBAL">عام (جميع الخدمات)</option>
+                      </select>
+                    </div>
+
+                    {ruleForm.scope === 'MAIN_CATEGORY' && (
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">
+                          اختر القسم الرئيسي
+                        </label>
+                        <select
+                          value={ruleForm.targetId}
+                          onChange={(e) => setRuleForm({ ...ruleForm, targetId: e.target.value, name: e.target.value })}
+                          required
+                          className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-xs text-slate-800 focus:border-blue-500 focus:bg-white focus:outline-none"
+                        >
+                          <option value="">اختر...</option>
+                          {mainSections.map((sec) => (
+                            <option key={sec.key} value={sec.name}>
+                              {sec.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                    {ruleForm.scope === 'PLATFORM' && (
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">
+                          اختر المنصة
+                        </label>
+                        <select
+                          value={ruleForm.targetId}
+                          onChange={(e) => setRuleForm({ ...ruleForm, targetId: e.target.value })}
+                          required
+                          className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-xs text-slate-800 focus:border-blue-500 focus:bg-white focus:outline-none"
+                        >
+                          <option value="">اختر...</option>
+                          {platforms.map((p) => (
+                            <option key={p.id} value={p.id}>
+                              {p.nameAr || p.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                    {ruleForm.scope === 'CATEGORY' && (
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">
+                          اختر التصنيف
+                        </label>
+                        <select
+                          value={ruleForm.targetId}
+                          onChange={(e) => {
+                            const selectedCat = categories.find((c) => c.id === e.target.value);
+                            const plat = selectedCat ? platforms.find((p) => p.id === selectedCat.platformId) : null;
+                            const autoName = selectedCat && plat ? `[${plat.nameAr || plat.name}] ${selectedCat.nameAr || selectedCat.name}` : (selectedCat?.nameAr || ruleForm.name);
+                            setRuleForm({ ...ruleForm, targetId: e.target.value, name: autoName });
+                          }}
+                          required
+                          className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-xs text-slate-800 focus:border-blue-500 focus:bg-white focus:outline-none"
+                        >
+                          <option value="">اختر...</option>
+                          {categories.map((c) => {
+                            const plat = platforms.find((p) => p.id === c.platformId);
+                            return (
+                              <option key={c.id} value={c.id}>
+                                {plat ? `[${plat.nameAr || plat.name}] ` : ''}{c.nameAr || c.name}
+                              </option>
+                            );
+                          })}
+                        </select>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
+                </>
+              )}
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -1356,19 +1531,21 @@ export default function AdminProvidersPage() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  الأولوية (Priority)
-                </label>
-                <input
-                  type="number"
-                  value={ruleForm.priority}
-                  onChange={(e) =>
-                    setRuleForm({ ...ruleForm, priority: parseInt(e.target.value, 10) || 0 })
-                  }
-                  className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-xs text-slate-900 font-mono focus:border-blue-500 focus:bg-white focus:outline-none"
-                />
-              </div>
+              {ruleForm.scope !== 'MAIN_CATEGORY' && (
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    الأولوية (Priority)
+                  </label>
+                  <input
+                    type="number"
+                    value={ruleForm.priority}
+                    onChange={(e) =>
+                      setRuleForm({ ...ruleForm, priority: parseInt(e.target.value, 10) || 0 })
+                    }
+                    className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-xs text-slate-900 font-mono focus:border-blue-500 focus:bg-white focus:outline-none"
+                  />
+                </div>
+              )}
 
               <div className="flex items-center gap-2 pt-3 border-t border-slate-100">
                 <button
@@ -1383,7 +1560,7 @@ export default function AdminProvidersPage() {
                   disabled={savingRule}
                   className="flex-1 py-2.5 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition disabled:opacity-50 shadow-md shadow-blue-500/20"
                 >
-                  {savingRule ? 'جاري الحفظ...' : editingRuleId ? 'تحديث وتطبيق الربح' : 'حفظ وتطبيق القاعدة'}
+                  {savingRule ? 'جاري الحفظ...' : 'تحديث وتطبيق الربح فوراً ⚡'}
                 </button>
               </div>
             </form>
