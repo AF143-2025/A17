@@ -13,6 +13,7 @@ import {
   Headphones,
   User as UserIcon,
   LogOut,
+  ShieldCheck,
 } from 'lucide-react';
 import { formatSmmBalance } from '@/lib/currency';
 
@@ -127,6 +128,21 @@ export default function UserDropdownMenu({ user, balance }: UserDropdownMenuProp
 
           {/* Requested Navigation Items */}
           <div className="space-y-0.5 text-xs text-right">
+            {/* 0. لوحة تحكم المسؤول (للأدمن فقط) */}
+            {user.role === 'ADMIN' && (
+              <Link
+                href="/admin"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center justify-between px-3 py-2 rounded-xl font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-sm hover:opacity-95 transition mb-1"
+              >
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-white shrink-0" />
+                  <span>لوحة تحكم الإدارة</span>
+                </div>
+                <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded-md">ADMIN</span>
+              </Link>
+            )}
+
             {/* 1. طلب جديد */}
             <Link
               href="/new-order"

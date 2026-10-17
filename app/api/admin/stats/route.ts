@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth';
 import db from '@/lib/db';
+import { ProviderFactory } from '@/lib/providers/provider-factory';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
@@ -8,6 +11,35 @@ export async function GET() {
 
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
+
+    // Auto-sync live balance for active providers if possible
+    try {
+      const activeProviders = await db.provider.findMany({
+        where: { status: true },
+      });
+      await Promise.allSettled(
+        activeProviders.map(async (p) => {
+          const hasKey = p.apiKey && !p.apiKey.includes('YOUR_') && p.apiKey.length > 5;
+          if (!hasKey) return;
+          try {
+            const adapter = ProviderFactory.getAdapter(p);
+            const bal = await adapter.getBalance();
+            if (bal && typeof bal.balance === 'number') {
+              await db.provider.update({
+                where: { id: p.id },
+                data: {
+                  balance: bal.balance,
+                  balanceCurrency: bal.currency,
+                  lastSyncAt: new Date(),
+                },
+              });
+            }
+          } catch {}
+        })
+      );
+    } catch (e) {
+      console.warn('[AdminStats] Provider balance refresh warning:', e);
+    }
 
     const [
       totalUsers,
@@ -19,6 +51,7 @@ export async function GET() {
       completedOrders,
       allOrders,
       wallets,
+      clientsWallet,
       providers,
     ] = await Promise.all([
       db.user.count(),
@@ -51,6 +84,10 @@ export async function GET() {
       db.wallet.aggregate({
         _sum: { balance: true },
       }),
+      db.wallet.aggregate({
+        where: { user: { role: 'USER' } },
+        _sum: { balance: true },
+      }),
       db.provider.findMany({
         select: { name: true, balance: true, balanceCurrency: true },
       }),
@@ -74,7 +111,8 @@ export async function GET() {
       platformStats[pName] = (platformStats[pName] || 0) + 1;
     });
 
-    const totalProviderBalanceUSD = providers.reduce((acc, p) => acc + p.balance, 0);
+    const totalProviderBalanceUSD = providers.reduce((acc, p) => acc + (p.balance || 0), 0);
+    const clientsWalletBalance = clientsWallet._sum.balance || 0;
 
     // Build last 7 days chart data
     const last7Days: { date: string; revenue: number; orders: number }[] = [];
@@ -112,6 +150,7 @@ export async function GET() {
       totalCost,
       totalProfit,
       usersWalletBalance: wallets._sum.balance || 0,
+      clientsWalletBalance,
       totalProviderBalanceUSD,
       providers,
       chartData: last7Days,

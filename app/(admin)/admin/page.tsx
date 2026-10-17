@@ -12,7 +12,10 @@ import {
   ArrowUpRight,
   Loader2,
   RefreshCw,
+  Server,
+  Wallet,
 } from 'lucide-react';
+import { formatSmmBalance } from '@/lib/currency';
 
 interface StatsData {
   totalUsers: number;
@@ -21,6 +24,9 @@ interface StatsData {
   ordersToday: number;
   totalRevenue: number;
   totalProfit: number;
+  usersWalletBalance?: number;
+  clientsWalletBalance?: number;
+  totalProviderBalanceUSD?: number;
 }
 
 export default function AdminDashboardPage() {
@@ -72,7 +78,58 @@ export default function AdminDashboardPage() {
         </button>
       </div>
 
-      {/* 2. Four Clean Metric Cards */}
+      {/* 2. Balance Overview (Provider Balance vs Clients' Wallet Balance) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* رصيدك عند المزود */}
+        <Link
+          href="/admin/providers"
+          className="p-5 rounded-2xl bg-white border border-blue-200/90 shadow-sm hover:border-blue-400 hover:shadow-md transition group block"
+        >
+          <div className="flex items-center justify-between text-slate-500 text-xs mb-2">
+            <span className="font-bold text-slate-800 text-sm">رصيدك عند المزود</span>
+            <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:scale-105 transition">
+              <Server className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-3xl font-black text-blue-700 font-sans tracking-tight">
+            ${formatSmmBalance(stats.totalProviderBalanceUSD ?? 0)}{' '}
+            <span className="text-xs font-bold text-blue-600">USD</span>
+          </div>
+          <div className="flex items-center justify-between mt-2.5 pt-2.5 border-t border-sky-100 text-[11px] text-slate-500">
+            <span>الرصيد المشحون بسيرفرات التنفيذ الفعلي</span>
+            <span className="text-blue-600 font-bold group-hover:translate-x-[-2px] transition flex items-center gap-1">
+              <span>إدارة المزودين</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </span>
+          </div>
+        </Link>
+
+        {/* رصيد العملاء */}
+        <Link
+          href="/admin/users"
+          className="p-5 rounded-2xl bg-white border border-emerald-200/90 shadow-sm hover:border-emerald-400 hover:shadow-md transition group block"
+        >
+          <div className="flex items-center justify-between text-slate-500 text-xs mb-2">
+            <span className="font-bold text-slate-800 text-sm">رصيد العملاء</span>
+            <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-105 transition">
+              <Wallet className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-3xl font-black text-emerald-700 font-sans tracking-tight">
+            ${formatSmmBalance(stats.clientsWalletBalance ?? 0)}{' '}
+            <span className="text-xs font-bold text-emerald-600">USD</span>
+          </div>
+          <div className="flex items-center justify-between mt-2.5 pt-2.5 border-t border-sky-100 text-[11px] text-slate-500">
+            <span>إجمالي أموال العملاء المشحونة بالمحافظ</span>
+            <span className="text-emerald-600 font-bold group-hover:translate-x-[-2px] transition flex items-center gap-1">
+              <span>عرض المستخدمين</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </span>
+          </div>
+        </Link>
+      </div>
+
+      {/* 3. Four Clean Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Orders */}
         <div className="p-5 rounded-2xl bg-white border border-sky-100 shadow-sm">
