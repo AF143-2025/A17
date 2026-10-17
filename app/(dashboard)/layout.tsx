@@ -49,7 +49,14 @@ export default async function DashboardLayout({
     }
   }
 
-  const balance = user.wallet?.balance || 0;
+  let balance = user.wallet?.balance || 0;
+  if (user.role === 'ADMIN') {
+    const providers = await db.provider.findMany({
+      where: { status: true },
+      select: { balance: true },
+    });
+    balance = providers.reduce((sum, p) => sum + (p.balance || 0), 0);
+  }
 
   return (
     <div className="min-h-screen bg-[#F0F8FF] text-slate-900 flex flex-col">

@@ -25,6 +25,7 @@ interface Transaction {
 
 export default function WalletPage() {
   const [balance, setBalance] = useState<number>(0);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [copiedTelegram, setCopiedTelegram] = useState(false);
@@ -41,6 +42,7 @@ export default function WalletPage() {
       if (res.ok) {
         const data = await res.json();
         setBalance(data.wallet?.balance || 0);
+        setIsAdmin(Boolean(data.isAdmin));
         setTransactions(data.transactions || []);
       }
     } catch (e) {
@@ -80,7 +82,7 @@ export default function WalletPage() {
         <div className="relative z-10">
           <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
             <Wallet className="w-4 h-4 text-blue-600" />
-            <span>الرصيد الكلي في محفظتك</span>
+            <span>{isAdmin ? 'رصيد المزود (سيرفرات التنفيذ)' : 'الرصيد الكلي في محفظتك'}</span>
           </div>
           <div className="mt-2 text-4xl sm:text-5xl font-black text-slate-900 font-sans tracking-tight">
             ${formatSmmBalance(balance)}{' '}

@@ -28,8 +28,21 @@ export async function GET() {
     }),
   ]);
 
+  let displayBalance = wallet.balance;
+  if (user.role === 'ADMIN') {
+    const providers = await db.provider.findMany({
+      where: { status: true },
+      select: { balance: true },
+    });
+    displayBalance = providers.reduce((sum, p) => sum + (p.balance || 0), 0);
+  }
+
   return NextResponse.json({
-    wallet,
+    wallet: {
+      ...wallet,
+      balance: displayBalance,
+    },
+    isAdmin: user.role === 'ADMIN',
     transactions,
     paymentMethods,
     pendingPayments,

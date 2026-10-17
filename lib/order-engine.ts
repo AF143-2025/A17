@@ -126,15 +126,35 @@ export async function placeOrder({
 
   // 5. Transactional internal order creation and wallet deduction
   const order = await db.$transaction(async (tx) => {
+    const orderingUser = await tx.user.findUnique({
+      where: { id: userId },
+      select: { role: true },
+    });
+    const isAdmin = orderingUser?.role === 'ADMIN';
+
     const wallet = await tx.wallet.findUnique({
       where: { userId },
     });
 
-    if (!wallet || wallet.balance < finalPrice) {
-      const currentBalance = wallet ? formatSmmBalance(wallet.balance) : '0.000';
-      throw new Error(
-        `رصيدك الحالي ($${currentBalance}) غير كافٍ. المطلوب: $${formatSmmPrice(finalPrice)}`
-      );
+    if (isAdmin) {
+      // For Admin: check live provider balance directly
+      const activeProviders = await tx.provider.findMany({
+        where: { status: true },
+        select: { balance: true },
+      });
+      const providerTotal = activeProviders.reduce((acc, p) => acc + (p.balance || 0), 0);
+      if (providerTotal < cost) {
+        throw new Error(
+          `رصيدك عند المزود ($${formatSmmBalance(providerTotal)}) غير كافٍ لتنفيذ الطلب. المطلوب: $${formatSmmPrice(cost)}`
+        );
+      }
+    } else {
+      if (!wallet || wallet.balance < finalPrice) {
+        const currentBalance = wallet ? formatSmmBalance(wallet.balance) : '0.000';
+        throw new Error(
+          `رصيدك الحالي ($${currentBalance}) غير كافٍ. المطلوب: $${formatSmmPrice(finalPrice)}`
+        );
+      }
     }
 
     const newOrder = await tx.order.create({
@@ -154,24 +174,25 @@ export async function placeOrder({
       },
     });
 
-    // Deduct funds from wallet atomically
-    await tx.wallet.update({
-      where: { id: wallet.id },
-      data: {
-        balance: {
-          decrement: finalPrice,
+    if (!isAdmin && wallet) {
+      // Deduct funds from wallet atomically for regular customers
+      await tx.wallet.update({
+        where: { id: wallet.id },
+        data: {
+          balance: {
+            decrement: finalPrice,
+          },
         },
-      },
-    });
+      });
 
-    // Record wallet ledger transaction
-    await tx.walletTransaction.create({
-      data: {
-        walletId: wallet.id,
-        amount: -finalPrice,
-        type: 'ORDER_PAYMENT',
-        status: 'COMPLETED',
-        referenceId: newOrder.id,
+      // Record wallet ledger transaction
+      await tx.walletTransaction.create({
+        data: {
+          walletId: wallet.id,
+          amount: -finalPrice,
+          type: 'ORDER_PAYMENT',
+          status: 'COMPLETED',
+          referenceId: newOrder.id,
         description: `طلب خدمة: ${service.name} (الكمية: ${quantity.toLocaleString('en-US')})`,
         metadata: JSON.stringify({
           orderId: newOrder.id,
@@ -181,6 +202,7 @@ export async function placeOrder({
         }),
       },
     });
+  }
 
     // Record Order Events
     await tx.orderEvent.create({
@@ -195,7 +217,9 @@ export async function placeOrder({
       data: {
         orderId: newOrder.id,
         eventType: 'PAYMENT_CONFIRMED',
-        message: `تم خصم قيمة الطلب ($${formatSmmPrice(finalPrice)}) من المحفظة بنجاح`,
+        message: isAdmin
+          ? 'تم تأكيد طلب الإدارة واعتماده للتنفيذ عبر المزود'
+          : `تم خصم قيمة الطلب ($${formatSmmPrice(finalPrice)}) من المحفظة بنجاح`,
       },
     });
 

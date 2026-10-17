@@ -57,20 +57,29 @@ export default function Sidebar({ userRole = 'USER', balance = 0 }: SidebarProps
       {/* Quick Balance Preview Card */}
       <div className="p-4 mx-4 mt-4 rounded-2xl bg-sky-50/70 border border-sky-200/80 shadow-sm">
         <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
-          <span>الرصيد المتاح</span>
+          <span>{userRole === 'ADMIN' ? 'رصيد المزود' : 'الرصيد المتاح'}</span>
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
         </div>
         <div className="mt-1 text-2xl font-black text-slate-900 font-sans tracking-tight">
           ${formatSmmBalance(balance)}{' '}
           <span className="text-xs font-bold text-emerald-600">USD</span>
         </div>
-        <Link
-          href="/wallet"
-          className="mt-3 flex items-center justify-center gap-1.5 w-full py-2 rounded-xl bg-blue-600 text-white text-xs font-bold shadow-sm shadow-blue-500/20 hover:bg-blue-700 transition"
-        >
-          <span>+</span>
-          <span>شحن الرصيد</span>
-        </Link>
+        {userRole === 'ADMIN' ? (
+          <Link
+            href="/admin/providers"
+            className="mt-3 flex items-center justify-center gap-1.5 w-full py-2 rounded-xl bg-blue-600 text-white text-xs font-bold shadow-sm shadow-blue-500/20 hover:bg-blue-700 transition"
+          >
+            <span>المزودين ⚡</span>
+          </Link>
+        ) : (
+          <Link
+            href="/wallet"
+            className="mt-3 flex items-center justify-center gap-1.5 w-full py-2 rounded-xl bg-blue-600 text-white text-xs font-bold shadow-sm shadow-blue-500/20 hover:bg-blue-700 transition"
+          >
+            <span>+</span>
+            <span>شحن الرصيد</span>
+          </Link>
+        )}
       </div>
 
       {/* Navigation Links */}

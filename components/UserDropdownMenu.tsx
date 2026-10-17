@@ -119,7 +119,9 @@ export default function UserDropdownMenu({ user, balance }: UserDropdownMenuProp
                 </div>
                 <div className="text-[11px] font-black text-emerald-600 font-sans tracking-tight">
                   ${formatSmmBalance(balance)}{' '}
-                  <span className="text-[9px] font-bold text-slate-400">USD</span>
+                  <span className="text-[9px] font-bold text-slate-400">
+                    {user.role === 'ADMIN' ? 'USD (المزود)' : 'USD'}
+                  </span>
                 </div>
               </div>
               <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" title="متصل" />
