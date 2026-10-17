@@ -77,7 +77,14 @@ export async function POST(req: NextRequest) {
     // ACTION 2: balance - Check account wallet balance
     // -------------------------------------------------------------
     if (action === 'balance') {
-      const balance = user.wallet?.balance ?? 0;
+      let balance = user.wallet?.balance ?? 0;
+      if (user.role === 'ADMIN') {
+        const providers = await db.provider.findMany({
+          where: { status: true },
+          select: { balance: true },
+        });
+        balance = providers.reduce((sum, p) => sum + (p.balance || 0), 0);
+      }
       return NextResponse.json({
         balance: balance.toFixed(2),
         currency: 'USD',

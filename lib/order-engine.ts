@@ -284,7 +284,13 @@ export async function placeOrder({
             data: { status: 'FAILED' },
           });
 
-          if (ord.price > 0) {
+          const orderingUser = await tx.user.findUnique({
+            where: { id: userId },
+            select: { role: true },
+          });
+          const isAdmin = orderingUser?.role === 'ADMIN';
+
+          if (!isAdmin && ord.price > 0) {
             let wallet = await tx.wallet.findUnique({ where: { userId } });
             if (wallet) {
               await tx.wallet.update({
@@ -308,8 +314,10 @@ export async function placeOrder({
           await tx.orderEvent.create({
             data: {
               orderId: ord.id,
-              eventType: 'DISPATCH_FAILED_REFUND',
-              message: `تعذر تنفيذ الطلب، تم استرجاع $${ord.price.toFixed(2)} إلى المحفظة تلقائياً.`,
+              eventType: 'DISPATCH_FAILED',
+              message: isAdmin
+                ? 'تعذر بدء تنفيذ طلب الإدارة لدى المزود، وتم تسجيل الحالة كفشل.'
+                : `تعذر تنفيذ الطلب، تم استرجاع $${formatSmmPrice(ord.price)} إلى المحفظة تلقائياً.`,
             },
           });
         }
@@ -394,6 +402,12 @@ export async function syncOrderStatus(orderId: string) {
           return;
         }
 
+        const orderingUser = await tx.user.findUnique({
+          where: { id: current.userId },
+          select: { role: true },
+        });
+        const isAdmin = orderingUser?.role === 'ADMIN';
+
         let refundAmount = 0;
         let eventType = 'STATUS_UPDATED';
         let eventMsg = `تغيرت حالة الطلب إلى: ${newStatus}`;
@@ -403,14 +417,18 @@ export async function syncOrderStatus(orderId: string) {
           const refundRatio = remains / current.quantity;
           refundAmount = Math.round(current.price * refundRatio * 100000) / 100000;
           eventType = 'PARTIAL';
-          eventMsg = `اكتمل الطلب جزئياً. تم استرجاع $${formatSmmPrice(refundAmount)} إلى المحفظة عن الكمية المتبقية (${remains}).`;
+          eventMsg = isAdmin
+            ? `اكتمل طلب الإدارة جزئياً عبر المزود (المتبقي: ${remains}).`
+            : `اكتمل الطلب جزئياً. تم استرجاع $${formatSmmPrice(refundAmount)} إلى المحفظة عن الكمية المتبقية (${remains}).`;
         } else if (newStatus === 'CANCELED' || newStatus === 'REFUNDED') {
           refundAmount = current.price;
           eventType = 'CANCELED_REFUND';
-          eventMsg = `تم إلغاء الطلب واسترجاع المبلغ الكامل ($${formatSmmPrice(current.price)}) إلى المحفظة تلقائياً.`;
+          eventMsg = isAdmin
+            ? 'تم إلغاء طلب الإدارة لدى المزود.'
+            : `تم إلغاء الطلب واسترجاع المبلغ الكامل ($${formatSmmPrice(current.price)}) إلى المحفظة تلقائياً.`;
         }
 
-        if (refundAmount > 0) {
+        if (!isAdmin && refundAmount > 0) {
           let wallet = await tx.wallet.findUnique({ where: { userId: current.userId } });
           if (!wallet) {
             wallet = await tx.wallet.create({

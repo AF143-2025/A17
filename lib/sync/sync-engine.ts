@@ -622,6 +622,12 @@ export class SyncEngine {
               return;
             }
 
+            const orderingUser = await tx.user.findUnique({
+              where: { id: current.userId },
+              select: { role: true },
+            });
+            const isAdmin = orderingUser?.role === 'ADMIN';
+
             let refundAmount = 0;
             let eventType = 'STATUS_SYNCED';
             let eventMsg = `تم تحديث حالة الطلب تلقائياً: ${this.translateStatus(mappedStatus)}`;
@@ -630,15 +636,19 @@ export class SyncEngine {
               const refundRatio = statusRes.remains / current.quantity;
               refundAmount = Math.round(current.price * refundRatio * 100000) / 100000;
               eventType = 'PARTIAL_REFUND';
-              eventMsg = `اكتمل الطلب جزئياً. تم استرجاع $${formatSmmPrice(refundAmount)} إلى المحفظة تلقائياً عن المتبقي (${statusRes.remains}).`;
+              eventMsg = isAdmin
+                ? `اكتمل طلب الإدارة جزئياً عبر المزود (المتبقي: ${statusRes.remains}).`
+                : `اكتمل الطلب جزئياً. تم استرجاع $${formatSmmPrice(refundAmount)} إلى المحفظة تلقائياً عن المتبقي (${statusRes.remains}).`;
             } else if (mappedStatus === 'CANCELED' || mappedStatus === 'REFUNDED') {
               refundAmount = current.price;
               eventType = 'CANCELED_REFUND';
-              eventMsg = `تم إلغاء الطلب واسترجاع كامل المبلغ ($${formatSmmPrice(current.price)}) إلى المحفظة تلقائياً.`;
+              eventMsg = isAdmin
+                ? 'تم إلغاء طلب الإدارة لدى المزود.'
+                : `تم إلغاء الطلب واسترجاع كامل المبلغ ($${formatSmmPrice(current.price)}) إلى المحفظة تلقائياً.`;
             }
 
-            // If a refund is due, credit wallet inside the SAME transaction
-            if (refundAmount > 0) {
+            // If a refund is due, credit wallet inside the SAME transaction (for customers only, not admin)
+            if (!isAdmin && refundAmount > 0) {
               let wallet = await tx.wallet.findUnique({ where: { userId: current.userId } });
               if (!wallet) {
                 wallet = await tx.wallet.create({

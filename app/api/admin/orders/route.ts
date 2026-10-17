@@ -92,14 +92,16 @@ export async function PATCH(req: NextRequest) {
         return NextResponse.json({ error: 'مبلغ الاسترجاع غير صالح' }, { status: 400 });
       }
 
-      // Credit wallet
-      await creditWalletBalance({
-        userId: order.userId,
-        amount: refundAmt,
-        type: 'REFUND',
-        referenceId: order.id,
-        description: `استرجاع مالي للطلب #${order.id.slice(-6)} بواسطة المدير (${admin.username})`,
-      });
+      // Credit wallet only if order belonged to a customer (not admin)
+      if (order.user.role !== 'ADMIN') {
+        await creditWalletBalance({
+          userId: order.userId,
+          amount: refundAmt,
+          type: 'REFUND',
+          referenceId: order.id,
+          description: `استرجاع مالي للطلب #${order.id.slice(-6)} بواسطة المدير (${admin.username})`,
+        });
+      }
 
       const updated = await db.order.update({
         where: { id: orderId },
@@ -110,7 +112,9 @@ export async function PATCH(req: NextRequest) {
         data: {
           orderId,
           eventType: 'REFUNDED',
-          message: `تم استرجاع مبلغ $${refundAmt.toFixed(2)} إلى محفظة المستخدم بواسطة المدير (${admin.username})`,
+          message: order.user.role === 'ADMIN'
+            ? `تم إلغاء/استرجاع طلب الإدارة بواسطة (${admin.username})`
+            : `تم استرجاع مبلغ $${refundAmt.toFixed(2)} إلى محفظة المستخدم بواسطة المدير (${admin.username})`,
         },
       });
 

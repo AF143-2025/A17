@@ -119,3 +119,43 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error.message || 'فشل في إرسال التذكرة' }, { status: 500 });
   }
 }
+
+export async function PATCH(req: NextRequest) {
+  const user = await getCurrentUser();
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    const { ticketId, status } = await req.json();
+    if (!ticketId || !status) {
+      return NextResponse.json({ error: 'معرف التذكرة والحالة مطلوبان' }, { status: 400 });
+    }
+
+    const ticket = await db.supportTicket.findUnique({
+      where: { id: ticketId },
+    });
+
+    if (!ticket) {
+      return NextResponse.json({ error: 'التذكرة غير موجودة' }, { status: 404 });
+    }
+
+    if (user.role !== 'ADMIN') {
+      if (ticket.userId !== user.id) {
+        return NextResponse.json({ error: 'غير مصرح لك بالوصول لهذه التذكرة' }, { status: 403 });
+      }
+      if (status !== 'CLOSED') {
+        return NextResponse.json({ error: 'يمكنك فقط إغلاق التذكرة' }, { status: 400 });
+      }
+    }
+
+    const updated = await db.supportTicket.update({
+      where: { id: ticketId },
+      data: { status, updatedAt: new Date() },
+    });
+
+    return NextResponse.json({ success: true, ticket: updated });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message || 'فشل في تحديث حالة التذكرة' }, { status: 500 });
+  }
+}

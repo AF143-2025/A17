@@ -19,7 +19,10 @@ import {
   Folder,
   Globe,
   SlidersHorizontal,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
+import { formatSmmPrice } from '@/lib/currency';
 
 interface PlatformItem {
   id: string;
@@ -79,6 +82,8 @@ export default function AdminServicesPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterPlatform, setFilterPlatform] = useState('ALL');
+  const [servicePage, setServicePage] = useState(1);
+  const servicesPerPage = 50;
 
   // Service Modal (Create/Edit)
   const [serviceModalOpen, setServiceModalOpen] = useState(false);
@@ -404,7 +409,7 @@ export default function AdminServicesPage() {
     }
   };
 
-  // Filtering
+  // Filtering & Pagination
   const filteredServices = services.filter((s) => {
     const matchSearch =
       s.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -414,6 +419,12 @@ export default function AdminServicesPage() {
       filterPlatform === 'ALL' || s.category.platform.id === filterPlatform;
     return matchSearch && matchPlatform;
   });
+
+  const totalPages = Math.ceil(filteredServices.length / servicesPerPage) || 1;
+  const paginatedServices = filteredServices.slice(
+    (servicePage - 1) * servicesPerPage,
+    servicePage * servicesPerPage
+  );
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
@@ -482,7 +493,10 @@ export default function AdminServicesPage() {
                 <input
                   type="text"
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setServicePage(1);
+                  }}
                   placeholder="ابحث عن اسم الخدمة أو التصنيف..."
                   className="w-full rounded-2xl bg-white border border-sky-200 px-4 py-2.5 pl-10 text-xs text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none shadow-xs"
                 />
@@ -492,7 +506,10 @@ export default function AdminServicesPage() {
               {/* Platform Filter */}
               <select
                 value={filterPlatform}
-                onChange={(e) => setFilterPlatform(e.target.value)}
+                onChange={(e) => {
+                  setFilterPlatform(e.target.value);
+                  setServicePage(1);
+                }}
                 className="rounded-2xl bg-white border border-sky-200 px-3 py-2.5 text-xs text-slate-800 font-medium focus:border-blue-500 focus:outline-none shrink-0 shadow-xs"
               >
                 <option value="ALL">جميع المنصات</option>
@@ -525,7 +542,8 @@ export default function AdminServicesPage() {
                 لا توجد خدمات مطابقة لخيارات البحث
               </div>
             ) : (
-              <div className="overflow-x-auto">
+              <>
+                <div className="overflow-x-auto">
                 <table className="w-full text-right text-xs">
                   <thead className="bg-sky-50/80 text-slate-700 font-bold border-b border-sky-100">
                     <tr>
@@ -541,7 +559,7 @@ export default function AdminServicesPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-sky-100 text-slate-700">
-                    {filteredServices.map((s) => {
+                    {paginatedServices.map((s) => {
                       const profit = s.pricePer1000 - s.providerCostPer1000;
                       return (
                         <tr key={s.id} className="hover:bg-sky-50/50 transition">
@@ -553,13 +571,13 @@ export default function AdminServicesPage() {
                             <span className="font-semibold text-slate-800">{s.category.platform.nameAr}</span> › <span className="text-slate-600">{s.category.nameAr}</span>
                           </td>
                           <td className="py-3.5 px-4 font-sans font-black text-blue-600">
-                            ${s.pricePer1000.toFixed(2)}
+                            {formatSmmPrice(s.pricePer1000)}
                           </td>
                           <td className="py-3.5 px-4 font-sans text-slate-500 font-medium">
-                            ${s.providerCostPer1000.toFixed(2)}
+                            {formatSmmPrice(s.providerCostPer1000)}
                           </td>
                           <td className="py-3.5 px-4 font-sans font-bold text-emerald-600">
-                            +${profit.toFixed(2)}
+                            +{formatSmmPrice(profit)}
                           </td>
                           <td className="py-3.5 px-4 font-sans text-slate-600 whitespace-nowrap">
                             {s.minQuantity.toLocaleString('en-US')} - {s.maxQuantity.toLocaleString('en-US')}
@@ -609,7 +627,38 @@ export default function AdminServicesPage() {
                   </tbody>
                 </table>
               </div>
-            )}
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="px-5 py-3.5 bg-sky-50/50 border-t border-sky-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+                  <div>
+                    عرض <span className="font-bold text-slate-900 font-sans">{((servicePage - 1) * servicesPerPage) + 1}</span> إلى <span className="font-bold text-slate-900 font-sans">{Math.min(servicePage * servicesPerPage, filteredServices.length)}</span> من أصل <span className="font-bold text-slate-900 font-sans">{filteredServices.length}</span> خدمة
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => setServicePage((p) => Math.max(1, p - 1))}
+                      disabled={servicePage === 1}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-sky-200 bg-white font-medium text-slate-700 hover:bg-sky-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                      <span>السابق</span>
+                    </button>
+                    <span className="px-3 py-1.5 rounded-xl bg-white border border-sky-200 font-sans font-bold text-slate-800 text-[11px]">
+                      {servicePage} / {totalPages}
+                    </span>
+                    <button
+                      onClick={() => setServicePage((p) => Math.min(totalPages, p + 1))}
+                      disabled={servicePage >= totalPages}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-sky-200 bg-white font-medium text-slate-700 hover:bg-sky-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                    >
+                      <span>التالي</span>
+                      <ChevronLeft className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
           </div>
         </div>
       )}
