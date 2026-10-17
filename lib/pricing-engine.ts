@@ -112,10 +112,10 @@ export async function calculateCustomerPrice(
   // 5. Default fallback:
   if (isFollowerCategory) {
     return {
-      customerPrice: roundPrice(baseCost + 1.500),
+      customerPrice: roundPrice(baseCost + 2.000),
       markupType: 'FIXED',
-      markupValue: 1.500,
-      appliedRuleName: 'ربح ثابت للمتابعين ($1.500)',
+      markupValue: 2.000,
+      appliedRuleName: 'ربح ثابت للمتابعين ($2.000)',
     };
   }
 
