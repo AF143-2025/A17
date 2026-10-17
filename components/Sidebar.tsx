@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import Logo from './Logo';
+import { formatSmmBalance } from '@/lib/currency';
 import {
   LayoutDashboard,
   PlusCircle,
@@ -60,8 +61,8 @@ export default function Sidebar({ userRole = 'USER', balance = 0 }: SidebarProps
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
         </div>
         <div className="mt-1 text-2xl font-black text-slate-900 font-sans tracking-tight">
-          {balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{' '}
-          <span className="text-xs font-bold text-emerald-600">$</span>
+          ${formatSmmBalance(balance)}{' '}
+          <span className="text-xs font-bold text-emerald-600">USD</span>
         </div>
         <Link
           href="/wallet"

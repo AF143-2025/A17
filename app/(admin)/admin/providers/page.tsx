@@ -29,6 +29,7 @@ import {
   Power,
   PowerOff,
 } from 'lucide-react';
+import { formatSmmBalance } from '@/lib/currency';
 
 interface ProviderRecord {
   id: string;
@@ -738,7 +739,7 @@ export default function AdminProvidersPage() {
                         <div className="flex justify-between items-center">
                           <span className="text-slate-500 font-semibold">رصيد حسابك لدى المزود:</span>
                           <span className="font-sans font-black text-emerald-600 text-sm">
-                            ${p.balance.toFixed(2)} {p.balanceCurrency || 'USD'}
+                            ${formatSmmBalance(p.balance)} {p.balanceCurrency || 'USD'}
                           </span>
                         </div>
 

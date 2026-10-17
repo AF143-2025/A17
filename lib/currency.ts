@@ -71,10 +71,17 @@ export function formatSmmPrice(price: number): string {
 }
 
 /**
- * Formats user and provider balance like SMM panels: 3 decimal places (e.g. 10.500, 0.000, 1.750)
+ * Formats user and provider balance cleanly matching SMM standards:
+ * - Default: 3 decimal places (e.g. 10.500, 0.000, 1.750)
+ * - Micro/Provider balances with 4+ decimals: preserves 4 decimal places (e.g. 1.9353)
  */
 export function formatSmmBalance(balance: number): string {
-  if (isNaN(balance)) return '0.000';
+  if (isNaN(balance) || balance === 0) return '0.000';
+  const str = balance.toString();
+  const decimals = str.includes('.') ? str.split('.')[1].length : 0;
+  if (decimals > 3) {
+    return balance.toFixed(Math.min(4, decimals));
+  }
   return balance.toFixed(3);
 }
 

@@ -6,6 +6,7 @@ import { SyncEngine } from '@/lib/sync/sync-engine';
 import { logAdminAction } from '@/lib/audit';
 import { encryptText } from '@/lib/crypto';
 import { invalidateServicesCache } from '@/lib/services-cache';
+import { formatSmmBalance } from '@/lib/currency';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -13,6 +14,37 @@ export const maxDuration = 60;
 export async function GET() {
   try {
     await requireAdmin();
+
+    // Auto-sync live balances for active providers in background to keep data fresh
+    try {
+      const activeProviders = await db.provider.findMany({
+        where: { status: true },
+      });
+
+      await Promise.allSettled(
+        activeProviders.map(async (p) => {
+          const hasCustomKey = p.apiKey && !p.apiKey.includes('YOUR_') && p.apiKey.length > 5;
+          if (!hasCustomKey) return;
+          try {
+            const adapter = ProviderFactory.getAdapter(p);
+            const balanceData = await adapter.getBalance();
+            if (balanceData && typeof balanceData.balance === 'number') {
+              await db.provider.update({
+                where: { id: p.id },
+                data: {
+                  balance: balanceData.balance,
+                  balanceCurrency: balanceData.currency,
+                  lastSyncAt: new Date(),
+                  errorCount: 0,
+                },
+              });
+            }
+          } catch {}
+        })
+      );
+    } catch (balErr) {
+      console.warn('[ProvidersAPI] Auto-sync live balance warning:', balErr);
+    }
 
     const [providers, syncLogs] = await Promise.all([
       db.provider.findMany({
@@ -90,7 +122,7 @@ export async function POST(req: NextRequest) {
         success: true,
         balance: balanceData.balance,
         currency: balanceData.currency,
-        message: `تم الاتصال بنجاح. الرصيد: $${balanceData.balance.toFixed(2)} ${balanceData.currency}`,
+        message: `تم الاتصال بنجاح. الرصيد: $${formatSmmBalance(balanceData.balance)} ${balanceData.currency}`,
       });
     }
 

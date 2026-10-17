@@ -1,4 +1,5 @@
 import db from './db';
+import { formatSmmPrice, formatSmmBalance } from './currency';
 
 export type TransactionType = 'DEPOSIT' | 'ORDER_PAYMENT' | 'REFUND' | 'ADJUSTMENT';
 
@@ -68,7 +69,7 @@ export async function deductWalletBalance({
 
     if (wallet.balance < amount) {
       throw new Error(
-        `رصيدك الحالي ($${wallet.balance.toFixed(2)}) غير كافٍ لإتمام العملية بمبلغ ($${amount.toFixed(2)})`
+        `رصيدك الحالي ($${formatSmmBalance(wallet.balance)}) غير كافٍ لإتمام العملية بمبلغ ($${formatSmmPrice(amount)})`
       );
     }
 

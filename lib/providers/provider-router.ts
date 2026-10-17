@@ -199,17 +199,39 @@ export class ProviderRouter {
           const currentPrice = currentOrder ? currentOrder.price : 0;
           const profit = Math.max(0, currentPrice - totalCost);
 
-          // Update order status to PROCESSING and link provider
-          await db.order.update({
-            where: { id: orderId },
-            data: {
-              status: 'PROCESSING',
-              providerId: candidate.providerId,
-              providerOrderId: res.providerOrderId,
-              cost: totalCost,
-              profit: profit,
-            },
-          });
+          // Update order status to PROCESSING, link provider, and sync provider balance
+          await db.$transaction([
+            db.order.update({
+              where: { id: orderId },
+              data: {
+                status: 'PROCESSING',
+                providerId: candidate.providerId,
+                providerOrderId: res.providerOrderId,
+                cost: totalCost,
+                profit: profit,
+              },
+            }),
+            db.provider.update({
+              where: { id: candidate.providerId },
+              data: {
+                balance: { decrement: totalCost },
+              },
+            }),
+          ]);
+
+          // Fetch fresh live balance from provider API in background
+          adapter.getBalance().then((freshBal) => {
+            if (freshBal && typeof freshBal.balance === 'number') {
+              db.provider.update({
+                where: { id: candidate.providerId },
+                data: {
+                  balance: freshBal.balance,
+                  balanceCurrency: freshBal.currency,
+                  lastSyncAt: new Date(),
+                },
+              }).catch(() => {});
+            }
+          }).catch(() => {});
 
           // Log success event
           await db.orderEvent.create({

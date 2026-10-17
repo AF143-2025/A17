@@ -38,6 +38,7 @@ import {
   Headphones,
   ArrowUpRight,
 } from 'lucide-react';
+import { formatSmmBalance } from '@/lib/currency';
 
 interface UserRecord {
   id: string;
@@ -495,7 +496,7 @@ export default function AdminUsersPage() {
           </div>
           <div className="mt-3">
             <div className="text-2xl sm:text-3xl font-black text-blue-600 font-sans tracking-tight">
-              ${totalBalance.toFixed(2)}{' '}
+              ${formatSmmBalance(totalBalance)}{' '}
               <span className="text-xs font-bold text-slate-500 font-mono">USD</span>
             </div>
             <p className="text-[11px] text-slate-400 mt-0.5">إجمالي أموال العملاء المتاحة</p>
@@ -724,7 +725,7 @@ export default function AdminUsersPage() {
                         <td className="py-3.5 px-4 whitespace-nowrap">
                           <div>
                             <div className="font-sans font-black text-blue-600 text-sm">
-                              ${(u.wallet?.balance || 0).toFixed(2)}{' '}
+                              ${formatSmmBalance(u.wallet?.balance || 0)}{' '}
                               <span className="text-[10px] font-bold text-slate-400 font-mono">USD</span>
                             </div>
                             <button
@@ -880,7 +881,7 @@ export default function AdminUsersPage() {
 
                       <div className="text-left">
                         <div className="font-sans font-black text-blue-600 text-base">
-                          ${(u.wallet?.balance || 0).toFixed(2)}
+                          ${formatSmmBalance(u.wallet?.balance || 0)}
                         </div>
                         <span className="text-[10px] font-bold text-slate-400">USD</span>
                       </div>
@@ -993,7 +994,7 @@ export default function AdminUsersPage() {
                 <div className="p-3.5 rounded-2xl bg-sky-50/70 border border-sky-100">
                   <span className="text-[11px] font-bold text-slate-500 block">رصيد المحفظة</span>
                   <span className="text-xl font-black text-blue-600 font-sans mt-1 block">
-                    ${(deepViewUser.wallet?.balance || 0).toFixed(2)}
+                    ${formatSmmBalance(deepViewUser.wallet?.balance || 0)}
                   </span>
                 </div>
                 <div className="p-3.5 rounded-2xl bg-sky-50/70 border border-sky-100">
@@ -1387,7 +1388,7 @@ export default function AdminUsersPage() {
               <div className="p-3.5 rounded-2xl bg-sky-50 border border-sky-200/80 flex justify-between items-center">
                 <span className="text-slate-600 font-bold">الرصيد الحالي للمستخدم:</span>
                 <span className="font-black text-blue-600 font-sans text-base">
-                  ${(adjustModalUser.wallet?.balance || 0).toFixed(2)} USD
+                  ${formatSmmBalance(adjustModalUser.wallet?.balance || 0)} USD
                 </span>
               </div>
 
@@ -1429,12 +1430,12 @@ export default function AdminUsersPage() {
                 </label>
                 <input
                   type="number"
-                  step="0.01"
+                  step="any"
                   value={adjustAmount}
                   onChange={(e) => setAdjustAmount(e.target.value)}
-                  placeholder="مثال: 10.00"
+                  placeholder="مثال: 10.00 أو 0.103"
                   required
-                  min={0.01}
+                  min={0.0001}
                   className="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-xs text-slate-900 focus:bg-white focus:border-purple-500 focus:outline-none font-sans font-bold"
                 />
               </div>
@@ -1693,7 +1694,7 @@ export default function AdminUsersPage() {
                   </label>
                   <input
                     type="number"
-                    step="0.01"
+                    step="any"
                     value={newInitialBalance}
                     onChange={(e) => setNewInitialBalance(e.target.value)}
                     min={0}

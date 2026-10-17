@@ -18,6 +18,7 @@ import {
   LogOut,
 } from 'lucide-react';
 import Link from 'next/link';
+import { formatSmmBalance } from '@/lib/currency';
 
 interface UserProfile {
   id: string;
@@ -188,7 +189,7 @@ export default function ProfilePage() {
             <div>
               <span className="text-slate-500 block">الرصيد المتاح</span>
               <span className="font-black text-emerald-600 text-sm font-sans">
-                ${user.balance.toFixed(2)} USD
+                ${formatSmmBalance(user.balance)} USD
               </span>
             </div>
           </div>
