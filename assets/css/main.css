@@ -1146,4 +1146,369 @@ html[dir="rtl"] .hub-card:hover .hub-btn .ic-arrow {
   transform: translateY(-2px);
 }
 
+
+/* ==========================================================================
+   FLAGSHIP CENTERED INTERFACE & CENTERED TASKBAR SYSTEM (100/100)
+   ========================================================================== */
+
+/* 1. Mathematically Centered Taskbar Links (Desktop) */
+@media (min-width: 961px) {
+  .header-inner {
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+  }
+  .header-inner .logo {
+    z-index: 2 !important;
+  }
+  .nav {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    flex: 1 !important;
+    gap: 1rem !important;
+  }
+  .nav-links {
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 1.6rem !important;
+    margin: 0 !important;
+  }
+  .nav-links a {
+    text-align: center !important;
+    font-size: 0.94rem !important;
+    font-weight: 550 !important;
+    color: var(--text-2) !important;
+    transition: color 0.2s, transform 0.2s !important;
+  }
+  .nav-links a:hover {
+    color: var(--accent) !important;
+  }
+}
+
+/* Centered Mobile Drawer Links */
+@media (max-width: 960px) {
+  .nav {
+    text-align: center !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  .nav-links {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    gap: 0.5rem !important;
+  }
+  .nav-links a {
+    text-align: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+  }
+  .nav .lang-switch {
+    margin-inline: auto !important;
+    justify-content: center !important;
+  }
+  .nav-cta {
+    width: 100% !important;
+    text-align: center !important;
+    justify-content: center !important;
+  }
+}
+
+/* 2. Flagship Centered Hero Section */
+.hero {
+  padding: calc(var(--header-h) + clamp(2rem, 5vw, 4.5rem)) 0 clamp(3.5rem, 7vw, 5.5rem) !important;
+  text-align: center !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.hero::before {
+  background: radial-gradient(750px 450px at 50% 20%, rgba(200, 242, 60, 0.12), transparent 75%) !important;
+}
+
+.hero-grid {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
+  max-width: 920px !important;
+  margin-inline: auto !important;
+  gap: 1.5rem !important;
+}
+
+.hero-copy {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
+  width: 100% !important;
+}
+
+.hero-eyebrow {
+  margin-inline: auto !important;
+  margin-bottom: 1.25rem !important;
+  justify-content: center !important;
+  text-align: center !important;
+}
+
+.hero-id {
+  text-align: center !important;
+}
+
+.hero h1 {
+  text-align: center !important;
+  font-size: clamp(2.3rem, 6vw, 4rem) !important;
+  line-height: 1.18 !important;
+  margin: 0 0 1.25rem !important;
+  max-width: 24ch !important;
+  margin-inline: auto !important;
+  letter-spacing: -0.02em !important;
+}
+
+.hero .lead {
+  text-align: center !important;
+  margin-inline: auto !important;
+  max-width: 640px !important;
+  font-size: clamp(1.05rem, 2.2vw, 1.26rem) !important;
+  line-height: 1.85 !important;
+  color: var(--text-2) !important;
+}
+
+.hero-actions {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 1rem !important;
+  margin: 2rem 0 1.8rem !important;
+  width: 100% !important;
+  max-width: 460px !important;
+  margin-inline: auto !important;
+}
+
+.hero-actions .btn {
+  min-height: 52px !important;
+  padding: 0.85rem 1.75rem !important;
+  border-radius: 14px !important;
+}
+
+.hero-trust {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 0.65rem 1.6rem !important;
+  margin-inline: auto !important;
+  text-align: center !important;
+  color: var(--text-3) !important;
+}
+
+.hero-trust li {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
+}
+
+.hero-visual {
+  width: 100% !important;
+  max-width: 780px !important;
+  margin-inline: auto !important;
+  margin-top: 2.5rem !important;
+  padding: 0 !important;
+  position: relative !important;
+}
+
+.hero-visual::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: -20px !important;
+  border-radius: 36px !important;
+  background: radial-gradient(450px 250px at 50% 50%, rgba(200, 242, 60, 0.14), transparent 75%) !important;
+  z-index: -1 !important;
+  pointer-events: none !important;
+}
+
+.viz {
+  border-radius: 24px !important;
+  box-shadow: 0 35px 90px -30px rgba(0, 0, 0, 0.9), 0 0 0 1px var(--border-2), 0 0 50px -15px rgba(200, 242, 60, 0.15) !important;
+}
+
+/* 3. Centered Bento Hub Cards */
+.hub-header {
+  text-align: center !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+
+.hub-card {
+  align-items: center !important;
+  text-align: center !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+}
+
+.hub-info {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
+}
+
+.hub-info h3, .hub-info p {
+  text-align: center !important;
+}
+
+.hub-btn {
+  justify-content: center !important;
+  margin-inline: auto !important;
+}
+
+/* 4. Symmetrical Layout for Other Sections */
+.about {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
+  max-width: 840px !important;
+  margin-inline: auto !important;
+  gap: 2.5rem !important;
+}
+
+.about-body {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
+}
+
+.about-lead, .about-text {
+  text-align: center !important;
+}
+
+.skills {
+  justify-content: center !important;
+}
+
+.about-actions {
+  justify-content: center !important;
+}
+
+.why-grid {
+  max-width: 1040px !important;
+  margin-inline: auto !important;
+}
+
+.why-grid li {
+  text-align: center !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+
+.why-ic {
+  margin-bottom: 0.8rem !important;
+}
+
+.svc-grid {
+  max-width: 1100px !important;
+  margin-inline: auto !important;
+}
+
+.svc-card {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
+}
+
+.svc-ic {
+  margin-inline: auto !important;
+}
+
+.svc-card h3, .svc-card p {
+  text-align: center !important;
+}
+
+.svc-link {
+  justify-content: center !important;
+  margin-inline: auto !important;
+}
+
+.calc-shell {
+  max-width: 1040px !important;
+  margin-inline: auto !important;
+}
+
+.plans {
+  max-width: 1080px !important;
+  margin-inline: auto !important;
+}
+
+.plan {
+  text-align: center !important;
+  align-items: center !important;
+}
+
+.plan-head {
+  text-align: center !important;
+}
+
+.plan-for {
+  text-align: center !important;
+}
+
+.plan-price {
+  justify-content: center !important;
+}
+
+.contact-grid {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
+  max-width: 720px !important;
+  margin-inline: auto !important;
+  gap: 3rem !important;
+}
+
+.contact-copy {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
+}
+
+.contact-points {
+  justify-content: center !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0.5rem 1.5rem !important;
+}
+
+.channels {
+  width: 100% !important;
+  max-width: 480px !important;
+  margin-inline: auto !important;
+}
+
+.form {
+  width: 100% !important;
+  max-width: 540px !important;
+  margin-inline: auto !important;
+}
+
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none !important;transition:none !important;scroll-behavior:auto !important}.reveal{opacity:1;transform:none}.viz-line{stroke-dashoffset:0}}
