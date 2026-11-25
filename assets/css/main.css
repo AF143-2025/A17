@@ -607,4 +607,38 @@ h1, h2, h3, h4, h5, h6, p, blockquote, figcaption {
   }
 }
 
+
+/* --- Additional 100/100 Symmetrical Balance Refinements --- */
+@media (max-width: 560px) {
+  .calc-results .res:nth-child(4) {
+    grid-column: 1 / -1 !important;
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--border-2);
+  }
+  .calc-results .res:nth-child(4) strong {
+    font-size: 1.4rem !important;
+    color: var(--accent);
+  }
+}
+
+@media (max-width: 420px) {
+  .sectors {
+    grid-template-columns: 1fr !important;
+    gap: 0.6rem !important;
+  }
+  .sectors li {
+    display: grid !important;
+    grid-template-columns: auto 1fr !important;
+    align-items: center !important;
+    gap: 0.15rem 0.85rem !important;
+    padding: 0.9rem 1rem !important;
+  }
+  .sec-ic {
+    grid-row: span 2 !important;
+    margin-bottom: 0 !important;
+    width: 38px !important;
+    height: 38px !important;
+  }
+}
+
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none !important;transition:none !important;scroll-behavior:auto !important}.reveal{opacity:1;transform:none}.viz-line{stroke-dashoffset:0}}
