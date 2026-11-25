@@ -915,7 +915,7 @@ go("overview");
 deployStatus().then(paintDeploy);
 }
 function logout() {
-storage.del(TOKEN_KEY); storage.del(SB_KEY);
+storage.del(TOKEN_KEY); storage.del(SB_KEY); storage.del("panel_gh_repo");
 Object.assign(state, { demo: false, token: null, files: {}, leads: null, sb: null });
 $("#appView").hidden = true; $("#loginView").hidden = false;
 }
@@ -925,6 +925,13 @@ e.preventDefault();
 const f = e.target, btn = f.querySelector("[type=submit]"), token = f.token.value.trim();
 $("#loginErr").textContent = "";
 if (!token) return ($("#loginErr").textContent = "الصق رمز الدخول");
+const customRepo = f.repo && f.repo.value ? f.repo.value.trim() : "";
+if (customRepo && customRepo.includes("/")) {
+  const parts = customRepo.split("/");
+  GH.owner = parts[0].trim();
+  GH.repo = parts[1].trim();
+  storage.set("panel_gh_repo", customRepo, f.remember.checked);
+}
 btn.disabled = true; btn.textContent = "جاري التحقق…";
 try {
 state.repoInfo = await verifyToken(token);
@@ -953,6 +960,13 @@ document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("#she
 }
 document.addEventListener("DOMContentLoaded", async () => {
 bind();
+const savedRepo = storage.get("panel_gh_repo");
+if (savedRepo && savedRepo.includes("/")) {
+  const parts = savedRepo.split("/");
+  GH.owner = parts[0].trim();
+  GH.repo = parts[1].trim();
+  if ($("#ghRepo")) $("#ghRepo").value = savedRepo;
+}
 const saved = storage.get(TOKEN_KEY);
 if (saved) {
 try { state.repoInfo = await verifyToken(saved); return enter(); }

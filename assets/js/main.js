@@ -68,7 +68,9 @@ const money = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
 const money2 = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const cur = CFG.currency || "$";
 const num = (name) => {
-const v = parseFloat(form.elements[name].value);
+const el = form.elements[name];
+if (!el) return 0;
+const v = parseFloat(el.value);
 return Number.isFinite(v) && v >= 0 ? v : 0;
 };
 const paint = (range) => {
@@ -190,6 +192,7 @@ $(".err", field).textContent = msg || "";
 const validate = () => {
 let ok = true;
 const { name, phone } = form.elements;
+if (!name || !phone) return false;
 if (clean(name.value).length < 2) { setError(name, STR.nameErr); ok = false; } else setError(name, "");
 const digits = phone.value.replace(/[^\d+]/g, "");
 if (!/^\+?\d{8,15}$/.test(digits)) { setError(phone, STR.phoneErr); ok = false; } else setError(phone, "");
@@ -198,7 +201,7 @@ return ok;
 form.addEventListener("submit", (e) => {
 e.preventDefault();
 form.dataset.touched = "1";
-if (form.elements.website.value) return; // honeypot: بوت
+if (form.elements.website && form.elements.website.value) return; // honeypot: بوت
 if (!validate()) {
 const bad = $(".field.invalid input", form);
 if (bad) bad.focus();
