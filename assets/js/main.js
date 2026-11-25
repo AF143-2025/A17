@@ -58,6 +58,11 @@ toggle.setAttribute("aria-label", open ? toggle.dataset.labelClose : toggle.data
 };
 toggle.addEventListener("click", () => setOpen(!nav.classList.contains("open")));
 $$("a", nav).forEach((a) => a.addEventListener("click", () => setOpen(false)));
+  document.addEventListener("click", (e) => {
+    if (nav.classList.contains("open") && !nav.contains(e.target) && !toggle.contains(e.target)) {
+      setOpen(false);
+    }
+  });
 document.addEventListener("keydown", (e) => { if (e.key === "Escape" && nav.classList.contains("open")) { setOpen(false); toggle.focus(); } });
 window.matchMedia("(min-width: 961px)").addEventListener("change", (mq) => { if (mq.matches) setOpen(false); });
 }
