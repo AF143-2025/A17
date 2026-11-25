@@ -1,0 +1,9 @@
+{
+  "name": "ibrahimiq-website",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Ibrahim Mahaoush - Digital Marketing, Web Development & Cybersecurity",
+  "scripts": {
+    "build": "echo 'Static site ready'"
+  }
+}
