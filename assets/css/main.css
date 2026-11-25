@@ -641,4 +641,310 @@ h1, h2, h3, h4, h5, h6, p, blockquote, figcaption {
   }
 }
 
+
+/* ==========================================================================
+   FLOATING TASKBAR & CENTERED SYMMETRICAL SYSTEM (100/100)
+   ========================================================================== */
+
+/* --- 1. Floating Top Taskbar / Navigation Capsule --- */
+:root {
+  --header-h: 88px;
+}
+
+.site-header {
+  position: fixed !important;
+  top: clamp(0.6rem, 1.8vw, 1.1rem) !important;
+  inset-inline: 0 !important;
+  height: auto !important;
+  z-index: 100 !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  pointer-events: none !important;
+}
+
+.site-header::before {
+  display: none !important;
+}
+
+.header-inner {
+  pointer-events: auto !important;
+  width: min(calc(100% - 1.8rem), 1180px) !important;
+  margin-inline: auto !important;
+  height: clamp(54px, 7vw, 64px) !important;
+  padding: 0 1.25rem !important;
+  background: rgba(14, 17, 23, 0.85) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(180%) !important;
+  backdrop-filter: blur(18px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 999px !important;
+  box-shadow: 0 16px 36px -10px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(200, 242, 60, 0.08) !important;
+  transition: all 0.3s var(--ease) !important;
+}
+
+.site-header.is-scrolled .header-inner {
+  background: rgba(10, 12, 16, 0.94) !important;
+  border-color: rgba(200, 242, 60, 0.28) !important;
+  box-shadow: 0 20px 45px -12px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(200, 242, 60, 0.18) !important;
+  transform: translateY(-1px);
+}
+
+/* Floating Mobile Drawer */
+@media (max-width: 960px) {
+  :root {
+    --header-h: 80px;
+  }
+  .header-inner {
+    width: min(calc(100% - 1.2rem), 540px) !important;
+    height: 56px !important;
+    padding: 0 1rem !important;
+    border-radius: 999px !important;
+  }
+  .nav {
+    position: fixed !important;
+    top: calc(var(--header-h) + 0.4rem) !important;
+    inset-inline: 1rem !important;
+    margin-inline: auto !important;
+    max-width: 480px !important;
+    max-height: calc(85vh - var(--header-h)) !important;
+    border-radius: 24px !important;
+    border: 1px solid var(--border-2) !important;
+    background: rgba(14, 17, 23, 0.97) !important;
+    -webkit-backdrop-filter: blur(24px) !important;
+    backdrop-filter: blur(24px) !important;
+    box-shadow: 0 24px 60px -15px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(200, 242, 60, 0.15) !important;
+    padding: 1.25rem 1.25rem calc(1.5rem + env(safe-area-inset-bottom)) !important;
+  }
+}
+
+/* --- 2. Floating Bottom Mobile Dock / Taskbar --- */
+@media (max-width: 860px) {
+  .mobile-cta {
+    position: fixed !important;
+    bottom: calc(0.85rem + env(safe-area-inset-bottom)) !important;
+    inset-inline: 1rem !important;
+    margin-inline: auto !important;
+    max-width: 420px !important;
+    border-radius: 999px !important;
+    background: rgba(14, 17, 23, 0.94) !important;
+    border: 1px solid rgba(200, 242, 60, 0.3) !important;
+    box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(200, 242, 60, 0.2) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    backdrop-filter: blur(20px) !important;
+    padding: 0.45rem 0.65rem !important;
+    z-index: 90 !important;
+    gap: 0.5rem !important;
+  }
+  .mobile-cta .btn {
+    border-radius: 999px !important;
+    min-height: 46px !important;
+  }
+  .mobile-cta-ic {
+    border-radius: 50% !important;
+    width: 46px !important;
+    height: 46px !important;
+  }
+}
+
+/* --- 3. Centered and Symmetrical Layout System --- */
+.section-head {
+  text-align: center !important;
+  margin-inline: auto !important;
+  max-width: 760px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+
+.section-head h2 {
+  text-align: center !important;
+}
+
+.section-sub {
+  text-align: center !important;
+  margin-inline: auto !important;
+}
+
+.eyebrow {
+  justify-content: center !important;
+  margin-inline: auto !important;
+}
+
+.section-head-row {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
+  gap: 1.25rem !important;
+}
+
+.section-head-row > div {
+  text-align: center !important;
+  max-width: 720px !important;
+  margin-inline: auto !important;
+}
+
+/* Center Hero Content */
+.hero-copy {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
+}
+
+.hero-copy h1 {
+  text-align: center !important;
+}
+
+.hero-copy .lead {
+  text-align: center !important;
+  margin-inline: auto !important;
+}
+
+.hero-eyebrow {
+  margin-inline: auto !important;
+  justify-content: center !important;
+}
+
+.hero-actions {
+  justify-content: center !important;
+  margin-inline: auto !important;
+}
+
+.hero-trust {
+  justify-content: center !important;
+  margin-inline: auto !important;
+}
+
+/* Center Stats */
+.stat {
+  align-items: center !important;
+  text-align: center !important;
+}
+
+.stat strong {
+  text-align: center !important;
+}
+
+.stat span {
+  text-align: center !important;
+}
+
+.results .ph-note {
+  justify-content: center !important;
+  text-align: center !important;
+}
+
+/* Center Why & Process */
+.why-title {
+  text-align: center !important;
+}
+
+.tech-head {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
+  gap: 0.4rem !important;
+}
+
+.tech-title {
+  justify-content: center !important;
+}
+
+.tech-sub {
+  text-align: center !important;
+}
+
+.svc-more {
+  text-align: center !important;
+}
+
+.svc-chips {
+  justify-content: center !important;
+}
+
+.timeline li {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
+}
+
+@media (max-width: 860px) {
+  .timeline li {
+    display: grid !important;
+    text-align: start !important;
+    align-items: start !important;
+  }
+}
+
+/* Center Pricing Notes & Offers */
+.price-note {
+  justify-content: center !important;
+  text-align: center !important;
+}
+
+/* Center Contact Copy & Channels */
+.contact-copy {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
+}
+
+.contact-copy h2, .contact-lead {
+  text-align: center !important;
+}
+
+.contact-points {
+  justify-content: center !important;
+  margin-inline: auto !important;
+}
+
+.channels {
+  width: 100% !important;
+  max-width: 440px !important;
+  margin-inline: auto !important;
+}
+
+/* Center Footer */
+.footer-top {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
+  gap: 2rem !important;
+}
+
+.footer-brand {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
+}
+
+.footer-nav {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  gap: 0.5rem 2rem !important;
+  text-align: center !important;
+}
+
+.footer-svc {
+  justify-content: center !important;
+  text-align: center !important;
+}
+
+.footer-bottom {
+  justify-content: center !important;
+  text-align: center !important;
+  gap: 1.5rem !important;
+}
+
+.social {
+  justify-content: center !important;
+}
+
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none !important;transition:none !important;scroll-behavior:auto !important}.reveal{opacity:1;transform:none}.viz-line{stroke-dashoffset:0}}
