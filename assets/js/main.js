@@ -296,7 +296,7 @@ function initSectionHub() {
     work: ["work", "testimonials"],
     about: ["about", "why"],
     faq: ["faq"],
-    contact: ["contact", "cta"],
+    contact: ["contact"],
   };
 
   const allSectionIds = Object.values(sectionMap).flat();
