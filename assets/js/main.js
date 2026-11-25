@@ -284,6 +284,139 @@ const greet = LANG === "en" ? CFG.whatsappGreetingEn || CFG.whatsappGreeting : C
 if (!greet) return;
 $$('#waFloat, .mobile-cta a[href*="wa.me/"]').forEach((a) => { a.href = waUrl(greet); });
 }
+
+function initSectionHub() {
+  const hub = document.getElementById("explore");
+  if (!hub) return;
+
+  const sectionMap = {
+    services: ["services", "process", "sectors"],
+    calculator: ["calculator"],
+    pricing: ["pricing"],
+    work: ["work", "testimonials"],
+    about: ["about", "why"],
+    faq: ["faq"],
+    contact: ["contact", "cta"],
+  };
+
+  const allSectionIds = Object.values(sectionMap).flat();
+  const sections = allSectionIds.map(id => document.getElementById(id)).filter(Boolean);
+  const hubCards = Array.from(hub.querySelectorAll(".hub-card"));
+  const toggleAllBtn = document.getElementById("toggleAllSections");
+  const toggleAllText = document.getElementById("toggleAllText");
+  const isEn = document.documentElement.lang === "en";
+
+  let showAll = false;
+  let activeTarget = null;
+
+  function updateVisibility() {
+    if (showAll) {
+      sections.forEach(sec => {
+        sec.classList.remove("section-hidden");
+        sec.classList.add("section-visible");
+      });
+      hubCards.forEach(card => card.classList.add("is-active"));
+      if (toggleAllText) {
+        toggleAllText.textContent = isEn ? "Collapse all sections" : "إخفاء وتنسيق الأقسام";
+      }
+      return;
+    }
+
+    if (toggleAllText) {
+      toggleAllText.textContent = isEn ? "Show all sections at once" : "عرض كل الأقسام دفعة واحدة";
+    }
+
+    sections.forEach(sec => {
+      const shouldShow = activeTarget && (sectionMap[activeTarget] || []).includes(sec.id);
+      if (shouldShow) {
+        sec.classList.remove("section-hidden");
+        sec.classList.add("section-visible");
+      } else {
+        sec.classList.add("section-hidden");
+        sec.classList.remove("section-visible");
+      }
+    });
+
+    hubCards.forEach(card => {
+      const match = card.dataset.target === activeTarget;
+      card.classList.toggle("is-active", match);
+    });
+  }
+
+  function openSection(targetId, doScroll = true) {
+    if (showAll) {
+      const el = document.getElementById(targetId);
+      if (el && doScroll) {
+        el.scrollIntoView({ behavior: "smooth" });
+      }
+      return;
+    }
+
+    let key = Object.keys(sectionMap).find(k => k === targetId || sectionMap[k].includes(targetId));
+    if (!key) key = targetId;
+
+    if (activeTarget === key) {
+      activeTarget = null;
+      updateVisibility();
+      hub.scrollIntoView({ behavior: "smooth" });
+      return;
+    }
+
+    activeTarget = key;
+    updateVisibility();
+
+    if (doScroll) {
+      const targetEl = document.getElementById(targetId) || document.getElementById((sectionMap[key] || [])[0]);
+      if (targetEl) {
+        setTimeout(() => {
+          targetEl.scrollIntoView({ behavior: "smooth" });
+        }, 50);
+      }
+    }
+  }
+
+  hubCards.forEach(card => {
+    card.addEventListener("click", () => {
+      openSection(card.dataset.target, true);
+    });
+  });
+
+  if (toggleAllBtn) {
+    toggleAllBtn.addEventListener("click", () => {
+      showAll = !showAll;
+      updateVisibility();
+      if (!showAll) {
+        hub.scrollIntoView({ behavior: "smooth" });
+      }
+    });
+  }
+
+  document.querySelectorAll(".section-close-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      activeTarget = null;
+      showAll = false;
+      updateVisibility();
+      hub.scrollIntoView({ behavior: "smooth" });
+    });
+  });
+
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    const hash = a.getAttribute("href").replace(/^#/, "");
+    if (allSectionIds.includes(hash)) {
+      a.addEventListener("click", () => {
+        openSection(hash, true);
+      });
+    }
+  });
+
+  const initHash = location.hash.replace(/^#/, "");
+  if (initHash && allSectionIds.includes(initHash)) {
+    openSection(initHash, true);
+  } else {
+    updateVisibility();
+  }
+}
+
 function initReveal() {
 if (!("IntersectionObserver" in window)) return;
 if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -322,5 +455,6 @@ initWhatsAppLinks();
 initCalcLead();
 initMobileCta();
 initReveal();
+initSectionHub();
 });
 })();

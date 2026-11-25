@@ -947,4 +947,203 @@ h1, h2, h3, h4, h5, h6, p, blockquote, figcaption {
   justify-content: center !important;
 }
 
+
+/* ==========================================================================
+   WORLD-CLASS INTERACTIVE HUB & SECTION REVEAL SYSTEM
+   ========================================================================== */
+
+.section-hub {
+  padding: clamp(2.5rem, 5vw, 4rem) 0;
+  position: relative;
+  border-bottom: 1px solid var(--border);
+  background: radial-gradient(800px 400px at 50% 0%, rgba(200, 242, 60, 0.04), transparent 70%);
+}
+
+.hub-header {
+  text-align: center;
+  max-width: 680px;
+  margin-inline: auto;
+  margin-bottom: clamp(2rem, 4vw, 3rem);
+}
+
+.hub-header h2 {
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+  letter-spacing: -0.01em;
+  margin-bottom: 0.6rem;
+}
+
+.hub-sub {
+  color: var(--text-2);
+  font-size: 1.02rem;
+  line-height: 1.7;
+}
+
+.hub-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 1.15rem;
+  margin-bottom: 2rem;
+}
+
+.hub-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: start;
+  gap: 1rem;
+  padding: 1.4rem 1.35rem;
+  border-radius: 20px;
+  background: rgba(18, 21, 27, 0.7);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--border-2);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  transition: all 0.3s var(--ease);
+}
+
+html[dir="rtl"] .hub-card {
+  text-align: right;
+  align-items: flex-start;
+}
+
+.hub-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--accent-line);
+  background: rgba(24, 28, 36, 0.88);
+  box-shadow: 0 18px 40px -12px rgba(0, 0, 0, 0.7), 0 0 0 1px var(--accent-line);
+}
+
+.hub-card.is-active {
+  border-color: var(--accent);
+  background: rgba(24, 28, 36, 0.95);
+  box-shadow: 0 20px 45px -10px rgba(200, 242, 60, 0.2), 0 0 0 1.5px var(--accent);
+}
+
+.hub-card-featured {
+  background: linear-gradient(145deg, rgba(200, 242, 60, 0.08), rgba(18, 21, 27, 0.8));
+  border-color: var(--accent-line);
+}
+
+.hub-ic {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: var(--surface-3);
+  border: 1px solid var(--border-2);
+  color: var(--accent);
+  transition: all 0.25s var(--ease);
+}
+
+.hub-card:hover .hub-ic,
+.hub-card.is-active .hub-ic {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: transparent;
+  transform: scale(1.05);
+}
+
+.hub-info h3 {
+  font-size: 1.15rem;
+  margin: 0 0 0.35rem;
+  font-weight: 650;
+  color: var(--text);
+}
+
+.hub-info p {
+  color: var(--text-2);
+  font-size: 0.88rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.hub-btn {
+  margin-top: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.hub-btn .ic {
+  width: 15px;
+  height: 15px;
+  transition: transform 0.25s var(--ease);
+}
+
+.hub-card:hover .hub-btn .ic-arrow {
+  transform: translateX(4px);
+}
+
+html[dir="rtl"] .hub-card:hover .hub-btn .ic-arrow {
+  transform: scaleX(-1) translateX(4px);
+}
+
+.hub-card.is-active .hub-btn {
+  color: var(--accent-2);
+}
+
+.hub-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+
+/* Collapsible Section Transitions */
+.section-hidden {
+  display: none !important;
+}
+
+.section-visible {
+  display: block !important;
+  animation: sectionReveal 0.45s var(--ease) both;
+}
+
+@keyframes sectionReveal {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.section-close-bar {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.section-close-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 42px;
+  padding: 0.5rem 1.25rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-2);
+  background: rgba(18, 21, 27, 0.8);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  color: var(--text-2);
+  font-size: 0.86rem;
+  font-weight: 550;
+  cursor: pointer;
+  transition: all 0.25s var(--ease);
+}
+
+.section-close-btn:hover {
+  background: var(--surface-2);
+  color: var(--accent);
+  border-color: var(--accent-line);
+  transform: translateY(-2px);
+}
+
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none !important;transition:none !important;scroll-behavior:auto !important}.reveal{opacity:1;transform:none}.viz-line{stroke-dashoffset:0}}
