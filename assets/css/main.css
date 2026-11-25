@@ -1759,3 +1759,25 @@ html[dir="rtl"] .hub-card:hover .hub-btn .ic-arrow {
 }
 
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none !important;transition:none !important;scroll-behavior:auto !important}.reveal{opacity:1;transform:none}.viz-line{stroke-dashoffset:0}}
+
+/* Centered real testimonial styling */
+.testis {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: stretch !important;
+  gap: 1.5rem !important;
+  flex-wrap: wrap !important;
+}
+.testi {
+  max-width: 640px !important;
+  width: 100% !important;
+  text-align: center !important;
+  margin: 0 auto !important;
+}
+.testi blockquote {
+  font-size: 1.2rem !important;
+  line-height: 1.7 !important;
+}
+.testi figcaption {
+  justify-content: center !important;
+}
