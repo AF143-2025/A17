@@ -294,24 +294,6 @@ return new Date(d).toLocaleDateString("ar-IQ-u-nu-latn", { day: "numeric", month
 }
 const waPhone = (p) => { let d = String(p).replace(/\D/g, ""); if (d.startsWith("00")) d = d.slice(2); if (d.startsWith("0")) d = "964" + d.slice(1); return d; };
 RENDER.leads = async (el) => {
-if (!state.demo && sbConfigured() && !state.sb) {
-el.innerHTML = `
-<form class="panel narrow-panel" id="sbLogin">
-<h2>دخول قاعدة البيانات</h2>
-<p class="muted">سجّل بحساب Supabase اللي سويته للوحة.</p>
-${field("الإيميل", "email", "", { type: "email", dir: "ltr" })}
-${field("كلمة المرور", "password", "", { type: "password", dir: "ltr" })}
-<p class="login-err" id="sbErr"></p>
-<button class="btn btn-accent btn-block" type="submit">دخول</button>
-</form>`;
-$("#sbLogin").addEventListener("submit", async (e) => {
-e.preventDefault();
-const f = formData(e.target);
-try { state.sb = await sbAuth("password", f); storage.set(SB_KEY, JSON.stringify(state.sb)); go("leads"); }
-catch (err) { $("#sbErr").textContent = err.message; }
-});
-return;
-}
 try { await loadLeads(); }
 catch (e) { if (e.message === "sb-auth") return go("leads"); throw e; }
 paintLeads(el);
@@ -843,7 +825,7 @@ ${field("Google Analytics 4 ID", "ga4Id", s.tracking.ga4Id, { dir: "ltr", placeh
 <h2>قاعدة بيانات الطلبات (Supabase)</h2>
 <p class="muted small">الخطوات بملف README بالمستودع. المفتاح المطلوب هو <b>anon public</b> فقط، لا تحط service_role.</p>
 ${field("Project URL", "supabaseUrl", s.supabaseUrl, { dir: "ltr", placeholder: "https://xxxx.supabase.co" })}
-${field("anon public key", "supabaseAnonKey", s.supabaseAnonKey, { dir: "ltr", type: "textarea", rows: 3 })}
+${field("anon public key", "supabaseAnonKey", s.supabaseAnonKey, { dir: "ltr", type: "password", placeholder: "••••••••••••••••" })}
 </section>
 <section class="panel">
 <h2>المساعد الذكي (AI)</h2>
@@ -920,6 +902,24 @@ Object.assign(state, { demo: false, token: null, files: {}, leads: null, sb: nul
 $("#appView").hidden = true; $("#loginView").hidden = false;
 }
 function bind() {
+const passToggle = document.getElementById("togglePassBtn");
+if (passToggle) {
+  passToggle.addEventListener("click", () => {
+    const inp = document.getElementById("ghToken");
+    const eyeShow = passToggle.querySelector(".eye-show");
+    const eyeHide = passToggle.querySelector(".eye-hide");
+    if (!inp) return;
+    if (inp.type === "password") {
+      inp.type = "text";
+      if (eyeShow) eyeShow.style.display = "none";
+      if (eyeHide) eyeHide.style.display = "block";
+    } else {
+      inp.type = "password";
+      if (eyeShow) eyeShow.style.display = "block";
+      if (eyeHide) eyeHide.style.display = "none";
+    }
+  });
+}
 $("#loginForm").addEventListener("submit", async (e) => {
 e.preventDefault();
 const f = e.target, btn = f.querySelector("[type=submit]"), token = f.token.value.trim();
