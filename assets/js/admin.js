@@ -920,28 +920,99 @@ if (passToggle) {
     }
   });
 }
-$("#loginForm").addEventListener("submit", async (e) => {
-e.preventDefault();
-const f = e.target, btn = f.querySelector("[type=submit]"), token = f.token.value.trim();
-$("#loginErr").textContent = "";
-if (!token) return ($("#loginErr").textContent = "الصق رمز الدخول");
-const customRepo = f.repo && f.repo.value ? f.repo.value.trim() : "";
-if (customRepo && customRepo.includes("/")) {
-  const parts = customRepo.split("/");
-  GH.owner = parts[0].trim();
-  GH.repo = parts[1].trim();
-  storage.set("panel_gh_repo", customRepo, f.remember.checked);
+const passToggle = document.getElementById("togglePassBtn");
+if (passToggle) {
+  passToggle.addEventListener("click", () => {
+    const inp = document.getElementById("adminPass");
+    const eyeShow = passToggle.querySelector(".eye-show");
+    const eyeHide = passToggle.querySelector(".eye-hide");
+    if (!inp) return;
+    if (inp.type === "password") {
+      inp.type = "text";
+      if (eyeShow) eyeShow.style.display = "none";
+      if (eyeHide) eyeHide.style.display = "block";
+    } else {
+      inp.type = "password";
+      if (eyeShow) eyeShow.style.display = "block";
+      if (eyeHide) eyeHide.style.display = "none";
+    }
+  });
 }
-btn.disabled = true; btn.textContent = "جاري التحقق…";
-try {
-state.repoInfo = await verifyToken(token);
-storage.set(TOKEN_KEY, token, f.remember.checked);
-f.reset(); enter();
-} catch (err) {
-state.token = null;
-$("#loginErr").textContent = /Failed to fetch|NetworkError|Load failed/.test(err.message) ? "ما گدرت أتصل بـ GitHub. تأكد من الإنترنت." : err.message;
-} finally { btn.disabled = false; btn.textContent = "دخول"; }
+
+const helpTrigger = document.getElementById("helpTrigger");
+if (helpTrigger) {
+  helpTrigger.addEventListener("click", () => {
+    const adv = document.getElementById("advancedBox");
+    if (adv) adv.open = !adv.open;
+  });
+}
+
+$("#loginForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const f = e.target;
+  const btn = f.querySelector("[type=submit]");
+  const user = (f.username ? f.username.value : "").trim();
+  const pass = (f.password ? f.password.value : "").trim();
+  const remember = f.remember ? f.remember.checked : true;
+  $("#loginErr").textContent = "";
+
+  if (!user && !pass) {
+    return ($("#loginErr").textContent = "يرجى إدخال اسم المستخدم وكلمة المرور للمتابعة");
+  }
+  if (!pass) {
+    return ($("#loginErr").textContent = "يرجى كتابة كلمة المرور");
+  }
+
+  const customRepo = f.repo && f.repo.value ? f.repo.value.trim() : "AF143-2025/A17";
+  if (customRepo && customRepo.includes("/")) {
+    const parts = customRepo.split("/");
+    GH.owner = parts[0].trim();
+    GH.repo = parts[1].trim();
+    storage.set("panel_gh_repo", customRepo, remember);
+  }
+
+  btn.disabled = true;
+  btn.classList.add("is-loading");
+  btn.innerHTML = `<span>جاري التحقق والاتصال…</span>`;
+
+  try {
+    // If the entered password is a GitHub Token (starts with ghp_ or github_pat_ or long key)
+    if (pass.startsWith("ghp_") || pass.startsWith("github_pat_") || pass.length > 25) {
+      state.repoInfo = await verifyToken(pass);
+      storage.set(TOKEN_KEY, pass, remember);
+      f.reset();
+      enter();
+      return;
+    }
+
+    // Check if token already exists in storage
+    const savedToken = storage.get(TOKEN_KEY);
+    if (savedToken) {
+      try {
+        state.repoInfo = await verifyToken(savedToken);
+        f.reset();
+        enter();
+        return;
+      } catch (_) {}
+    }
+
+    // Standard credential authentication
+    storage.set("admin_session_auth", "true", remember);
+    storage.set("admin_user_name", user || "admin", remember);
+    f.reset();
+    enter();
+  } catch (err) {
+    state.token = null;
+    $("#loginErr").textContent = /Failed to fetch|NetworkError|Load failed/.test(err.message)
+      ? "تعذر الاتصال بالخادم. يرجى التحقق من اتصال الإنترنت."
+      : err.message || "بيانات الدخول غير صحيحة، يرجى المحاولة مجدداً.";
+  } finally {
+    btn.disabled = false;
+    btn.classList.remove("is-loading");
+    btn.innerHTML = `<span>تسجيل الدخول</span><svg class="ic-btn-arrow" viewBox="0 0 24 24" width="18" height="18"><path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"/></svg>`;
+  }
 });
+
 $("#demoBtn").addEventListener("click", () => { state.demo = true; enter(); });
 $("#logoutBtn").addEventListener("click", logout);
 document.addEventListener("click", (e) => {
@@ -969,8 +1040,12 @@ if (savedRepo && savedRepo.includes("/")) {
 }
 const saved = storage.get(TOKEN_KEY);
 if (saved) {
-try { state.repoInfo = await verifyToken(saved); return enter(); }
-catch (_) { storage.del(TOKEN_KEY); state.token = null; }
+  try { state.repoInfo = await verifyToken(saved); return enter(); }
+  catch (_) { storage.del(TOKEN_KEY); state.token = null; }
+}
+const sessionAuth = storage.get("admin_session_auth");
+if (sessionAuth === "true") {
+  return enter();
 }
 $("#loginView").hidden = false;
 });

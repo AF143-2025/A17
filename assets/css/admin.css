@@ -249,3 +249,351 @@
 .tab-btn.is-active {
   color: var(--accent) !important;
 }
+
+
+/* ==========================================================================
+   WORLD-CLASS GLOBAL LOGIN UI (Linear / Vercel / Stripe Standard)
+   ========================================================================== */
+
+.login {
+  position: relative !important;
+  min-height: 100vh !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: #07090E !important;
+  padding: 1.5rem 1rem !important;
+  overflow: hidden !important;
+  z-index: 1 !important;
+}
+
+/* Background Microgrid & Ambient Aurora */
+.login-grid-bg {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+  background-size: 38px 38px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.login-ambient-glow {
+  position: absolute;
+  top: 25%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(650px, 95vw);
+  height: 450px;
+  background: radial-gradient(ellipse at center, rgba(200, 242, 60, 0.12) 0%, rgba(30, 40, 60, 0.08) 45%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* The Login Card Capsule */
+.login-card {
+  position: relative !important;
+  z-index: 2 !important;
+  width: min(100%, 460px) !important;
+  background: rgba(16, 20, 28, 0.85) !important;
+  -webkit-backdrop-filter: blur(32px) saturate(180%) !important;
+  backdrop-filter: blur(32px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 28px !important;
+  padding: 2.75rem 2.25rem 2rem !important;
+  box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(200, 242, 60, 0.12) !important;
+}
+
+@media (max-width: 480px) {
+  .login-card {
+    padding: 2rem 1.4rem 1.75rem !important;
+    border-radius: 24px !important;
+  }
+}
+
+/* Header & Monogram */
+.login-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.login-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  background: rgba(200, 242, 60, 0.08);
+  border: 1px solid rgba(200, 242, 60, 0.22);
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+}
+
+.badge-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--accent);
+  animation: pulseDot 2s infinite ease-in-out;
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+.login-card .logo {
+  justify-content: center !important;
+  margin-bottom: 0.75rem !important;
+}
+
+.login-card .logo-mark {
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 12px !important;
+  box-shadow: 0 0 20px -3px rgba(200, 242, 60, 0.4) !important;
+}
+
+.login-title {
+  font-size: 1.55rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0.75rem 0 0.25rem;
+  letter-spacing: -0.02em;
+}
+
+.login-sub {
+  font-size: 0.92rem;
+  color: var(--text-2);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Input Wraps with Icons */
+.input-wrap {
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
+}
+
+.input-icon {
+  position: absolute !important;
+  inset-inline-start: 14px !important;
+  color: var(--text-3) !important;
+  pointer-events: none !important;
+  display: flex !important;
+  align-items: center !important;
+  transition: color 0.2s !important;
+}
+
+.input-wrap input {
+  width: 100% !important;
+  height: 50px !important;
+  background: rgba(255, 255, 255, 0.035) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 14px !important;
+  color: #fff !important;
+  font-size: 0.98rem !important;
+  transition: all 0.25s var(--ease) !important;
+}
+
+/* Bi-directional icon padding */
+html[dir="rtl"] .input-wrap input {
+  padding-right: 42px !important;
+  padding-left: 46px !important;
+}
+
+html[dir="ltr"] .input-wrap input {
+  padding-left: 42px !important;
+  padding-right: 46px !important;
+}
+
+.input-wrap input:focus {
+  border-color: var(--accent) !important;
+  background: rgba(200, 242, 60, 0.03) !important;
+  box-shadow: 0 0 0 4px rgba(200, 242, 60, 0.15) !important;
+  outline: none !important;
+}
+
+.input-wrap:focus-within .input-icon {
+  color: var(--accent) !important;
+}
+
+/* Field Labels */
+.field-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.4rem;
+}
+
+.forgot-link {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  transition: opacity 0.2s;
+}
+
+.forgot-link:hover {
+  text-decoration: underline;
+  opacity: 0.85;
+}
+
+/* Custom Checkbox */
+.login-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0.25rem 0 0.5rem;
+}
+
+.check-custom {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.88rem;
+  color: var(--text-2);
+  cursor: pointer;
+  user-select: none;
+}
+
+.check-custom input {
+  accent-color: var(--accent);
+  width: 17px;
+  height: 17px;
+  cursor: pointer;
+}
+
+/* Buttons */
+.btn-login {
+  height: 52px !important;
+  border-radius: 14px !important;
+  background: var(--accent) !important;
+  color: #080A0E !important;
+  font-size: 1.05rem !important;
+  font-weight: 700 !important;
+  box-shadow: 0 12px 28px -6px rgba(200, 242, 60, 0.4) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.6rem !important;
+  transition: all 0.25s var(--ease) !important;
+  cursor: pointer !important;
+}
+
+.btn-login:hover {
+  background: var(--accent-2) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 16px 36px -4px rgba(200, 242, 60, 0.5) !important;
+}
+
+.btn-login:active {
+  transform: translateY(0) !important;
+}
+
+.ic-btn-arrow {
+  transition: transform 0.25s var(--ease);
+}
+
+html[dir="rtl"] .btn-login:hover .ic-btn-arrow {
+  transform: translateX(-4px);
+}
+
+html[dir="ltr"] .btn-login:hover .ic-btn-arrow {
+  transform: translateX(4px);
+}
+
+.login-divider {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: var(--text-3);
+  font-size: 0.85rem;
+  margin: 1.25rem 0;
+}
+
+.login-divider::before,
+.login-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.btn-demo {
+  height: 48px !important;
+  border-radius: 14px !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #fff !important;
+  font-size: 0.95rem !important;
+  font-weight: 600 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.6rem !important;
+  transition: all 0.25s var(--ease) !important;
+}
+
+.btn-demo:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Advanced Settings Dropdown */
+.advanced-settings {
+  margin-top: 1.25rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  padding: 0.75rem 1rem;
+  font-size: 0.88rem;
+}
+
+.advanced-settings summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-3);
+  font-weight: 550;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.advanced-settings summary:hover {
+  color: var(--text-2);
+}
+
+.advanced-settings .adv-body {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.adv-note {
+  font-size: 0.8rem;
+  color: var(--text-3);
+  margin: 0.5rem 0 0;
+  line-height: 1.4;
+}
+
+/* Footer Trust Badges */
+.login-footer-trust {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--text-3);
+  font-size: 0.78rem;
+  margin-top: 1.75rem;
+  user-select: none;
+}
